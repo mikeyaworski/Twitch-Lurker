@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "public/background-scripts",
+    "src/app-constants.ts",
+    "src/chrome-utils.ts",
+    "src/utils.ts",
+    "src/logging.ts"
+  ],
+}

@@ -1,0 +1,5 @@
+node_modules
+build
+public/content-script-bundle.js
+public/background-script-bundle.js
+public/libs

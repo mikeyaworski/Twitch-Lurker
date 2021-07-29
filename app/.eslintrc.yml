@@ -1,0 +1,86 @@
+parser: '@typescript-eslint/parser'
+env:
+  browser: true
+  es6: true
+  node: true
+  webextensions: true
+settings:
+  import/resolver:
+    node:
+      moduleDirectory:
+      - node_modules
+      - src
+      extensions:
+        - '.js'
+        - '.jsx'
+        - '.ts'
+        - '.tsx'
+extends:
+  - airbnb
+  - 'plugin:@typescript-eslint/recommended'
+parserOptions:
+  ecmaFeatures:
+    jsx: true
+  ecmaVersion: 2018
+  sourceType: module
+plugins:
+  - react
+  - react-hooks
+  - '@typescript-eslint'
+rules:  
+  # TS rules
+  '@typescript-eslint/ban-ts-comment': off
+  '@typescript-eslint/no-non-null-assertion': off
+  '@typescript-eslint/explicit-module-boundary-types': off
+
+  # Redundant TS rules which can just be disabled.
+  '@typescript-eslint/no-unused-vars': off
+
+  # https://github.com/typescript-eslint/typescript-eslint/blob/master/packages/eslint-plugin/docs/rules/no-use-before-define.md#how-to-use
+  no-use-before-define: off
+  '@typescript-eslint/no-use-before-define':
+    - error
+
+  react/require-default-props: off
+  react/jsx-props-no-spreading: off
+  react/jsx-filename-extension: off
+  react/prop-types: off
+  linebreak-style: off
+  import/prefer-default-export: off
+  max-len:
+    - error
+    - code: 150
+      tabWidth: 2
+  arrow-parens:
+    - error
+    - as-needed
+  no-param-reassign: off
+  no-plusplus:
+    - error
+    - allowForLoopAfterthoughts: true
+  object-curly-newline:
+    - error
+    - multiline: true
+      consistent: true
+  import/extensions:
+    - error
+    - js: never
+      jsx: never
+      ts: never
+      tsx: never
+  react-hooks/rules-of-hooks:
+    - error
+  react-hooks/exhaustive-deps:
+    - error
+  react/jsx-one-expression-per-line:
+    - off
+  arrow-body-style: off
+  no-await-in-loop: off
+  no-continue: off
+
+  # We are not worried about accessibility.
+  jsx-a11y/anchor-is-valid: off
+  jsx-a11y/media-has-caption: off
+  jsx-a11y/click-events-have-key-events: off
+  jsx-a11y/role-has-required-aria-props: off
+  jsx-a11y/no-static-element-interactions: off
