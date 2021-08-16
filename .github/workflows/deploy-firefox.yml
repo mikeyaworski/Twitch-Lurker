@@ -1,0 +1,29 @@
+name: Deploy Firefox
+on:
+  push:
+    branches: [master]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    env:
+      FF_APP_ID: "{74674eef-80d9-4cd3-af95-72ee34c0f2b6}"
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
+      with:
+        node-version: 14.x
+    - run: npm ci
+    - run: npm test
+    - run: npm run build:prod
+    - run: zip -r package.zip . -x "background-scripts/*" -x "content-scripts/*"
+      working-directory: app/build
+    - uses: mikeyaworski/firefox-addon@master
+      with:
+        uuid: "${{ env.FF_APP_ID }}"
+        xpi: app/build/package.zip
+        manifest: app/build/manifest.json
+        api-key: ${{ secrets.FF_JWT_ISSUER }}
+        api-secret: ${{ secrets.FF_JWT_SECRET }}

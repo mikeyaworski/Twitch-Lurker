@@ -2,7 +2,9 @@
 
 ## Extension/Addon Links
 
-TODO
+Chrome: https://chrome.google.com/webstore/detail/fkjghajhfjamfjcmdkbangbeogbagnjf
+
+Firefox: https://addons.mozilla.org/en-US/firefox/addon/twitch-lurker/
 
 ## Donations
 

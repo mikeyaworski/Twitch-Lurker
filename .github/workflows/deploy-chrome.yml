@@ -1,0 +1,29 @@
+name: Deploy Chrome
+on:
+  push:
+    branches: [master]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    env:
+      CHROME_APP_ID: fkjghajhfjamfjcmdkbangbeogbagnjf
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
+      with:
+        node-version: 14.x
+    - run: npm ci
+    - run: npm test
+    - run: npm run build:prod
+    - run: zip -r package.zip . -x "background-scripts/*" -x "content-scripts/*"
+      working-directory: app/build
+    - uses: mikeyaworski/chrome-addon@master
+      with:
+        extension: ${{ env.CHROME_APP_ID }}
+        zip: app/build/package.zip
+        client-id: ${{ secrets.CHROME_CLIENT_ID }}
+        client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}
+        refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}
