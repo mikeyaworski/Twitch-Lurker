@@ -1,14 +1,19 @@
 import React, { useCallback, useContext } from 'react';
-import type { DropResult } from 'react-beautiful-dnd';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import type { SortEndHandler } from 'react-sortable-hoc';
+import { SortableContainer, SortableElement, arrayMove } from 'react-sortable-hoc';
 import { makeStyles } from '@material-ui/core/styles';
 import { List, ListItem, ListItemIcon, ListItemText, Typography } from '@material-ui/core';
 import StarRoundedIcon from '@material-ui/icons/StarRounded';
 import StorageContext from 'contexts/Storage';
 import BackWrapper from 'components/Router/BackWrapper';
 import BackgroundPortContext from 'contexts/BackgroundPort';
+import type { Channel } from 'types';
 
 const useStyles = makeStyles({
+  helperClass: {
+    // @ts-ignore Incorrect type error
+    pointerEvents: 'auto !important',
+  },
   scrollZone: {
     overflowY: 'scroll',
     height: 400,
@@ -29,6 +34,64 @@ const useStyles = makeStyles({
   itemText: {
     overflow: 'hidden',
   },
+  item: {
+    cursor: 'move',
+  },
+});
+
+interface FavoritesItemProps {
+  fav: string;
+  channel: Channel;
+  handleRemoveFavorite: (e: React.SyntheticEvent<SVGElement>) => void;
+}
+
+const FavoritesItem = SortableElement(({ handleRemoveFavorite, channel, fav }: FavoritesItemProps) => {
+  const classes = useStyles();
+  return (
+    <ListItem
+      dense
+      divider
+      className={classes.item}
+    >
+      {channel.profilePic && (
+        <img src={channel.profilePic} alt="avatar" className={classes.profilePic} />
+      )}
+      <ListItemText className={classes.itemText}>
+        {channel.displayName}
+      </ListItemText>
+      <ListItemIcon>
+        <StarRoundedIcon
+          className={classes.favoriteIcon}
+          data-username={fav}
+          onClick={handleRemoveFavorite}
+        />
+      </ListItemIcon>
+    </ListItem>
+  );
+});
+
+interface FavoritesListProps {
+  favorites: string[];
+  channels: Channel[];
+  handleRemoveFavorite: (e: React.SyntheticEvent<SVGElement>) => void;
+}
+
+const FavoritesList = SortableContainer(({ favorites, channels, handleRemoveFavorite }: FavoritesListProps) => {
+  const classes = useStyles();
+  return (
+    <List
+      className={classes.scrollZone}
+      dense
+    >
+      {favorites.map((fav, index) => {
+        const channel = channels.find(c => c.username === fav);
+        if (!channel) return null;
+        return (
+          <FavoritesItem key={fav} index={index} fav={fav} channel={channel} handleRemoveFavorite={handleRemoveFavorite} />
+        );
+      })}
+    </List>
+  );
 });
 
 export default function Favorites() {
@@ -42,66 +105,21 @@ export default function Favorites() {
     });
   }, [setStorage, storage.favorites]);
 
-  const handleMoveFavorite = useCallback((result: DropResult) => {
-    const newFavs = Array.from(storage.favorites);
-    if (!result.destination) return;
-    newFavs.splice(result.source.index, 1);
-    newFavs.splice(result.destination.index, 0, storage.favorites[result.source.index]);
-    setStorage({ favorites: newFavs }, true);
+  const handleMoveFavorite: SortEndHandler = useCallback(({ oldIndex, newIndex }) => {
+    setStorage({ favorites: arrayMove(storage.favorites, oldIndex, newIndex) }, true);
   }, [setStorage, storage.favorites]);
 
   return (
     <BackWrapper>
       <Typography variant="h5" align="center">Favorites</Typography>
-      <DragDropContext onDragEnd={handleMoveFavorite}>
-        <Droppable droppableId="favorites">
-          {providedZone => (
-            <List
-              {...providedZone.droppableProps}
-              ref={providedZone.innerRef}
-              className={classes.scrollZone}
-              dense
-            >
-              {storage.favorites.map((fav, index) => {
-                const channel = channels.find(c => c.username === fav);
-                if (!channel) return null;
-                return (
-                  <Draggable
-                    key={fav}
-                    draggableId={fav}
-                    index={index}
-                  >
-                    {providedItem => (
-                      <ListItem
-                        ref={providedItem.innerRef}
-                        {...providedItem.draggableProps}
-                        {...providedItem.dragHandleProps}
-                        dense
-                        divider
-                      >
-                        {channel.profilePic && (
-                          <img src={channel.profilePic} alt="avatar" className={classes.profilePic} />
-                        )}
-                        <ListItemText className={classes.itemText}>
-                          {channel.displayName}
-                        </ListItemText>
-                        <ListItemIcon>
-                          <StarRoundedIcon
-                            className={classes.favoriteIcon}
-                            data-username={fav}
-                            onClick={handleRemoveFavorite}
-                          />
-                        </ListItemIcon>
-                      </ListItem>
-                    )}
-                  </Draggable>
-                );
-              })}
-              {providedZone.placeholder}
-            </List>
-          )}
-        </Droppable>
-      </DragDropContext>
+      <FavoritesList
+        helperClass={classes.helperClass}
+        distance={1}
+        channels={channels}
+        favorites={storage.favorites}
+        handleRemoveFavorite={handleRemoveFavorite}
+        onSortEnd={handleMoveFavorite}
+      />
     </BackWrapper>
   );
 }
