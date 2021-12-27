@@ -53,7 +53,7 @@ type GetStorages = (
  * @returns Promise<Array> - Promise which resolves to an array with the order corresponding to the storageKeys order.
  */
 export const getStorage: GetStorages = async (storageKeys, storage) => {
-  const res = await browser.storage.local.get(storageKeys.map(key => (typeof key === 'string' ? key : key.key)));
+  const res = await browser.storage.sync.get(storageKeys.map(key => (typeof key === 'string' ? key : key.key)));
   if (chrome.runtime.lastError) {
     error(JSON.stringify(chrome.runtime.lastError));
     throw chrome.runtime.lastError;
@@ -87,7 +87,7 @@ export const setStorage: SetStorage = async (keyOrMap, val) => {
   const options = typeof keyOrMap === 'string'
     ? { [keyOrMap]: val }
     : keyOrMap;
-  await browser.storage.local.set(options);
+  await browser.storage.sync.set(options);
   if (chrome.runtime.lastError) {
     error(JSON.stringify(chrome.runtime.lastError));
     throw chrome.runtime.lastError;
