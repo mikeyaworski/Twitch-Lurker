@@ -6,8 +6,6 @@ function getRandomString() {
   return Math.random().toString(36).substring(2, 15);
 }
 
-const STATE = getRandomString();
-
 async function createAuthEndpoint() {
   const url = new URL('https://id.twitch.tv/oauth2/authorize');
   const redirectUri = await browser.identity.getRedirectURL();
@@ -16,19 +14,21 @@ async function createAuthEndpoint() {
   url.searchParams.append('response_type', 'token id_token');
   url.searchParams.append('scope', 'openid user:read:follows');
   url.searchParams.append('force_verify', 'true');
-  url.searchParams.append('state', STATE);
+  url.searchParams.append('state', getRandomString());
   url.searchParams.append('nonce', getRandomString());
   return url.href;
 }
 
 async function handleLogin() {
   const authEndpoint = await createAuthEndpoint();
+  const state = new URL(authEndpoint).searchParams.get('state');
   const redirectUrl = await browser.identity.launchWebAuthFlow({
     url: authEndpoint,
     interactive: true,
   });
   const url = new URL(redirectUrl);
   const params = url.hash ? new URLSearchParams(url.hash.substring(1)) : url.searchParams;
+  if (state !== params.get('state')) throw new Error('Invalid state parameter during authorization');
   const accessToken = params.get('access_token');
   const idToken = params.get('id_token');
   const userInfoBase64 = idToken?.split('.')[1];
