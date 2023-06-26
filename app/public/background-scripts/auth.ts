@@ -39,6 +39,12 @@ async function handleLogin() {
   await setStorage('userId', userInfo.sub);
 }
 
+export function logout() {
+  setStorage('accessToken', null);
+  setStorage('userId', null);
+  browser.browserAction.setBadgeText({ text: '' });
+}
+
 export default async function initAuth() {
   browser.runtime.onMessage.addListener(request => {
     switch (request.type) {
@@ -47,8 +53,7 @@ export default async function initAuth() {
         break;
       }
       case MESSAGE_TYPES.LOGOUT: {
-        setStorage('accessToken', null);
-        setStorage('userId', null);
+        logout();
         break;
       }
       default: {

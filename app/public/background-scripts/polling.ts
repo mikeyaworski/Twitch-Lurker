@@ -2,10 +2,12 @@ import { browser } from 'webextension-polyfill-ts';
 import type { Runtime } from 'webextension-polyfill-ts';
 import chunk from 'lodash.chunk';
 import debounce from 'lodash.debounce';
+import { log } from 'logging';
 import { getStorage, hookStorage } from '../../src/chrome-utils';
 import { TWITCH_API_BASE, CLIENT_ID, PAGINATION_LIMIT, MESSAGE_TYPES } from '../../src/app-constants';
 import type { Channel } from '../../src/types';
 import { openTwitchTabs } from './tabs';
+import { logout } from './auth';
 
 let globalChannels: Channel[] = [];
 let popupPort: Runtime.Port | null = null;
@@ -31,6 +33,7 @@ const getApi = (accessToken: string) => async (route: string, params: [string, s
     },
   });
   const json = await res.json();
+  if (res.status >= 400) throw json;
   return json;
 };
 
@@ -114,14 +117,29 @@ async function fetchTwitchData(accessToken: string, userId: string) {
   }]);
 }
 
+function handleError(err: unknown) {
+  if (typeof err === 'object'
+    && err
+    && 'status' in err
+    && typeof err.status === 'number'
+    && [400, 401].includes(err.status)
+  ) {
+    // Access token is probably invalid
+    log('Logged out due to (assumed) invalid access token', err);
+    logout();
+  } else {
+    throw err;
+  }
+}
+
 let pollingInterval: NodeJS.Timeout | undefined;
 async function poll() {
   const { accessToken, userId, enabled, pollDelay } = await getStorage(['accessToken', 'userId', 'enabled', 'pollDelay']);
   if (pollingInterval) clearInterval(pollingInterval);
   if (accessToken && userId && enabled && pollDelay) {
-    fetchTwitchData(accessToken, userId);
+    fetchTwitchData(accessToken, userId).catch(handleError);
     pollingInterval = setInterval(() => {
-      fetchTwitchData(accessToken, userId);
+      fetchTwitchData(accessToken, userId).catch(handleError);
     }, Number(pollDelay) * 1000 * 60);
   }
 }
