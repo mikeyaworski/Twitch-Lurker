@@ -1,6 +1,6 @@
 import { browser } from 'webextension-polyfill-ts';
 import { setStorage } from '../../src/chrome-utils';
-import { CLIENT_ID, MESSAGE_TYPES } from '../../src/app-constants';
+import { BADGE_DEFAULT_BACKGROUND_COLOR, CLIENT_ID, MESSAGE_TYPES } from '../../src/app-constants';
 
 function getRandomString() {
   return Math.random().toString(36).substring(2, 15);
@@ -43,6 +43,9 @@ export function logout() {
   setStorage('accessToken', null);
   setStorage('userId', null);
   browser.browserAction.setBadgeText({ text: '' });
+  browser.browserAction.setBadgeBackgroundColor({
+    color: BADGE_DEFAULT_BACKGROUND_COLOR,
+  });
 }
 
 export default async function initAuth() {

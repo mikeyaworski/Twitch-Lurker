@@ -4,7 +4,14 @@ import chunk from 'lodash.chunk';
 import debounce from 'lodash.debounce';
 import { log } from 'logging';
 import { getStorage, hookStorage } from '../../src/chrome-utils';
-import { TWITCH_API_BASE, CLIENT_ID, PAGINATION_LIMIT, MESSAGE_TYPES } from '../../src/app-constants';
+import {
+  TWITCH_API_BASE,
+  CLIENT_ID,
+  PAGINATION_LIMIT,
+  MESSAGE_TYPES,
+  BADGE_PURPLE_BACKGROUND_COLOR,
+  BADGE_DEFAULT_BACKGROUND_COLOR,
+} from '../../src/app-constants';
 import type { Channel } from '../../src/types';
 import { openTwitchTabs } from './tabs';
 import { logout } from './auth';
@@ -50,6 +57,13 @@ async function fetchFollowing(accessToken: string, userId: string) {
     channels.push(...res.data);
   } while (cursor);
   return channels;
+}
+
+async function updateBadgeColor(favorites: string[]): Promise<void> {
+  const isAnyFavoriteLive = globalChannels.some(channel => channel.viewerCount != null && favorites.includes(channel.username));
+  await browser.browserAction.setBadgeBackgroundColor({
+    color: isAnyFavoriteLive ? BADGE_PURPLE_BACKGROUND_COLOR : BADGE_DEFAULT_BACKGROUND_COLOR,
+  });
 }
 
 async function fetchLiveStreams(accessToken: string, userId: string) {
@@ -114,6 +128,9 @@ async function fetchTwitchData(accessToken: string, userId: string) {
     cb: autoOpenTabs => {
       if (autoOpenTabs) openTwitchTabs(globalChannels);
     },
+  }, {
+    key: 'favorites',
+    cb: favorites => updateBadgeColor(favorites as string[]),
   }]);
 }
 
@@ -167,6 +184,11 @@ function initHooks() {
         poll();
       }
     },
+  }]);
+
+  hookStorage([{
+    key: 'favorites',
+    cb: favorites => updateBadgeColor(favorites as string[]),
   }]);
 }
 

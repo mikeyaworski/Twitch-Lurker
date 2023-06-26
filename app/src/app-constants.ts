@@ -1,7 +1,8 @@
 import type { DeepMutable } from './types';
 
 export const BADGE_TEXT_COLOR = '#FFFFFF';
-export const BADGE_BACKGROUND_COLOR = '#777777';
+export const BADGE_DEFAULT_BACKGROUND_COLOR = '#777777';
+export const BADGE_PURPLE_BACKGROUND_COLOR = '#8561c5';
 export const THEME_COLOR = '#9147FF';
 export const TITLE = 'Twitch Lurker';
 export const CLIENT_ID = 'xms2vxkmtn3rsrv1id2glcnu74fevs';
