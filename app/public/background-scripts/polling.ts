@@ -106,7 +106,7 @@ async function fetchTwitchData(accessToken: string, userId: string) {
       return item.id === channelRes.to_id;
     });
     const channel: Channel = {
-      username: channelRes.to_name.toLowerCase(),
+      username: channelRes.to_login.toLowerCase(),
       displayName: channelRes.to_name,
     };
     if (stream) {
