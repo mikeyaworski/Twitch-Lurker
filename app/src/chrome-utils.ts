@@ -5,7 +5,7 @@ import type { StorageKey, MutableStorage, UnknownMapping, Storage } from './type
 
 type StorageKeys = (StorageKey | {
   key: StorageKey;
-  cb: (value: unknown) => void;
+  cb: (value: Storage[StorageKey]) => void;
 })[];
 
 /**
