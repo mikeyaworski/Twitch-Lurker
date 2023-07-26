@@ -16,6 +16,8 @@ export type UnknownMapping = GenericMapping<unknown>;
 export type Mutable<T> = { -readonly [P in keyof T]: T[P] };
 export type DeepMutable<T> = { -readonly [P in keyof T]: DeepMutable<T[P]> };
 
+export type SvgClickEventHandler = React.MouseEventHandler<SVGSVGElement>;
+
 export type Channel = {
   username: string;
   displayName: string;

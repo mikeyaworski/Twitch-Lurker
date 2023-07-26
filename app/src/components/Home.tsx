@@ -3,7 +3,6 @@ import { Route } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
 import { Button } from '@material-ui/core';
 
-import StorageContext from 'contexts/Storage';
 import Following from 'components/Following';
 import Sidebar from 'components/Sidebar';
 import Preferences from 'components/Preferences';
@@ -52,7 +51,6 @@ const useStyles = makeStyles(theme => ({
 function Home() {
   const classes = useStyles();
   const { loading, loggedIn } = useAuth();
-  const { loading: storageLoading } = useContext(StorageContext);
 
   function handleLogin() {
     chrome.runtime.sendMessage({ type: MESSAGE_TYPES.LOGIN });
@@ -63,7 +61,7 @@ function Home() {
       <div className={classes.row}>
         <div className={classes.followingContainer}>
           {loggedIn || loading ? (
-            <Following loading={storageLoading} />
+            <Following />
           ) : (
             <div className={classes.center}>
               <Button

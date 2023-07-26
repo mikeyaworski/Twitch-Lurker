@@ -2,12 +2,14 @@ import React, { useCallback, useContext } from 'react';
 import type { SortEndHandler } from 'react-sortable-hoc';
 import { SortableContainer, SortableElement, arrayMove } from 'react-sortable-hoc';
 import { makeStyles } from '@material-ui/core/styles';
-import { List, ListItem, ListItemIcon, ListItemText, Typography } from '@material-ui/core';
+import { List, Typography } from '@material-ui/core';
 import StarRoundedIcon from '@material-ui/icons/StarRounded';
+
+import type { Channel } from 'types';
 import StorageContext from 'contexts/Storage';
 import BackWrapper from 'components/Router/BackWrapper';
+import ChannelItem from 'components/ChannelItem';
 import BackgroundPortContext from 'contexts/BackgroundPort';
-import type { Channel } from 'types';
 
 const useStyles = makeStyles({
   helperClass: {
@@ -21,54 +23,12 @@ const useStyles = makeStyles({
     flexGrow: 1,
     margin: '16px auto',
   },
-  favoriteIcon: {
-    marginLeft: 'auto',
-    cursor: 'pointer',
-  },
-  profilePic: {
-    width: 22,
-    height: 22,
-    minWidth: 22,
-    marginRight: 8,
-  },
-  itemText: {
-    overflow: 'hidden',
-  },
   item: {
     cursor: 'move',
   },
 });
 
-interface FavoritesItemProps {
-  fav: string;
-  channel: Channel;
-  handleRemoveFavorite: (e: React.SyntheticEvent<SVGElement>) => void;
-}
-
-const FavoritesItem = SortableElement(({ handleRemoveFavorite, channel, fav }: FavoritesItemProps) => {
-  const classes = useStyles();
-  return (
-    <ListItem
-      dense
-      divider
-      className={classes.item}
-    >
-      {channel.profilePic && (
-        <img src={channel.profilePic} alt="avatar" className={classes.profilePic} />
-      )}
-      <ListItemText className={classes.itemText}>
-        {channel.displayName}
-      </ListItemText>
-      <ListItemIcon>
-        <StarRoundedIcon
-          className={classes.favoriteIcon}
-          data-username={fav}
-          onClick={handleRemoveFavorite}
-        />
-      </ListItemIcon>
-    </ListItem>
-  );
-});
+const FavoritesItem = SortableElement(ChannelItem);
 
 interface FavoritesListProps {
   favorites: string[];
@@ -87,7 +47,14 @@ const FavoritesList = SortableContainer(({ favorites, channels, handleRemoveFavo
         const channel = channels.find(c => c.username === fav);
         if (!channel) return null;
         return (
-          <FavoritesItem key={fav} index={index} fav={fav} channel={channel} handleRemoveFavorite={handleRemoveFavorite} />
+          <FavoritesItem
+            key={fav}
+            index={index}
+            className={classes.item}
+            channel={channel}
+            handleIconClick={handleRemoveFavorite}
+            Icon={StarRoundedIcon}
+          />
         );
       })}
     </List>

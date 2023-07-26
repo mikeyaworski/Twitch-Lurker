@@ -1,19 +1,15 @@
 import React, { useCallback, useContext, useState } from 'react';
-import { browser } from 'webextension-polyfill-ts';
 import { makeStyles } from '@material-ui/core/styles';
-import { MenuItem, TextField, List, ListItem, ListItemIcon, ListItemText, InputAdornment, Link, IconButton } from '@material-ui/core';
-import Skeleton from '@material-ui/lab/Skeleton';
+import { MenuItem, TextField, List, InputAdornment, IconButton } from '@material-ui/core';
 import SearchIcon from '@material-ui/icons/Search';
 import StarRoundedIcon from '@material-ui/icons/StarRounded';
 import StarBorderRoundedIcon from '@material-ui/icons/StarBorderRounded';
-import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
 import ClearIcon from '@material-ui/icons/Clear';
-import type { Channel } from 'types';
-import Hoverable from 'components/Hoverable';
-import LiveCount from 'components/LiveCount';
+import type { Channel, SvgClickEventHandler } from 'types';
 import StorageContext from 'contexts/Storage';
 import BackgroundPortContext from 'contexts/BackgroundPort';
 import { sortChannels } from 'utils';
+import ChannelItem, { ChannelItemSkeleton } from './ChannelItem';
 
 const useStyles = makeStyles({
   listContainer: {
@@ -31,55 +27,25 @@ const useStyles = makeStyles({
       marginRight: 8,
     },
   },
-  favoriteIcon: {
-    marginLeft: 'auto',
-    cursor: 'pointer',
-  },
-  profilePic: {
-    width: 22,
-    height: 22,
-    minWidth: 22,
-    marginRight: 8,
-  },
-  listItemText: {
-    overflow: 'hidden',
-  },
 });
 
-function getViewerCountText(viewerCount: number) {
-  if (viewerCount < 1000) return viewerCount.toString();
-  return `${Math.floor(viewerCount / 100) / 10}K`;
-}
-
-interface Props {
-  loading: boolean;
-}
-
-export default function FollowingComponent({ loading }: Props) {
+export default function FollowingComponent() {
   const classes = useStyles();
   const [filter, setFilter] = useState('');
-  const { storage, setStorage } = useContext(StorageContext);
+  const { storage, loading, setStorage } = useContext(StorageContext);
   const { channels } = useContext(BackgroundPortContext);
 
-  const handleRemoveFavorite: React.MouseEventHandler<SVGSVGElement> = useCallback(e => {
+  const handleRemoveFavorite: SvgClickEventHandler = useCallback(e => {
     setStorage({
       favorites: storage.favorites.filter(f => f !== e.currentTarget.dataset.username),
     });
   }, [setStorage, storage.favorites]);
 
-  const handleAddFavorite: React.MouseEventHandler<SVGSVGElement> = useCallback(e => {
+  const handleAddFavorite: SvgClickEventHandler = useCallback(e => {
     setStorage({
       favorites: storage.favorites.concat(e.currentTarget.dataset.username!),
     });
   }, [setStorage, storage.favorites]);
-
-  const handleOpenLink: React.MouseEventHandler<HTMLAnchorElement> = useCallback(e => {
-    e.preventDefault();
-    browser.tabs.create({
-      url: `https://twitch.tv/${e.currentTarget.dataset.username}`,
-      active: false,
-    });
-  }, []);
 
   const handleSortChange: React.ChangeEventHandler<HTMLInputElement> = useCallback(e => {
     setStorage({
@@ -136,16 +102,7 @@ export default function FollowingComponent({ loading }: Props) {
         <List dense className={classes.listContainer}>
           {new Array(10).fill(0).map((_, idx) => (
             // eslint-disable-next-line react/no-array-index-key
-            <ListItem dense divider key={idx}>
-              <Skeleton variant="rect" width={20} height={20} className={classes.profilePic} />
-              <ListItemText className={classes.listItemText}>
-                <Skeleton variant="rect" width={60} height={20} />
-              </ListItemText>
-              <LiveCount loading />
-              <ListItemIcon>
-                <Skeleton variant="circle" className={classes.favoriteIcon} width={20} height={20} />
-              </ListItemIcon>
-            </ListItem>
+            <ChannelItemSkeleton key={idx} showLiveCount />
           ))}
         </List>
       </>
@@ -159,60 +116,20 @@ export default function FollowingComponent({ loading }: Props) {
         {channels
           .filter(filterFn)
           .sort((a, b) => sortChannels(a, b, storage.favorites, storage.sortLow))
-          .map(channel => (
-            <ListItem dense divider key={channel.username}>
-              {channel.profilePic && (
-                storage.showPreviewOnHover ? (
-                  <Hoverable channel={channel}>
-                    <img src={channel.profilePic} alt="avatar" className={classes.profilePic} />
-                  </Hoverable>
-                ) : (
-                  <img src={channel.profilePic} alt="avatar" className={classes.profilePic} />
-                )
-              )}
-              <ListItemText className={classes.listItemText}>
-                {storage.showPreviewOnHover ? (
-                  <Hoverable channel={channel}>
-                    <Link
-                      href={`https://twitch.tv/${channel.username}`}
-                      color="textPrimary"
-                      data-username={channel.username}
-                      onClick={handleOpenLink}
-                    >
-                      {channel.displayName}
-                    </Link>
-                  </Hoverable>
-                ) : (
-                  <Link
-                    href={`https://twitch.tv/${channel.username}`}
-                    color="textPrimary"
-                    data-username={channel.username}
-                    onClick={handleOpenLink}
-                  >
-                    {channel.displayName}
-                  </Link>
-                )}
-              </ListItemText>
-              {channel.viewerCount != null && (
-                <LiveCount viewerCount={channel.viewerCount} />
-              )}
-              <ListItemIcon>
-                {storage.favorites.includes(channel.username) ? (
-                  <StarRoundedIcon
-                    className={classes.favoriteIcon}
-                    data-username={channel.username}
-                    onClick={handleRemoveFavorite}
-                  />
-                ) : (
-                  <StarBorderRoundedIcon
-                    className={classes.favoriteIcon}
-                    data-username={channel.username}
-                    onClick={handleAddFavorite}
-                  />
-                )}
-              </ListItemIcon>
-            </ListItem>
-          ))}
+          .map(channel => {
+            const isFavorite = storage.favorites.includes(channel.username);
+            return (
+              <ChannelItem
+                key={channel.username}
+                hoverable
+                linked
+                showLiveCount
+                channel={channel}
+                handleIconClick={isFavorite ? handleRemoveFavorite : handleAddFavorite}
+                Icon={isFavorite ? StarRoundedIcon : StarBorderRoundedIcon}
+              />
+            );
+          })}
       </List>
     </>
   );
