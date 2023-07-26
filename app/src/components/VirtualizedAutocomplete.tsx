@@ -7,6 +7,7 @@ import { VariableSizeList, ListChildComponentProps } from 'react-window';
 import { Typography, List } from '@material-ui/core';
 
 import type { Channel } from 'types';
+import { sortByName } from 'utils';
 import ChannelItem from 'components/ChannelItem';
 
 const LISTBOX_PADDING = 8; // px
@@ -147,7 +148,7 @@ export default function VirtualizedTagsInput({
         className={classes.scrollZone}
         dense
       >
-        {channels.map(channel => (
+        {channels.sort(sortByName).map(channel => (
           <ChannelItem
             key={channel.username}
             channel={channel}

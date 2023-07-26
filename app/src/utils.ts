@@ -1,6 +1,6 @@
 import type { Channel, LiveChannel } from 'types';
 
-function sortByName(a: Channel, b: Channel) {
+export function sortByName(a: Channel, b: Channel) {
   return a.username.toLowerCase() < b.username.toLowerCase() ? -1 : 1;
 }
 
