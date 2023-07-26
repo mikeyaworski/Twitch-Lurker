@@ -5,12 +5,21 @@ import Divider from '@material-ui/core/Divider';
 import ArrowLeftIcon from '@material-ui/icons/ArrowLeft';
 import { makeStyles } from '@material-ui/core/styles';
 
+const BUTTON_HEIGHT = 42;
+
 const useStyles = makeStyles(theme => ({
   container: {
     width: '100%',
+    height: '100%',
   },
   childrenContainer: {
     padding: 20,
+    // 1 is for the divider
+    height: `calc(100% - 1px - ${BUTTON_HEIGHT}px)`,
+    // Flex so that the height of the children will stretch to take up the entire height (for scrollable views)
+    display: 'flex',
+    flexDirection: 'column',
+    overflowY: 'auto',
   },
   button: {
     textTransform: 'capitalize',
