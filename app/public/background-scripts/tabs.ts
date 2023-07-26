@@ -81,9 +81,10 @@ async function updateTwitchTab(liveChannel: Channel, candidateTwitchTab: Tabs.Ta
 }
 
 export async function openTwitchTabs(channels: Channel[]) {
-  const { favorites, maxStreams, autoMuteTabs } = await getStorage(['favorites', 'maxStreams', 'autoMuteTabs']);
+  const { favorites, maxStreams, autoMuteTabs, hiddenChannels } = await getStorage(['favorites', 'maxStreams', 'autoMuteTabs', 'hiddenChannels']);
   if (!maxStreams || !favorites) return;
   const liveChannels = channels
+    .filter(channel => !hiddenChannels?.twitch.includes(channel.username.toLowerCase()))
     .filter(channel => channel.viewerCount && favorites.includes(channel.username))
     .sort((a, b) => sortChannels(a as LiveChannel, b as LiveChannel, favorites)) as LiveChannel[];
   const tabs = await getTwitchTabs();

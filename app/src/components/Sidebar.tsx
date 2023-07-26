@@ -18,6 +18,8 @@ import ArrowRightIcon from '@material-ui/icons/ArrowRight';
 import TuneIcon from '@material-ui/icons/Tune';
 import StarRoundedIcon from '@material-ui/icons/StarRounded';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
+import AddCircleIcon from '@material-ui/icons/AddCircle';
 import GetAppIcon from '@material-ui/icons/GetApp';
 
 import StorageContext from 'contexts/Storage';
@@ -67,7 +69,7 @@ const useStyles = makeStyles({
     flexGrow: 1,
     alignItems: 'flex-end',
     justifyContent: 'center',
-    paddingBottom: 32,
+    paddingBottom: 20,
   },
   donationImage: {
     width: '217px !important',
@@ -148,6 +150,8 @@ function Sidebar() {
         <List component="nav">
           <SidebarLink route="/preferences" label="Preferences" Icon={TuneIcon} disabled={actionsDisabled} />
           <SidebarLink route="/favorites" label="Favorites" Icon={StarRoundedIcon} disabled={actionsDisabled} />
+          <SidebarLink route="/add-channels" label="Add Channels" Icon={AddCircleIcon} disabled={actionsDisabled} />
+          <SidebarLink route="/hide-channels" label="Hide Channels" Icon={VisibilityOffIcon} disabled={actionsDisabled} />
           <SidebarLink route="/import-export-settings" label="Import Settings" Icon={GetAppIcon} disabled={actionsDisabled} />
           <SidebarLink label="Logout" Icon={ExitToAppIcon} onClick={handleLogout} disabled={actionsDisabled} />
         </List>

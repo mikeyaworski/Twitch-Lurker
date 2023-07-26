@@ -10,7 +10,7 @@ export const TWITCH_API_BASE = 'https://api.twitch.tv/helix';
 export const PAGINATION_LIMIT = 100;
 export const UNMUTE_INTERVAL_LENGTH = 3 * 1000;
 
-export const DEFAULT_STORAGE = Object.freeze({
+const DEFAULT_STORAGE_VALUES = {
   // Preferences
   enabled: true,
   autoOpenTabs: true,
@@ -18,6 +18,12 @@ export const DEFAULT_STORAGE = Object.freeze({
   pollDelay: '5', // in minutes
   maxStreams: '2',
   favorites: [] as string[],
+  hiddenChannels: {
+    twitch: [] as string[],
+  },
+  addedChannels: {
+    twitch: [] as string[],
+  },
   autoMuteTabs: true,
   sortLow: true,
   showPreviewOnHover: true,
@@ -25,7 +31,9 @@ export const DEFAULT_STORAGE = Object.freeze({
   // Auth credentials
   accessToken: null as (null | string),
   userId: null as (null | string),
-});
+};
+
+export const DEFAULT_STORAGE = Object.freeze(DEFAULT_STORAGE_VALUES);
 
 export const MESSAGE_TYPES = Object.freeze({
   LOGIN: 0,

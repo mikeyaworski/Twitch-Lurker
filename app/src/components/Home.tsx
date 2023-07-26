@@ -7,6 +7,8 @@ import Following from 'components/Following';
 import Sidebar from 'components/Sidebar';
 import Preferences from 'components/Preferences';
 import Favorites from 'components/Favorites';
+import AddChannels from 'components/AddChannels';
+import HideChannels from 'components/HideChannels';
 import ImportExportSettings from 'components/ImportExportSettings';
 import { MESSAGE_TYPES } from 'app-constants';
 import { useAuth } from 'hooks';
@@ -81,6 +83,8 @@ function Home() {
           <Route exact path="/" component={Sidebar} />
           <Route exact path="/preferences" component={Preferences} />
           <Route exact path="/favorites" component={Favorites} />
+          <Route exact path="/add-channels" component={AddChannels} />
+          <Route exact path="/hide-channels" component={HideChannels} />
           <Route exact path="/import-export-settings" component={ImportExportSettings} />
         </div>
       </div>

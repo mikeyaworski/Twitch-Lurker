@@ -12,12 +12,23 @@ import {
   BADGE_PURPLE_BACKGROUND_COLOR,
   BADGE_DEFAULT_BACKGROUND_COLOR,
 } from '../../src/app-constants';
-import type { Channel } from '../../src/types';
+import type { Channel, IntentionalAny } from '../../src/types';
 import { openTwitchTabs } from './tabs';
 import { logout } from './auth';
 
 let globalChannels: Channel[] = [];
 let popupPort: Runtime.Port | null = null;
+
+async function refreshBadgeData(): Promise<void> {
+  const { favorites, hiddenChannels } = await getStorage(['favorites', 'hiddenChannels']);
+  const filteredChannels = globalChannels.filter(channel => !hiddenChannels?.twitch.includes(channel.username.toLowerCase()));
+  const isAnyFavoriteLive = filteredChannels.some(channel => channel.viewerCount != null && favorites?.includes(channel.username));
+  const numStreamsLive = filteredChannels.reduce((acc, channel) => acc + (channel.viewerCount != null ? 1 : 0), 0);
+  await browser.browserAction.setBadgeText({ text: String(numStreamsLive) });
+  await browser.browserAction.setBadgeBackgroundColor({
+    color: isAnyFavoriteLive ? BADGE_PURPLE_BACKGROUND_COLOR : BADGE_DEFAULT_BACKGROUND_COLOR,
+  });
+}
 
 function setChannels(channels: Channel[]) {
   globalChannels = channels;
@@ -25,6 +36,7 @@ function setChannels(channels: Channel[]) {
     type: MESSAGE_TYPES.SEND_CHANNELS,
     data: globalChannels,
   });
+  refreshBadgeData();
 }
 
 const getApi = (accessToken: string) => async (route: string, params: [string, string | number][]) => {
@@ -59,14 +71,7 @@ async function fetchFollowing(accessToken: string, userId: string) {
   return channels;
 }
 
-async function updateBadgeColor(favorites: string[]): Promise<void> {
-  const isAnyFavoriteLive = globalChannels.some(channel => channel.viewerCount != null && favorites.includes(channel.username));
-  await browser.browserAction.setBadgeBackgroundColor({
-    color: isAnyFavoriteLive ? BADGE_PURPLE_BACKGROUND_COLOR : BADGE_DEFAULT_BACKGROUND_COLOR,
-  });
-}
-
-async function fetchLiveStreams(accessToken: string, userId: string) {
+async function fetchFollowedLiveStreams(accessToken: string, userId: string) {
   const streams = [];
   let cursor = '';
   do {
@@ -78,36 +83,61 @@ async function fetchLiveStreams(accessToken: string, userId: string) {
     cursor = res.pagination.cursor;
     streams.push(...res.data);
   } while (cursor);
-  await browser.browserAction.setBadgeText({ text: String(streams.length) });
   return streams;
 }
 
-async function fetchTwitchData(accessToken: string, userId: string) {
+async function fetchArbitraryLiveStreams(accessToken: string, channels: string[]) {
+  const streams: unknown[] = [];
+  let cursor = '';
+  await Promise.all(chunk(channels, PAGINATION_LIMIT).map(async channelsChunk => {
+    do {
+      const res = await getApi(accessToken)('/streams', [
+        ...channelsChunk.map(username => ['user_login', username] as [string, string]),
+        ['first', PAGINATION_LIMIT],
+        ['after', cursor],
+      ]);
+      cursor = res.pagination.cursor;
+      streams.push(...res.data);
+    } while (cursor);
+  }));
+  return streams;
+}
+
+async function fetchLiveStreams(accessToken: string, userId: string, addedChanels: string[]) {
+  const [followedStreams, addedStreams] = await Promise.all([
+    fetchFollowedLiveStreams(accessToken, userId),
+    fetchArbitraryLiveStreams(accessToken, addedChanels),
+  ]);
+  return [...followedStreams, ...addedStreams];
+}
+
+async function fetchTwitchData(accessToken: string, userId: string, addedChanels: string[]) {
   const [channels, streams] = await Promise.all([
     fetchFollowing(accessToken, userId),
-    fetchLiveStreams(accessToken, userId),
+    fetchLiveStreams(accessToken, userId, addedChanels),
   ]);
 
-  const usersDatas = await Promise.all(chunk(channels, 100).map(async channelsChunk => {
-    const url = new URL(`${TWITCH_API_BASE}/users`);
-    channelsChunk.forEach(channel => {
-      url.searchParams.append('id', channel.to_id);
-    });
-    const res = await getApi(accessToken)('/users', channelsChunk.map(channel => ['id', channel.to_id]));
+  // Filter out added channels which are duplicates (already followed)
+  const followedChannelUsernames = new Set<string>(channels.map(channel => channel.to_login.toLowerCase()));
+  const filteredAddedChannels = addedChanels.filter(username => !followedChannelUsernames.has(username.toLowerCase()));
+
+  const channelParamData = [
+    ...channels.map(channel => ['id', channel.to_id] as [string, string]),
+    ...filteredAddedChannels.map(username => ['login', username] as [string, string]),
+  ];
+  const usersDatas = await Promise.all(chunk(channelParamData, PAGINATION_LIMIT).map(async paramDataChunk => {
+    const res = await getApi(accessToken)('/users', paramDataChunk);
     return res.data;
   }));
   const usersData = usersDatas.flat();
 
-  setChannels(channels.map(channelRes => {
-    const stream = streams.find((item: any) => {
-      return item.user_id === channelRes.to_id;
-    });
-    const userData = usersData.find((item: any) => {
-      return item.id === channelRes.to_id;
+  setChannels(usersData.map(userData => {
+    const stream = streams.find((item: IntentionalAny) => {
+      return item.user_id === userData.id;
     });
     const channel: Channel = {
-      username: channelRes.to_login.toLowerCase(),
-      displayName: channelRes.to_name,
+      username: userData.login.toLowerCase(),
+      displayName: userData.display_name,
     };
     if (stream) {
       channel.displayName = stream.user_name;
@@ -128,9 +158,6 @@ async function fetchTwitchData(accessToken: string, userId: string) {
     cb: autoOpenTabs => {
       if (autoOpenTabs) openTwitchTabs(globalChannels);
     },
-  }, {
-    key: 'favorites',
-    cb: favorites => updateBadgeColor(favorites as string[]),
   }]);
 }
 
@@ -151,12 +178,18 @@ function handleError(err: unknown) {
 
 let pollingInterval: NodeJS.Timeout | undefined;
 async function poll() {
-  const { accessToken, userId, enabled, pollDelay } = await getStorage(['accessToken', 'userId', 'enabled', 'pollDelay']);
+  const { accessToken, userId, enabled, pollDelay, addedChannels } = await getStorage([
+    'accessToken',
+    'userId',
+    'enabled',
+    'pollDelay',
+    'addedChannels',
+  ]);
   if (pollingInterval) clearInterval(pollingInterval);
   if (accessToken && userId && enabled && pollDelay) {
-    fetchTwitchData(accessToken, userId).catch(handleError);
+    fetchTwitchData(accessToken, userId, addedChannels?.twitch || []).catch(handleError);
     pollingInterval = setInterval(() => {
-      fetchTwitchData(accessToken, userId).catch(handleError);
+      fetchTwitchData(accessToken, userId, addedChannels?.twitch || []).catch(handleError);
     }, Number(pollDelay) * 1000 * 60);
   }
 }
@@ -168,10 +201,16 @@ function initHooks() {
     cb: poll,
   })));
 
-  hookStorage([{
-    key: 'pollDelay',
-    cb: debouncedPoll,
-  }]);
+  hookStorage([
+    {
+      key: 'pollDelay',
+      cb: debouncedPoll,
+    },
+    {
+      key: 'addedChannels',
+      cb: debouncedPoll,
+    },
+  ]);
 
   hookStorage([{
     key: 'enabled',
@@ -179,7 +218,6 @@ function initHooks() {
       if (!enabled) {
         if (pollingInterval) clearInterval(pollingInterval);
         setChannels([]);
-        browser.browserAction.setBadgeText({ text: '' });
       } else if (pollingInterval) {
         poll();
       }
@@ -188,7 +226,10 @@ function initHooks() {
 
   hookStorage([{
     key: 'favorites',
-    cb: favorites => updateBadgeColor(favorites as string[]),
+    cb: refreshBadgeData,
+  }, {
+    key: 'hiddenChannels',
+    cb: refreshBadgeData,
   }]);
 }
 

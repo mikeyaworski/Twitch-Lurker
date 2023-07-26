@@ -33,7 +33,7 @@ export default function FollowingComponent() {
   const classes = useStyles();
   const [filter, setFilter] = useState('');
   const { storage, loading, setStorage } = useContext(StorageContext);
-  const { channels } = useContext(BackgroundPortContext);
+  const { filteredChannels: channels } = useContext(BackgroundPortContext);
 
   const handleRemoveFavorite: SvgClickEventHandler = useCallback(e => {
     setStorage({
