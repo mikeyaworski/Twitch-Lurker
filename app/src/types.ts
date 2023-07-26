@@ -1,4 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type IntentionalAny = any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AnyFn = (...props: any) => any;
 export type VoidFn = () => void;
 export type UnknownFn = (...props: unknown[]) => unknown;
