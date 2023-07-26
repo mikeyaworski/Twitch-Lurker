@@ -22,6 +22,26 @@ export function useToggleState(initial = false) {
   };
 }
 
+export function useTemporaryToggle({
+  value,
+  setValue,
+  timeoutMs = 5000,
+}: {
+  value: boolean,
+  setValue: (newValue: boolean) => void,
+  timeoutMs?: number,
+}): void {
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    if (value) {
+      timeoutId = setTimeout(() => {
+        setValue(false);
+      }, timeoutMs);
+    }
+    return () => clearTimeout(timeoutId);
+  }, [value, setValue, timeoutMs]);
+}
+
 /**
  * Returns boolean representing whether the UI should be rendered (they are logged in).
  */

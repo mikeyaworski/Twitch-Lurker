@@ -13,11 +13,12 @@ import {
 } from '@material-ui/core';
 import Skeleton from '@material-ui/lab/Skeleton';
 
-// https://material-ui.com/components/material-icons/
+// https://v4.mui.com/components/material-icons/
 import ArrowRightIcon from '@material-ui/icons/ArrowRight';
 import TuneIcon from '@material-ui/icons/Tune';
 import StarRoundedIcon from '@material-ui/icons/StarRounded';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import GetAppIcon from '@material-ui/icons/GetApp';
 
 import StorageContext from 'contexts/Storage';
 import { TITLE, MESSAGE_TYPES } from 'app-constants';
@@ -147,6 +148,7 @@ function Sidebar() {
         <List component="nav">
           <SidebarLink route="/preferences" label="Preferences" Icon={TuneIcon} disabled={actionsDisabled} />
           <SidebarLink route="/favorites" label="Favorites" Icon={StarRoundedIcon} disabled={actionsDisabled} />
+          <SidebarLink route="/import-export-settings" label="Import Settings" Icon={GetAppIcon} disabled={actionsDisabled} />
           <SidebarLink label="Logout" Icon={ExitToAppIcon} onClick={handleLogout} disabled={actionsDisabled} />
         </List>
       </div>

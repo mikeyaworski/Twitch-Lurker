@@ -34,6 +34,7 @@
     "arrive": "^2.4.1",
     "clsx": "^1.1.1",
     "color": "^3.1.3",
+    "copy-to-clipboard": "^3.3.3",
     "lodash.chunk": "^4.2.0",
     "lodash.debounce": "^4.0.8",
     "react": "^17.0.2",
