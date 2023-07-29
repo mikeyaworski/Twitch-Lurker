@@ -5,6 +5,7 @@
     "src/app-constants.ts",
     "src/chrome-utils.ts",
     "src/utils.ts",
-    "src/logging.ts"
+    "src/logging.ts",
+    "src/types.ts"
   ],
 }
