@@ -46,8 +46,7 @@ export default function ImportExportSettings() {
 
   const handleExportMapping = useCallback(() => {
     const storageExport = { ...storage } as Partial<MutableStorage>;
-    delete storageExport.accessToken;
-    delete storageExport.userId;
+    delete storageExport.logins;
     copy(JSON.stringify(storageExport));
     setExported(true);
   }, [storage, setExported]);

@@ -35,5 +35,29 @@ export type LiveChannel = Channel & {
   start: string;
 };
 
+export enum AccountType {
+  TWITCH,
+  YOUTUBE,
+}
+
+export interface TwitchLogin {
+  type: typeof AccountType.TWITCH,
+  accessToken: string,
+  userId: string,
+  username?: string,
+}
+
+export interface YouTubeLogin {
+  type: typeof AccountType.YOUTUBE,
+  accessToken: string,
+  refreshToken: string,
+  expiry: number, // epoch in seconds
+  userId: string,
+  email: string,
+  name: string,
+}
+
+export type Login = TwitchLogin | YouTubeLogin;
+
 // exporting the app-constants types so they can be imported from here as well (convenience)
 export * from './app-constants';

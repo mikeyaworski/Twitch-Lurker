@@ -1,11 +1,13 @@
-import type { DeepMutable } from './types';
+import type { DeepMutable, Login } from './types';
 
 export const BADGE_TEXT_COLOR = '#FFFFFF';
 export const BADGE_DEFAULT_BACKGROUND_COLOR = '#777777';
 export const BADGE_PURPLE_BACKGROUND_COLOR = '#8561c5';
 export const THEME_COLOR = '#9147FF';
 export const TITLE = 'Twitch Lurker';
-export const CLIENT_ID = 'xms2vxkmtn3rsrv1id2glcnu74fevs';
+export const TWITCH_CLIENT_ID = 'xms2vxkmtn3rsrv1id2glcnu74fevs';
+export const GOOGLE_CLIENT_ID = '1098259349368-ds1kaq3f76gpl80lk9juu8tfnhfpqgon.apps.googleusercontent.com';
+export const OAUTH_AUTHORIZATION_CODE_SERVER_API_BASE = 'https://oauth-authorization-code-server.vercel.app/api';
 export const TWITCH_API_BASE = 'https://api.twitch.tv/helix';
 export const PAGINATION_LIMIT = 100;
 export const UNMUTE_INTERVAL_LENGTH = 3 * 1000;
@@ -29,19 +31,20 @@ const DEFAULT_STORAGE_VALUES = {
   showPreviewOnHover: true,
 
   // Auth credentials
-  accessToken: null as (null | string),
-  userId: null as (null | string),
+  logins: [] as Login[],
 };
 
 export const DEFAULT_STORAGE = Object.freeze(DEFAULT_STORAGE_VALUES);
 
-export const MESSAGE_TYPES = Object.freeze({
-  LOGIN: 0,
-  LOGOUT: 1,
-  FETCH_CHANNELS: 2,
-  SEND_CHANNELS: 3,
-  MUTE_PLAYER: 4,
-} as const);
+export enum MessageType {
+  LOGIN_TWITCH,
+  LOGIN_YOUTUBE,
+  LOGOUT_TWITCH,
+  LOGOUT_YOUTUBE,
+  FETCH_CHANNELS,
+  SEND_CHANNELS,
+  MUTE_PLAYER,
+}
 
 export type Storage = typeof DEFAULT_STORAGE;
 export type MutableStorage = DeepMutable<Storage>;

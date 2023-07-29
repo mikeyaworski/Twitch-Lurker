@@ -2,7 +2,7 @@ import { createContext, useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 import type { Channel, Storage, StorageKey } from 'types';
 
-import { MESSAGE_TYPES } from 'app-constants';
+import { MessageType } from 'app-constants';
 import { hookStorage } from 'chrome-utils';
 import { getFullStorage } from 'storage';
 
@@ -11,7 +11,7 @@ const storage = getFullStorage();
 const port = browser.runtime.connect();
 
 function fetchChannels() {
-  port.postMessage({ type: MESSAGE_TYPES.FETCH_CHANNELS });
+  port.postMessage({ type: MessageType.FETCH_CHANNELS });
 }
 
 type UseBackgroundPort = {
@@ -31,7 +31,7 @@ export function useBackgroundPort(): UseBackgroundPort {
 
   useEffect(() => {
     port.onMessage.addListener(msg => {
-      if (msg.type === MESSAGE_TYPES.SEND_CHANNELS) {
+      if (msg.type === MessageType.SEND_CHANNELS) {
         const channelsMsg = msg.data as Channel[];
         setChannels(channelsMsg);
         setFilteredChannels(channelsMsg.filter(channel => !storage.hiddenChannels.twitch.includes(channel.username.toLowerCase())));

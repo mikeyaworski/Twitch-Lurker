@@ -1,8 +1,8 @@
 import { browser, Tabs } from 'webextension-polyfill-ts';
-import type { Channel, LiveChannel } from '../../src/types';
+import type { Channel, LiveChannel } from 'types';
+import { getStorage } from 'chrome-utils';
+import { sortChannels } from 'utils';
 import { getTwitchUsernameFromUrl } from './utils';
-import { getStorage } from '../../src/chrome-utils';
-import { sortChannels } from '../../src/utils';
 
 export async function getTwitchTabs() {
   const tabs = await browser.tabs.query({});

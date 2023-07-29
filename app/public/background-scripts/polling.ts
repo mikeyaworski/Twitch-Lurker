@@ -3,16 +3,16 @@ import type { Runtime } from 'webextension-polyfill-ts';
 import chunk from 'lodash.chunk';
 import debounce from 'lodash.debounce';
 import { log } from 'logging';
-import { getStorage, hookStorage } from '../../src/chrome-utils';
+import { getStorage, hookStorage } from 'chrome-utils';
 import {
   TWITCH_API_BASE,
-  CLIENT_ID,
+  TWITCH_CLIENT_ID,
   PAGINATION_LIMIT,
-  MESSAGE_TYPES,
+  MessageType,
   BADGE_PURPLE_BACKGROUND_COLOR,
   BADGE_DEFAULT_BACKGROUND_COLOR,
-} from '../../src/app-constants';
-import type { Channel, IntentionalAny } from '../../src/types';
+} from 'app-constants';
+import { AccountType, Channel, IntentionalAny } from 'types';
 import { openTwitchTabs } from './tabs';
 import { logout } from './auth';
 
@@ -33,7 +33,7 @@ async function refreshBadgeData(): Promise<void> {
 function setChannels(channels: Channel[]) {
   globalChannels = channels;
   popupPort?.postMessage({
-    type: MESSAGE_TYPES.SEND_CHANNELS,
+    type: MessageType.SEND_CHANNELS,
     data: globalChannels,
   });
   refreshBadgeData();
@@ -47,7 +47,7 @@ const getApi = (accessToken: string) => async (route: string, params: [string, s
   const res = await fetch(url.href, {
     method: 'GET',
     headers: {
-      'Client-ID': CLIENT_ID,
+      'Client-ID': TWITCH_CLIENT_ID,
       Authorization: `Bearer ${accessToken}`,
     },
   });
@@ -170,33 +170,35 @@ function handleError(err: unknown) {
   ) {
     // Access token is probably invalid
     log('Logged out due to (assumed) invalid access token', err);
-    logout();
+    logout(AccountType.TWITCH);
   } else {
     throw err;
   }
 }
 
+// TODO: Refactor this polling to have independent implementations for twitch and youtube
+
 let pollingInterval: NodeJS.Timeout | undefined;
 async function poll() {
-  const { accessToken, userId, enabled, pollDelay, addedChannels } = await getStorage([
-    'accessToken',
-    'userId',
+  const { logins, enabled, pollDelay, addedChannels } = await getStorage([
+    'logins',
     'enabled',
     'pollDelay',
     'addedChannels',
   ]);
   if (pollingInterval) clearInterval(pollingInterval);
-  if (accessToken && userId && enabled && pollDelay) {
-    fetchTwitchData(accessToken, userId, addedChannels?.twitch || []).catch(handleError);
+  const twitchLogin = logins?.find(l => l.type === AccountType.TWITCH);
+  if (twitchLogin?.type === AccountType.TWITCH && twitchLogin.accessToken && twitchLogin.userId && enabled && pollDelay) {
+    fetchTwitchData(twitchLogin.accessToken, twitchLogin.userId, addedChannels?.twitch || []).catch(handleError);
     pollingInterval = setInterval(() => {
-      fetchTwitchData(accessToken, userId, addedChannels?.twitch || []).catch(handleError);
+      fetchTwitchData(twitchLogin.accessToken, twitchLogin.userId, addedChannels?.twitch || []).catch(handleError);
     }, Number(pollDelay) * 1000 * 60);
   }
 }
 const debouncedPoll = debounce(poll, 3000);
 
 function initHooks() {
-  hookStorage((['accessToken', 'userId'] as const).map(key => ({
+  hookStorage((['logins'] as const).map(key => ({
     key,
     cb: poll,
   })));
@@ -238,9 +240,9 @@ function listen() {
     popupPort = port;
     port.onMessage.addListener(msg => {
       switch (msg.type) {
-        case MESSAGE_TYPES.FETCH_CHANNELS: {
+        case MessageType.FETCH_CHANNELS: {
           port.postMessage({
-            type: MESSAGE_TYPES.SEND_CHANNELS,
+            type: MessageType.SEND_CHANNELS,
             data: globalChannels,
           });
           break;

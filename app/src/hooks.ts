@@ -48,6 +48,6 @@ export function useTemporaryToggle({
 export function useAuth(): { loading: boolean, loggedIn?: boolean } {
   const { loading, storage } = useContext(StorageContext);
   if (loading) return { loading };
-  if (!storage.accessToken || !storage.userId) return { loading, loggedIn: false };
+  if (storage.logins.length === 0) return { loading, loggedIn: false };
   return { loading, loggedIn: true };
 }

@@ -21,9 +21,10 @@ import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
 import GetAppIcon from '@material-ui/icons/GetApp';
+import AccountCircleIcon from '@material-ui/icons/AccountCircle';
 
 import StorageContext from 'contexts/Storage';
-import { TITLE, MESSAGE_TYPES } from 'app-constants';
+import { TITLE, MessageType } from 'app-constants';
 import { VoidFn } from 'types';
 import { useAuth } from 'hooks';
 
@@ -110,10 +111,6 @@ function Sidebar() {
   const { loading, loggedIn } = useAuth();
   const { loading: storageLoading, storage, handleExtensionEnabledToggle } = useContext(StorageContext);
 
-  function handleLogout() {
-    chrome.runtime.sendMessage({ type: MESSAGE_TYPES.LOGOUT });
-  }
-
   const actionsDisabled = loading || !loggedIn;
 
   return (
@@ -153,7 +150,7 @@ function Sidebar() {
           <SidebarLink route="/add-channels" label="Add Channels" Icon={AddCircleIcon} disabled={actionsDisabled} />
           <SidebarLink route="/hide-channels" label="Hide Channels" Icon={VisibilityOffIcon} disabled={actionsDisabled} />
           <SidebarLink route="/import-export-settings" label="Import Settings" Icon={GetAppIcon} disabled={actionsDisabled} />
-          <SidebarLink label="Logout" Icon={ExitToAppIcon} onClick={handleLogout} disabled={actionsDisabled} />
+          <SidebarLink route="/accounts" label="Accounts" Icon={AccountCircleIcon} disabled={actionsDisabled} />
         </List>
       </div>
       <Divider />

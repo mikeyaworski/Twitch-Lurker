@@ -1,5 +1,5 @@
-import { log } from '../../src/logging';
-import { UNMUTE_INTERVAL_LENGTH } from '../../src/app-constants';
+import { log } from 'logging';
+import { UNMUTE_INTERVAL_LENGTH } from 'app-constants';
 
 let unmuteInterval: NodeJS.Timeout | undefined;
 

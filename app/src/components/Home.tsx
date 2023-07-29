@@ -1,17 +1,23 @@
 import React, { useContext } from 'react';
+import { browser } from 'webextension-polyfill-ts';
 import { Route } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
-import { Button } from '@material-ui/core';
+import { Box, Button, Typography } from '@material-ui/core';
+import YouTubeIcon from '@material-ui/icons/YouTube';
 
 import Following from 'components/Following';
 import Sidebar from 'components/Sidebar';
+import Accounts from 'components/Accounts';
 import Preferences from 'components/Preferences';
 import Favorites from 'components/Favorites';
 import AddChannels from 'components/AddChannels';
 import HideChannels from 'components/HideChannels';
 import ImportExportSettings from 'components/ImportExportSettings';
-import { MESSAGE_TYPES } from 'app-constants';
+import { MessageType } from 'app-constants';
 import { useAuth } from 'hooks';
+import { PaletteButtonType, getPaletteButton } from 'widgets/PaletteButton';
+
+const RedButton = getPaletteButton(PaletteButtonType.RED);
 
 const MAX_POPUP_WIDTH = 800;
 export const SIDEBAR_WIDTH = 303;
@@ -42,20 +48,14 @@ const useStyles = makeStyles(theme => ({
     width: 20,
     height: 20,
   },
-  center: {
-    height: '100%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
 }));
 
 function Home() {
   const classes = useStyles();
   const { loading, loggedIn } = useAuth();
 
-  function handleLogin() {
-    chrome.runtime.sendMessage({ type: MESSAGE_TYPES.LOGIN });
+  function login(type: MessageType) {
+    browser.runtime.sendMessage({ type });
   }
 
   return (
@@ -65,22 +65,32 @@ function Home() {
           {loggedIn || loading ? (
             <Following />
           ) : (
-            <div className={classes.center}>
+            <Box height="100%" display="flex" alignItems="center" justifyContent="center" flexDirection="column" gridGap="10px">
               <Button
                 color="primary"
                 startIcon={(
                   <img src={`${process.env.PUBLIC_URL}/login-icon.svg`} alt="" className={classes.loginIcon} />
                 )}
                 variant="contained"
-                onClick={handleLogin}
+                onClick={() => login(MessageType.LOGIN_TWITCH)}
               >
                 Login with Twitch
               </Button>
-            </div>
+              <Typography variant="body1">or</Typography>
+              <RedButton
+                color="primary"
+                startIcon={<YouTubeIcon className={classes.loginIcon} />}
+                variant="contained"
+                onClick={() => login(MessageType.LOGIN_YOUTUBE)}
+              >
+                Login with YouTube
+              </RedButton>
+            </Box>
           )}
         </div>
         <div className={classes.sidebarContainer}>
           <Route exact path="/" component={Sidebar} />
+          <Route exact path="/accounts" component={Accounts} />
           <Route exact path="/preferences" component={Preferences} />
           <Route exact path="/favorites" component={Favorites} />
           <Route exact path="/add-channels" component={AddChannels} />

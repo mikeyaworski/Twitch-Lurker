@@ -1,15 +1,13 @@
 import { browser } from 'webextension-polyfill-ts';
-import { setStorage } from '../../src/chrome-utils';
-import { BADGE_DEFAULT_BACKGROUND_COLOR, CLIENT_ID, MESSAGE_TYPES } from '../../src/app-constants';
-
-function getRandomString() {
-  return Math.random().toString(36).substring(2, 15);
-}
+import { getStorage, setStorage } from 'chrome-utils';
+import { TWITCH_CLIENT_ID } from 'app-constants';
+import { AccountType, Login } from 'types';
+import { getRandomString, parseIdToken } from '../utils';
 
 async function createAuthEndpoint() {
   const url = new URL('https://id.twitch.tv/oauth2/authorize');
   const redirectUri = await browser.identity.getRedirectURL();
-  url.searchParams.append('client_id', CLIENT_ID);
+  url.searchParams.append('client_id', TWITCH_CLIENT_ID);
   url.searchParams.append('redirect_uri', redirectUri);
   url.searchParams.append('response_type', 'token id_token');
   url.searchParams.append('scope', 'openid user:read:follows');
@@ -19,9 +17,10 @@ async function createAuthEndpoint() {
   return url.href;
 }
 
-async function handleLogin() {
+export async function handleLogin() {
   const authEndpoint = await createAuthEndpoint();
   const state = new URL(authEndpoint).searchParams.get('state');
+  const nonce = new URL(authEndpoint).searchParams.get('nonce');
   const redirectUrl = await browser.identity.launchWebAuthFlow({
     url: authEndpoint,
     interactive: true,
@@ -31,37 +30,21 @@ async function handleLogin() {
   if (state !== params.get('state')) throw new Error('Invalid state parameter during authorization');
   const accessToken = params.get('access_token');
   const idToken = params.get('id_token');
-  const userInfoBase64 = idToken?.split('.')[1];
-  if (!userInfoBase64) throw new Error();
-  const userInfo = JSON.parse(atob(userInfoBase64));
+  if (!idToken || !nonce) throw new Error();
+  const userInfo = parseIdToken(idToken, nonce);
+  const userId = userInfo.sub;
+  const username = userInfo.preferred_username;
 
-  await setStorage('accessToken', accessToken);
-  await setStorage('userId', userInfo.sub);
-}
-
-export function logout() {
-  setStorage('accessToken', null);
-  setStorage('userId', null);
-  browser.browserAction.setBadgeText({ text: '' });
-  browser.browserAction.setBadgeBackgroundColor({
-    color: BADGE_DEFAULT_BACKGROUND_COLOR,
-  });
-}
-
-export default async function initAuth() {
-  browser.runtime.onMessage.addListener(request => {
-    switch (request.type) {
-      case MESSAGE_TYPES.LOGIN: {
-        handleLogin();
-        break;
-      }
-      case MESSAGE_TYPES.LOGOUT: {
-        logout();
-        break;
-      }
-      default: {
-        break;
-      }
-    }
-  });
+  if (accessToken && userId) {
+    const { logins = [] } = await getStorage(['logins']);
+    const newLogin: Login = {
+      type: AccountType.TWITCH,
+      accessToken,
+      userId,
+      username,
+    };
+    await setStorage({
+      logins: logins.filter(login => login.type !== AccountType.TWITCH).concat(newLogin),
+    });
+  }
 }
