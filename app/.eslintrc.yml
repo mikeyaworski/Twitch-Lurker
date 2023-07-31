@@ -77,6 +77,7 @@ rules:
   arrow-body-style: off
   no-await-in-loop: off
   no-continue: off
+  no-nested-ternary: off
   no-shadow: off # This is broken with enums
 
   # We are not worried about accessibility.
