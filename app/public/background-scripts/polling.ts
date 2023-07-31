@@ -194,6 +194,9 @@ async function poll() {
       fetchTwitchData(twitchLogin.accessToken, twitchLogin.userId, addedChannels?.twitch || []).catch(handleError);
     }, Number(pollDelay) * 1000 * 60);
   }
+  if (!twitchLogin) {
+    setChannels([]);
+  }
 }
 const debouncedPoll = debounce(poll, 3000);
 
