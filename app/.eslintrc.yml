@@ -78,6 +78,7 @@ rules:
   no-await-in-loop: off
   no-continue: off
   no-nested-ternary: off
+  prefer-destructuring: off
   no-shadow: off # This is broken with enums
 
   # We are not worried about accessibility.
