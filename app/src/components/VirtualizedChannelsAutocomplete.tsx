@@ -127,9 +127,16 @@ export default function VirtualizedChannelsAutocomplete({
       freeSolo
       disabled={disabled}
       disableListWrap
-      classes={classes}
+      classes={{
+        listbox: classes.listbox,
+      }}
       ListboxComponent={ListboxComponent as React.ComponentType<React.HTMLAttributes<HTMLElement>>}
       options={options}
+      // This getOptionLabel shouldn't be necessary, but it gets called for some reason and causes console errors if not implemented like this.
+      getOptionLabel={channelOrInput => {
+        if (typeof channelOrInput === 'string') return channelOrInput;
+        return channelOrInput.displayName;
+      }}
       filterOptions={(o, _) => createFilterOptions<Channel>()(o, {
         inputValue: value,
         getOptionLabel: channel => channel.displayName,
