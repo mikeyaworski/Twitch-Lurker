@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import uniq from 'lodash.uniq';
 import { Typography } from '@material-ui/core';
 
-import { ChannelType, Channel } from 'types';
+import { ChannelType, Channel, TwitchChannel } from 'types';
 import { getHiddenChannelsKey } from 'utils';
 import StorageContext from 'contexts/Storage';
 import BackWrapper from 'components/Router/BackWrapper';
@@ -16,7 +16,8 @@ export default function HideChannels() {
   const options = loading
     ? []
     : channels
-      .filter(channel => !(channel.type === ChannelType.TWITCH && storage.hiddenChannels.twitch.includes(channel.username.toLowerCase())));
+      .filter((channel): channel is TwitchChannel => channel.type === ChannelType.TWITCH)
+      .filter(channel => !storage.hiddenChannels.twitch.includes(getHiddenChannelsKey(channel)));
 
   const hiddenChannels: Channel[] = loading
     ? []
