@@ -5,10 +5,10 @@ import SearchIcon from '@material-ui/icons/Search';
 import StarRoundedIcon from '@material-ui/icons/StarRounded';
 import StarBorderRoundedIcon from '@material-ui/icons/StarBorderRounded';
 import ClearIcon from '@material-ui/icons/Clear';
-import type { Channel, SvgClickEventHandler } from 'types';
+import { Channel, SvgClickEventHandler, ChannelType } from 'types';
 import StorageContext from 'contexts/Storage';
 import BackgroundPortContext from 'contexts/BackgroundPort';
-import { sortChannels } from 'utils';
+import { getFavoriteId, getId, sortChannels } from 'utils';
 import ChannelItem, { ChannelItemSkeleton } from './ChannelItem';
 
 const useStyles = makeStyles({
@@ -37,13 +37,13 @@ export default function FollowingComponent() {
 
   const handleRemoveFavorite: SvgClickEventHandler = useCallback(e => {
     setStorage({
-      favorites: storage.favorites.filter(f => f !== e.currentTarget.dataset.username),
+      favorites: storage.favorites.filter(f => f !== e.currentTarget.dataset.favoriteId),
     });
   }, [setStorage, storage.favorites]);
 
   const handleAddFavorite: SvgClickEventHandler = useCallback(e => {
     setStorage({
-      favorites: storage.favorites.concat(e.currentTarget.dataset.username!),
+      favorites: storage.favorites.concat(e.currentTarget.dataset.favoriteId!),
     });
   }, [setStorage, storage.favorites]);
 
@@ -54,8 +54,12 @@ export default function FollowingComponent() {
   }, [setStorage]);
 
   function filterFn(channel: Channel) {
-    return channel.username.toLowerCase().includes(filter.trim().toLowerCase())
-      || channel.displayName.toLowerCase().includes(filter.trim().toLowerCase());
+    const hasUsername = 'username' in channel
+      && channel.username.toLowerCase().includes(filter.trim().toLowerCase());
+    const hasDisplayName = channel.displayName.toLowerCase().includes(filter.trim().toLowerCase());
+    const hasCustomUrl = channel.type === ChannelType.YOUTUBE
+      && channel.customUrl?.toLowerCase().includes(filter.trim().toLowerCase());
+    return hasUsername || hasDisplayName || hasCustomUrl;
   }
 
   const searchContainer = (
@@ -117,15 +121,15 @@ export default function FollowingComponent() {
           .filter(filterFn)
           .sort((a, b) => sortChannels(a, b, storage.favorites, storage.sortLow))
           .map(channel => {
-            const isFavorite = storage.favorites.includes(channel.username);
+            const isFavorite = storage.favorites.includes(getFavoriteId(channel));
             return (
               <ChannelItem
-                key={channel.username}
+                key={getId(channel)}
                 hoverable
                 linked
                 showLiveCount
                 channel={channel}
-                handleIconClick={isFavorite ? handleRemoveFavorite : handleAddFavorite}
+                onIconClick={isFavorite ? handleRemoveFavorite : handleAddFavorite}
                 Icon={isFavorite ? StarRoundedIcon : StarBorderRoundedIcon}
               />
             );

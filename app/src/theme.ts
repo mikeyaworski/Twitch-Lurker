@@ -73,5 +73,15 @@ export default createMuiTheme({
         padding: 8,
       },
     },
+    MuiButton: {
+      root: {
+        textTransform: 'none',
+      },
+    },
+    MuiCardActions: {
+      root: {
+        flexWrap: 'wrap',
+      },
+    },
   },
 });

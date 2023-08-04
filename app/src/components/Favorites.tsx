@@ -10,6 +10,7 @@ import StorageContext from 'contexts/Storage';
 import BackWrapper from 'components/Router/BackWrapper';
 import ChannelItem from 'components/ChannelItem';
 import BackgroundPortContext from 'contexts/BackgroundPort';
+import { getFavoriteId } from 'utils';
 
 const useStyles = makeStyles({
   helperClass: {
@@ -33,10 +34,10 @@ const FavoritesItem = SortableElement(ChannelItem);
 interface FavoritesListProps {
   favorites: string[];
   channels: Channel[];
-  handleRemoveFavorite: (e: React.SyntheticEvent<SVGElement>) => void;
+  onRemoveFavorite: (e: React.SyntheticEvent<SVGElement>) => void;
 }
 
-const FavoritesList = SortableContainer(({ favorites, channels, handleRemoveFavorite }: FavoritesListProps) => {
+const FavoritesList = SortableContainer(({ favorites, channels, onRemoveFavorite }: FavoritesListProps) => {
   const classes = useStyles();
   return (
     <List
@@ -44,7 +45,7 @@ const FavoritesList = SortableContainer(({ favorites, channels, handleRemoveFavo
       dense
     >
       {favorites.map((fav, index) => {
-        const channel = channels.find(c => c.username === fav);
+        const channel = channels.find(c => getFavoriteId(c) === fav);
         if (!channel) return null;
         return (
           <FavoritesItem
@@ -52,7 +53,7 @@ const FavoritesList = SortableContainer(({ favorites, channels, handleRemoveFavo
             index={index}
             className={classes.item}
             channel={channel}
-            handleIconClick={handleRemoveFavorite}
+            onIconClick={onRemoveFavorite}
             Icon={StarRoundedIcon}
           />
         );
@@ -68,7 +69,7 @@ export default function Favorites() {
 
   const handleRemoveFavorite = useCallback((e: React.SyntheticEvent<SVGElement>) => {
     setStorage({
-      favorites: storage.favorites.filter(f => f !== e.currentTarget.dataset.username),
+      favorites: storage.favorites.filter(f => f !== e.currentTarget.dataset.favoriteId),
     });
   }, [setStorage, storage.favorites]);
 
@@ -84,7 +85,7 @@ export default function Favorites() {
         distance={1}
         channels={channels}
         favorites={storage.favorites}
-        handleRemoveFavorite={handleRemoveFavorite}
+        onRemoveFavorite={handleRemoveFavorite}
         onSortEnd={handleMoveFavorite}
       />
     </BackWrapper>

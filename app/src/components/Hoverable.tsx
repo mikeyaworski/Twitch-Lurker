@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Popover, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { Skeleton } from '@material-ui/lab';
-import type { Channel } from 'types';
+import { ChannelType, Channel } from 'types';
 import { getStreamLength } from 'utils';
 
 const THUMBNAIL_WIDTH = 300;
@@ -50,7 +50,24 @@ const Hoverable = ({ children, channel }: Props) => {
 
   const open = Boolean(anchorEl);
 
-  if (!channel.game || !channel.thumbnail || !channel.start) {
+  let title: string | undefined;
+  switch (channel.type) {
+    case ChannelType.TWITCH: {
+      if (channel.game) title = channel.game;
+      break;
+    }
+    case ChannelType.YOUTUBE: {
+      if (channel.title) title = channel.title;
+      break;
+    }
+    default: {
+      break;
+    }
+  }
+
+  if (!title
+    || !channel.thumbnail
+    || !channel.start) {
     return children;
   }
 
@@ -79,13 +96,13 @@ const Hoverable = ({ children, channel }: Props) => {
         disableRestoreFocus
       >
         <Typography variant="body2" color="textSecondary">
-          {channel.game} - {channel.viewerCount} viewers ({getStreamLength(channel.start)})
+          {title} - {channel.viewerCount} viewers ({getStreamLength(channel.start)})
         </Typography>
         {!imgLoaded && (
           <Skeleton variant="rect" width={THUMBNAIL_WIDTH} height={THUMBNAIL_HEIGHT} />
         )}
         <img
-          src={getThumbnailUrl(channel.thumbnail!)}
+          src={getThumbnailUrl(channel.thumbnail)}
           alt="Thumbnail"
           onLoad={handleImageLoaded}
           style={{ display: imgLoaded ? 'block' : 'none' }}

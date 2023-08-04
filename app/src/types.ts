@@ -18,26 +18,60 @@ export type DeepMutable<T> = { -readonly [P in keyof T]: DeepMutable<T[P]> };
 
 export type SvgClickEventHandler = React.MouseEventHandler<SVGSVGElement>;
 
-export type Channel = {
-  username: string;
-  displayName: string;
-  viewerCount?: number;
-  profilePic?: string;
-  thumbnail?: string;
-  game?: string;
-  start?: string;
+export enum ChannelType {
+  TWITCH,
+  YOUTUBE,
+}
+
+export interface BaseChannel {
+  displayName: string,
+  profilePic?: string,
+  viewerCount?: number,
+}
+
+export interface TwitchChannel extends BaseChannel {
+  type: ChannelType.TWITCH,
+  username: string,
+  thumbnail?: string,
+  game?: string,
+  start?: string,
+}
+
+export interface YouTubeChannel extends BaseChannel {
+  type: ChannelType.YOUTUBE,
+  id: string,
+  manualInputQuery: string, // value which the user entered to add this channel
+  uploadsPlaylist?: string,
+  customUrl?: string,
+  videoId?: string,
+  start?: string,
+  title?: string,
+  thumbnail?: string,
+}
+
+export type Channel = TwitchChannel | YouTubeChannel;
+
+export type LiveTwitchChannel = TwitchChannel & {
+  viewerCount: number,
+  thumbnail: string,
+  game: string,
+  start: string,
 };
 
-export type LiveChannel = Channel & {
-  viewerCount: number;
-  thumbnail: string;
-  game: string;
-  start: string;
+export type LiveYouTubeChannel = YouTubeChannel & {
+  viewerCount: number,
+  thumbnail: string,
+  start: string,
+  videoId: string,
+  title: string,
 };
+
+export type LiveChannel = LiveTwitchChannel | LiveYouTubeChannel;
 
 export enum AccountType {
   TWITCH,
   YOUTUBE,
+  YOUTUBE_API_KEY,
 }
 
 export interface TwitchLogin {
@@ -57,7 +91,12 @@ export interface YouTubeLogin {
   name: string,
 }
 
-export type Login = TwitchLogin | YouTubeLogin;
+export interface YouTubeApiKey {
+  type: typeof AccountType.YOUTUBE_API_KEY,
+  apiKey: string,
+}
+
+export type Login = TwitchLogin | YouTubeLogin | YouTubeApiKey;
 
 // exporting the app-constants types so they can be imported from here as well (convenience)
 export * from './app-constants';

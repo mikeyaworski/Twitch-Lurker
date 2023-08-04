@@ -2,13 +2,14 @@ import React, { useCallback, useContext } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 import { makeStyles } from '@material-ui/core/styles';
 import { ListItem, ListItemIcon, ListItemText, Link } from '@material-ui/core';
-import StarRoundedIcon from '@material-ui/icons/StarRounded';
 import Skeleton from '@material-ui/lab/Skeleton';
+import StarRoundedIcon from '@material-ui/icons/StarRounded';
 
-import type { Channel, SvgClickEventHandler } from 'types';
+import { ChannelType, Channel, SvgClickEventHandler } from 'types';
 import StorageContext from 'contexts/Storage';
 import Hoverable from 'components/Hoverable';
 import LiveCount from 'components/LiveCount';
+import { getFavoriteId } from 'utils';
 
 const useStyles = makeStyles({
   icon: {
@@ -24,18 +25,33 @@ const useStyles = makeStyles({
   itemText: {
     overflow: 'hidden',
   },
+  itemTextSpan: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+  twitchIcon: {
+    height: 16,
+    width: 16,
+    marginLeft: 4,
+  },
+  youtubeIcon: {
+    height: 12,
+    width: 17,
+    marginLeft: 6,
+  },
 });
 
 export interface ChannelItemProps {
   className?: string,
   channel: Channel;
-  handleIconClick: SvgClickEventHandler;
+  onIconClick: SvgClickEventHandler;
   Icon: typeof StarRoundedIcon,
   iconColor?: React.ComponentProps<typeof StarRoundedIcon>['color'],
   hoverable?: boolean,
   linked?: boolean,
   showLiveCount?: boolean,
   loading?: boolean,
+  hidePlatformIcon?: boolean,
 }
 
 export function ChannelItemSkeleton({
@@ -59,13 +75,14 @@ export function ChannelItemSkeleton({
 
 export default function ChannelItem({
   className,
-  handleIconClick,
+  onIconClick,
   channel,
   Icon,
   iconColor,
   hoverable = false,
   linked = false,
   showLiveCount = false,
+  hidePlatformIcon = false,
 }: ChannelItemProps) {
   const classes = useStyles();
   const { storage } = useContext(StorageContext);
@@ -73,17 +90,22 @@ export default function ChannelItem({
   const handleOpenLink: React.MouseEventHandler<HTMLAnchorElement> = useCallback(e => {
     e.preventDefault();
     browser.tabs.create({
-      url: `https://twitch.tv/${e.currentTarget.dataset.username}`,
+      url: e.currentTarget.dataset.href,
       active: false,
     });
   }, []);
 
   const avatar = <img src={channel.profilePic} alt="avatar" className={classes.profilePic} />;
+  const href = channel.type === ChannelType.TWITCH
+    ? `https://twitch.tv/${channel.username}`
+    : channel.viewerCount != null
+      ? `https://youtube.com/watch?v=${channel.videoId}`
+      : `https://youtube.com/channel/${channel.id}`;
   const displayName = linked ? (
     <Link
-      href={`https://twitch.tv/${channel.username}`}
+      href={href}
       color="textPrimary"
-      data-username={channel.username}
+      data-href={href}
       onClick={handleOpenLink}
     >
       {channel.displayName}
@@ -91,6 +113,15 @@ export default function ChannelItem({
   ) : (
     <>{channel.displayName}</>
   );
+
+  const platformIcon = storage.logins.length > 1 && !hidePlatformIcon
+    ? channel.type === ChannelType.TWITCH
+      ? (
+        <img src={`${process.env.PUBLIC_URL}/twitch-icon.svg`} alt="" className={classes.twitchIcon} />
+      ) : (
+        <img src={`${process.env.PUBLIC_URL}/youtube-icon.svg`} alt="" className={classes.youtubeIcon} />
+      )
+    : null;
 
   return (
     <ListItem
@@ -107,7 +138,11 @@ export default function ChannelItem({
           avatar
         )
       )}
-      <ListItemText className={classes.itemText}>
+      <ListItemText classes={{
+        root: classes.itemText,
+        primary: classes.itemTextSpan,
+      }}
+      >
         {storage.showPreviewOnHover && hoverable ? (
           <Hoverable channel={channel}>
             {displayName}
@@ -115,6 +150,7 @@ export default function ChannelItem({
         ) : (
           displayName
         )}
+        {platformIcon}
       </ListItemText>
       {showLiveCount && channel.viewerCount != null && (
         <LiveCount viewerCount={channel.viewerCount} />
@@ -123,8 +159,8 @@ export default function ChannelItem({
         <Icon
           className={classes.icon}
           color={iconColor}
-          data-username={channel.username}
-          onClick={handleIconClick}
+          data-favorite-id={getFavoriteId(channel)}
+          onClick={onIconClick}
         />
       </ListItemIcon>
     </ListItem>

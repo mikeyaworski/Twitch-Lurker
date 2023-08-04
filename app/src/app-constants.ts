@@ -8,8 +8,10 @@ export const TITLE = 'Twitch Lurker';
 export const TWITCH_CLIENT_ID = 'xms2vxkmtn3rsrv1id2glcnu74fevs';
 export const GOOGLE_CLIENT_ID = '1098259349368-ds1kaq3f76gpl80lk9juu8tfnhfpqgon.apps.googleusercontent.com';
 export const OAUTH_AUTHORIZATION_CODE_SERVER_API_BASE = 'https://oauth-authorization-code-server.vercel.app/api';
+export const YOUTUBE_API_KEY_DOCUMENTATION = 'https://github.com/mikeyaworski/Twitch-Lurker/wiki/YouTube-API-Key';
 export const TWITCH_API_BASE = 'https://api.twitch.tv/helix';
-export const PAGINATION_LIMIT = 100;
+export const GOOGLE_API_BASE = 'https://www.googleapis.com/youtube/v3';
+export const TWITCH_PAGINATION_LIMIT = 100;
 export const UNMUTE_INTERVAL_LENGTH = 3 * 1000;
 
 const DEFAULT_STORAGE_VALUES = {
@@ -22,9 +24,11 @@ const DEFAULT_STORAGE_VALUES = {
   favorites: [] as string[],
   hiddenChannels: {
     twitch: [] as string[],
+    youtube: [] as string[],
   },
   addedChannels: {
     twitch: [] as string[],
+    youtube: [] as string[],
   },
   autoMuteTabs: true,
   sortLow: true,

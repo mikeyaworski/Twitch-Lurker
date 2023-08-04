@@ -1,9 +1,8 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { browser } from 'webextension-polyfill-ts';
-import { Route } from 'react-router-dom';
+import { Route, useHistory } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
 import { Box, Button, Typography } from '@material-ui/core';
-import YouTubeIcon from '@material-ui/icons/YouTube';
 
 import Following from 'components/Following';
 import Sidebar from 'components/Sidebar';
@@ -15,9 +14,6 @@ import HideChannels from 'components/HideChannels';
 import ImportExportSettings from 'components/ImportExportSettings';
 import { MessageType } from 'app-constants';
 import { useAuth } from 'hooks';
-import { PaletteButtonType, getPaletteButton } from 'widgets/PaletteButton';
-
-const RedButton = getPaletteButton(PaletteButtonType.RED);
 
 const MAX_POPUP_WIDTH = 800;
 export const SIDEBAR_WIDTH = 303;
@@ -52,6 +48,7 @@ const useStyles = makeStyles(theme => ({
 
 function Home() {
   const classes = useStyles();
+  const history = useHistory();
   const { loading, loggedIn } = useAuth();
 
   function login(type: MessageType) {
@@ -77,14 +74,15 @@ function Home() {
                 Login with Twitch
               </Button>
               <Typography variant="body1">or</Typography>
-              <RedButton
+              <Button
                 color="primary"
-                startIcon={<YouTubeIcon className={classes.loginIcon} />}
                 variant="contained"
-                onClick={() => login(MessageType.LOGIN_YOUTUBE)}
+                onClick={() => {
+                  if (history.location.pathname !== '/accounts') history.push('/accounts');
+                }}
               >
-                Login with YouTube
-              </RedButton>
+                Manage Accounts
+              </Button>
             </Box>
           )}
         </div>
