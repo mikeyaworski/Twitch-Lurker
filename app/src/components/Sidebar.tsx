@@ -150,7 +150,7 @@ function Sidebar() {
           <SidebarLink route="/add-channels" label="Add Channels" Icon={AddCircleIcon} disabled={actionsDisabled} />
           <SidebarLink route="/hide-channels" label="Hide Channels" Icon={VisibilityOffIcon} disabled={actionsDisabled} />
           <SidebarLink route="/import-export-settings" label="Import Settings" Icon={GetAppIcon} disabled={actionsDisabled} />
-          <SidebarLink route="/accounts" label="Accounts" Icon={AccountCircleIcon} disabled={actionsDisabled} />
+          <SidebarLink route="/accounts" label="Accounts" Icon={AccountCircleIcon} disabled={loading} />
         </List>
       </div>
       <Divider />
