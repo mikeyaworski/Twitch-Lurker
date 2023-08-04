@@ -125,6 +125,14 @@ export function getStreamLength(utcTimestamp: string) {
   return `${hoursStr}${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
 
+export function getChannelUrl(channel: Channel): string {
+  return channel.type === ChannelType.TWITCH
+    ? `https://twitch.tv/${channel.username}`
+    : channel.viewerCount != null
+      ? `https://youtube.com/watch?v=${channel.videoId}`
+      : `https://youtube.com/channel/${channel.id}`;
+}
+
 export function notEmpty<T>(value: T | null | undefined): value is T {
   return value !== null && value !== undefined;
 }

@@ -9,7 +9,7 @@ import { ChannelType, Channel, SvgClickEventHandler } from 'types';
 import StorageContext from 'contexts/Storage';
 import Hoverable from 'components/Hoverable';
 import LiveCount from 'components/LiveCount';
-import { getFavoriteId } from 'utils';
+import { getChannelUrl, getFavoriteId } from 'utils';
 
 const useStyles = makeStyles({
   icon: {
@@ -96,11 +96,7 @@ export default function ChannelItem({
   }, []);
 
   const avatar = <img src={channel.profilePic} alt="avatar" className={classes.profilePic} />;
-  const href = channel.type === ChannelType.TWITCH
-    ? `https://twitch.tv/${channel.username}`
-    : channel.viewerCount != null
-      ? `https://youtube.com/watch?v=${channel.videoId}`
-      : `https://youtube.com/channel/${channel.id}`;
+  const href = getChannelUrl(channel);
   const displayName = linked ? (
     <Link
       href={href}
