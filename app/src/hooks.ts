@@ -1,4 +1,5 @@
 import { useContext, useCallback, useState, useEffect } from 'react';
+import { browser } from 'webextension-polyfill-ts';
 import StorageContext from 'contexts/Storage';
 
 export function useOpen(initial = false) {
@@ -50,4 +51,15 @@ export function useAuth(): { loading: boolean, loggedIn?: boolean } {
   if (loading) return { loading };
   if (storage.logins.length === 0) return { loading, loggedIn: false };
   return { loading, loggedIn: true };
+}
+
+export function useHandleOpenLink(url: string, active = false): React.MouseEventHandler<HTMLAnchorElement> {
+  const handleOpenLink: React.MouseEventHandler<HTMLAnchorElement> = useCallback(e => {
+    e.preventDefault();
+    browser.tabs.create({
+      url,
+      active,
+    });
+  }, [url, active]);
+  return handleOpenLink;
 }
