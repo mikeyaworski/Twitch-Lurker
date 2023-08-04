@@ -83,11 +83,11 @@ async function updateTwitchTab(liveChannel: LiveTwitchChannel, candidateTwitchTa
 export async function openTwitchTabs(channels: Channel[]) {
   const { favorites, maxStreams, autoMuteTabs, hiddenChannels } = await getStorage(['favorites', 'maxStreams', 'autoMuteTabs', 'hiddenChannels']);
   if (!maxStreams || !favorites) return;
-  const twitchChannels = channels.filter(c => c.type === ChannelType.TWITCH) as TwitchChannel[];
-  const liveChannels = twitchChannels
+  const liveChannels = channels
+    .filter((c): c is TwitchChannel => c.type === ChannelType.TWITCH)
     .filter(channel => !hiddenChannels?.twitch.map(c => c.toLowerCase()).includes(channel.username.toLowerCase()))
-    .filter(channel => channel.viewerCount && favorites.includes(channel.username))
-    .sort((a, b) => sortChannels(a as LiveChannel, b as LiveChannel, favorites)) as LiveTwitchChannel[];
+    .filter((c): c is LiveTwitchChannel => Boolean(c.viewerCount) && favorites.includes(c.username))
+    .sort((a, b) => sortChannels(a, b, favorites));
   const tabs = await getTwitchTabs();
   // If they have the auto mute tabs pref enabled, then only take over tabs which are muted.
   const allOpenTwitchUsernames = tabs.map(tab => getTwitchUsernameFromUrl(tab.url!)).filter(Boolean) as string[];
