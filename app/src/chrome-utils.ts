@@ -1,4 +1,5 @@
 import { browser } from 'webextension-polyfill-ts';
+import merge from 'lodash.merge';
 import { error } from './logging';
 import { DEFAULT_STORAGE } from './app-constants';
 import type { StorageKey, MutableStorage, UnknownMapping, Storage } from './types';
@@ -58,7 +59,20 @@ export const getStorage: GetStorages = async (storageKeys, storage) => {
     error(JSON.stringify(chrome.runtime.lastError));
     throw chrome.runtime.lastError;
   }
-  return storageKeys.reduce((acc, storageKey) => {
+  const defaultSelectedStorage = storageKeys.reduce((acc, storageKey) => {
+    // it's either a string or an object of the form { key, cb }
+    if (typeof storageKey === 'string') {
+      return {
+        ...acc,
+        [storageKey]: DEFAULT_STORAGE[storageKey],
+      };
+    }
+    return {
+      ...acc,
+      [storageKey.key]: DEFAULT_STORAGE[storageKey.key],
+    };
+  }, {} as Partial<Storage>);
+  const rawStorage = storageKeys.reduce((acc, storageKey) => {
     // it's either a string or an object of the form { key, cb }
     if (typeof storageKey === 'string') {
       const value = res[storageKey] === undefined ? DEFAULT_STORAGE[storageKey] : res[storageKey];
@@ -70,6 +84,8 @@ export const getStorage: GetStorages = async (storageKeys, storage) => {
     cb(value);
     return { ...acc, [key]: value };
   }, {});
+  // Merge default storage so that this returns default data for any deeply nested new preferences (e.g. storage.hiddenChannels.youtube)
+  return merge({}, defaultSelectedStorage, rawStorage);
 };
 
 type SetStorage = (

@@ -1,4 +1,5 @@
-import { createContext, useCallback, useEffect, useReducer, useState } from 'react';
+import { createContext, useCallback, useEffect, useState } from 'react';
+import merge from 'lodash.merge';
 import type { Storage, StorageKeys } from 'types';
 import { DEFAULT_STORAGE } from 'app-constants';
 import { getStorage, hookStorage, setStorage as setStorageUtil } from 'chrome-utils';
@@ -34,7 +35,6 @@ export default createContext<ContextType>({
 } as UseStorage);
 
 export function useStorage(): UseStorage {
-  // const [storage, dispatch] = useReducer(storageReducer, DEFAULT_STORAGE);
   const [storage, setStorageState] = useState(DEFAULT_STORAGE);
   const [loading, setLoading] = useState(true);
 
@@ -42,7 +42,8 @@ export function useStorage(): UseStorage {
     (async () => {
       setLoading(true);
       const res = await getStorage(Object.keys(DEFAULT_STORAGE) as StorageKeys) as Storage;
-      setStorageState(res);
+      // Need to merge for the case of new default values
+      setStorageState(merge({}, DEFAULT_STORAGE, res));
       setLoading(false);
     })();
   }, []);
