@@ -19,6 +19,7 @@ const DEFAULT_STORAGE_VALUES = {
   enabled: true,
   autoOpenTabs: true,
   openTabsInBackground: true,
+  notifications: false,
   pollDelay: '5', // in minutes
   maxStreams: '2',
   favorites: [] as string[],

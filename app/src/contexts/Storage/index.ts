@@ -22,6 +22,7 @@ type UseStorage = {
   handleOpenTabsInBackgroundToggle: ReturnType<UseToggleFn>,
   handleAutoOpenTabsToggle: ReturnType<UseToggleFn>,
   handleAutoMuteTabsToggle: ReturnType<UseToggleFn>,
+  handleNotificationsToggle: ReturnType<UseToggleFn>,
   handlePollDelayChange: ReturnType<UseTextChangeFn>,
   handleMaxStreamsChange: ReturnType<UseTextChangeFn>,
 };
@@ -78,6 +79,7 @@ export function useStorage(): UseStorage {
   const handleOpenTabsInBackgroundToggle = useToggleFn('openTabsInBackground', setStorage);
   const handleAutoOpenTabsToggle = useToggleFn('autoOpenTabs', setStorage);
   const handleAutoMuteTabsToggle = useToggleFn('autoMuteTabs', setStorage);
+  const handleNotificationsToggle = useToggleFn('notifications', setStorage);
   const handlePollDelayChange = useTextChangeFn('pollDelay', setStorage);
   const handleMaxStreamsChange = useTextChangeFn('maxStreams', setStorage);
 
@@ -90,6 +92,7 @@ export function useStorage(): UseStorage {
     handleOpenTabsInBackgroundToggle,
     handleAutoOpenTabsToggle,
     handleAutoMuteTabsToggle,
+    handleNotificationsToggle,
     handlePollDelayChange,
     handleMaxStreamsChange,
   };

@@ -7,15 +7,51 @@ import {
   BADGE_PURPLE_BACKGROUND_COLOR,
   BADGE_DEFAULT_BACKGROUND_COLOR,
 } from 'app-constants';
-import { AccountType, Channel, ChannelType, TwitchLogin, YouTubeApiKey } from 'types';
+import { AccountType, Channel, ChannelType, LiveChannel, TwitchLogin, YouTubeApiKey } from 'types';
 import { error } from 'logging';
-import { getFavoriteId } from 'utils';
+import { getChannelUrl, getFavoriteId, getHiddenChannelsKey, sortChannels } from 'utils';
 import { openTwitchTabs } from '../tabs';
 import { fetchTwitchData, handleError as handleTwitchError } from './twitch';
 import { fetchYouTubeData } from './youtube';
 
 let globalChannels: Channel[] = [];
 let popupPort: Runtime.Port | null = null;
+
+async function getSortedLiveChannels(channels: Channel[]): Promise<LiveChannel[]> {
+  const { hiddenChannels, favorites = [] } = await getStorage(['notifications', 'hiddenChannels', 'favorites']);
+  return channels
+    .filter(channel => !(channel.type === ChannelType.TWITCH
+      && hiddenChannels?.twitch.map(username => username.toLowerCase()).includes(getHiddenChannelsKey(channel))))
+    .filter((channel): channel is LiveChannel => channel.viewerCount != null && favorites.includes(getFavoriteId(channel)))
+    .sort((a, b) => sortChannels(a, b, favorites));
+}
+
+browser.notifications.onClicked.addListener((favoriteId: string) => {
+  const clickedChannel = globalChannels.find(channel => favoriteId === getFavoriteId(channel));
+  if (clickedChannel) {
+    browser.tabs.create({
+      url: getChannelUrl(clickedChannel),
+      active: true,
+    });
+  }
+});
+
+async function notify(channelsBefore: Channel[], channelsAfter: Channel[]): Promise<void> {
+  const { notifications } = await getStorage(['notifications']);
+  if (notifications) {
+    const oldLiveChannels = await getSortedLiveChannels(channelsBefore);
+    const newLiveChannels = await getSortedLiveChannels(channelsAfter);
+    const topChannel = newLiveChannels[0];
+    if (topChannel && (!oldLiveChannels[0] || getFavoriteId(topChannel) !== getFavoriteId(oldLiveChannels[0]))) {
+      await browser.notifications.create(getFavoriteId(topChannel), {
+        title: `${topChannel.displayName} is live!`,
+        message: 'Click to view their stream.',
+        type: 'basic',
+        iconUrl: 'icons/icon128.png',
+      });
+    }
+  }
+}
 
 async function refreshBadgeData(): Promise<void> {
   const { favorites, hiddenChannels } = await getStorage(['favorites', 'hiddenChannels']);
@@ -37,7 +73,8 @@ async function refreshBadgeData(): Promise<void> {
   });
 }
 
-function setChannels(channels: Channel[]) {
+async function setChannels(channels: Channel[]) {
+  await notify(globalChannels, channels);
   globalChannels = channels;
   popupPort?.postMessage({
     type: MessageType.SEND_CHANNELS,
