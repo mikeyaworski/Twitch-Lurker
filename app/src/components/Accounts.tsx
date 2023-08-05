@@ -10,8 +10,9 @@ import BackWrapper from './Router/BackWrapper';
 
 const useStyles = makeStyles({
   actionsSpacing: {
+    gridGap: 6,
     '& > :not(:first-child)': {
-      marginLeft: 6,
+      marginLeft: 0,
     },
   },
 });
