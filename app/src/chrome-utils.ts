@@ -89,7 +89,7 @@ export const getStorage: GetStorages = async (storageKeys, storage) => {
 };
 
 type SetStorage = (
-  keyOrMap: string | UnknownMapping,
+  keyOrMap: StorageKey | Partial<Storage>,
   val?: unknown,
 ) => Promise<void>;
 

@@ -9,8 +9,8 @@ export type GenericMapping<T1, T2 extends string = string> = {
   [key in T2]?: T1;
 };
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type AnyMapping = GenericMapping<any>;
-export type UnknownMapping = GenericMapping<unknown>;
+export type AnyMapping<T extends string = string> = GenericMapping<any, T>;
+export type UnknownMapping<T extends string = string> = GenericMapping<unknown, T>;
 
 // https://stackoverflow.com/a/43001581/2554605
 export type Mutable<T> = { -readonly [P in keyof T]: T[P] };
