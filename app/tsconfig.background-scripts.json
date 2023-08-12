@@ -6,6 +6,7 @@
     "src/chrome-utils.ts",
     "src/utils.ts",
     "src/logging.ts",
+    "src/storage.ts",
     "src/types.ts"
   ],
 }
