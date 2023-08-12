@@ -19,6 +19,7 @@
     "identity",
     "storage",
     "notifications",
+    "https://*.googleapis.com/*",
     "https://*.twitch.tv/*"
   ],
 
