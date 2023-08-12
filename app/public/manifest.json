@@ -18,6 +18,7 @@
   "permissions": [
     "identity",
     "storage",
+    "unlimitedStorage",
     "notifications",
     "https://*.googleapis.com/*",
     "https://*.twitch.tv/*"
