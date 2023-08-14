@@ -1,6 +1,6 @@
 import { createContext, useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
-import { ChannelType, Channel, Storage, StorageKey } from 'types';
+import { ChannelType, Channel, StorageSync } from 'types';
 
 import { MessageType } from 'app-constants';
 import { hookStorage } from 'chrome-utils';
@@ -14,6 +14,10 @@ function fetchChannels() {
   port.postMessage({ type: MessageType.FETCH_CHANNELS });
 }
 
+export function fetchYouTubeSubscriptions() {
+  port.postMessage({ type: MessageType.FETCH_YOUTUBE_SUBSCRIPTIONS });
+}
+
 type UseBackgroundPort = {
   channels: Channel[],
   filteredChannels: Channel[],
@@ -25,7 +29,7 @@ export default createContext<UseBackgroundPort>({
   filteredChannels: [],
 });
 
-function isHiddenChannel(channel: Channel, hiddenChannels: Storage['hiddenChannels']): boolean {
+function isHiddenChannel(channel: Channel, hiddenChannels: StorageSync['hiddenChannels']): boolean {
   return channel.type === ChannelType.TWITCH
     && hiddenChannels.twitch.includes(channel.username.toLowerCase());
 }
@@ -49,8 +53,8 @@ export function useBackgroundPort(): UseBackgroundPort {
     hookStorage([
       {
         key: 'hiddenChannels',
-        cb: (value: Storage[StorageKey]) => {
-          const hiddenChannels = value as Storage['hiddenChannels'];
+        cb: (value: unknown) => {
+          const hiddenChannels = value as StorageSync['hiddenChannels'];
           setChannels(currentChannels => {
             setFilteredChannels(currentChannels.filter(channel => !isHiddenChannel(channel, hiddenChannels)));
             return currentChannels;

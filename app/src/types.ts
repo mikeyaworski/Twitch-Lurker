@@ -18,6 +18,11 @@ export type DeepMutable<T> = { -readonly [P in keyof T]: DeepMutable<T[P]> };
 
 export type SvgClickEventHandler = React.MouseEventHandler<SVGSVGElement>;
 
+export enum StorageType {
+  LOCAL,
+  SYNCED,
+}
+
 export enum ChannelType {
   TWITCH,
   YOUTUBE,
@@ -70,6 +75,7 @@ export type LiveChannel = LiveTwitchChannel | LiveYouTubeChannel;
 
 export enum AccountType {
   TWITCH,
+  YOUTUBE_OAUTH_CREDENTIALS,
   YOUTUBE,
   YOUTUBE_API_KEY,
 }
@@ -81,8 +87,17 @@ export interface TwitchLogin {
   username?: string,
 }
 
+// This is an intermediate step before logging in with YouTube
+export interface YouTubeOAuthCredentials {
+  type: typeof AccountType.YOUTUBE_OAUTH_CREDENTIALS,
+  clientId: string,
+  clientSecret: string,
+}
+
 export interface YouTubeLogin {
   type: typeof AccountType.YOUTUBE,
+  clientId?: string,
+  clientSecret?: string,
   accessToken: string,
   refreshToken: string,
   expiry: number, // epoch in seconds
@@ -96,7 +111,12 @@ export interface YouTubeApiKey {
   apiKey: string,
 }
 
-export type Login = TwitchLogin | YouTubeLogin | YouTubeApiKey;
+export type Login = TwitchLogin | YouTubeOAuthCredentials | YouTubeLogin | YouTubeApiKey;
+
+export interface YouTubeSubscription {
+  channelId: string,
+  displayName: string,
+}
 
 // exporting the app-constants types so they can be imported from here as well (convenience)
 export * from './app-constants';

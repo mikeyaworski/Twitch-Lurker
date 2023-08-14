@@ -4,10 +4,11 @@ import Autocomplete, { createFilterOptions } from '@material-ui/lab/Autocomplete
 import DeleteIcon from '@material-ui/icons/Delete';
 import { makeStyles } from '@material-ui/core/styles';
 import { VariableSizeList, ListChildComponentProps } from 'react-window';
-import { Typography, List, Tooltip } from '@material-ui/core';
+import { Typography, List, Tooltip, Box } from '@material-ui/core';
+import InfoIcon from '@material-ui/icons/Info';
 
 import type { Channel } from 'types';
-import { getFavoriteId, sortByName } from 'utils';
+import { getId, sortByName } from 'utils';
 import ChannelItem, { ChannelItemProps } from 'components/ChannelItem';
 
 const LISTBOX_PADDING = 8; // px
@@ -100,6 +101,7 @@ interface Props {
   hint?: string,
   tooltip?: React.ReactNode,
   channelItemProps?: Partial<ChannelItemProps>,
+  endAdornment?: React.ReactNode,
 }
 
 export default function VirtualizedChannelsAutocomplete({
@@ -112,6 +114,7 @@ export default function VirtualizedChannelsAutocomplete({
   hint = 'Username',
   channelItemProps,
   tooltip = null,
+  endAdornment,
 }: Props) {
   const classes = useStyles();
   const [value, setValue] = React.useState('');
@@ -125,6 +128,7 @@ export default function VirtualizedChannelsAutocomplete({
     <Autocomplete
       style={{ width: '100%' }}
       freeSolo
+      disableClearable={Boolean(endAdornment)}
       disabled={disabled}
       disableListWrap
       classes={{
@@ -141,7 +145,18 @@ export default function VirtualizedChannelsAutocomplete({
         inputValue: value,
         getOptionLabel: channel => channel.displayName,
       })}
-      renderInput={params => <TextField {...params} variant="outlined" size="small" label={hint} />}
+      renderInput={params => (
+        <TextField
+          {...params}
+          variant="outlined"
+          size="small"
+          label={hint}
+          InputProps={{
+            ...params.InputProps,
+            endAdornment: endAdornment || params.InputProps.endAdornment,
+          }}
+        />
+      )}
       renderOption={option => <Typography noWrap>{option.displayName}</Typography>}
       onInputChange={(_, newValue, reason) => {
         if (reason === 'input' || reason === 'clear') setValue(newValue);
@@ -166,9 +181,12 @@ export default function VirtualizedChannelsAutocomplete({
       }}
       >
         {tooltip ? (
-          <Tooltip arrow title={tooltip}>
+          <Box display="flex" gridGap={6} alignItems="center">
             {autocomplete}
-          </Tooltip>
+            <Tooltip arrow title={tooltip} style={{ cursor: 'pointer' }}>
+              <InfoIcon />
+            </Tooltip>
+          </Box>
         ) : autocomplete}
       </form>
       <List
@@ -177,7 +195,7 @@ export default function VirtualizedChannelsAutocomplete({
       >
         {channels.sort(sortByName).map(channel => (
           <ChannelItem
-            key={getFavoriteId(channel)}
+            key={getId(channel)}
             channel={channel}
             onIconClick={() => onRemove(channel)}
             Icon={DeleteIcon}

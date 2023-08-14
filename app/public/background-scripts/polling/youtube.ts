@@ -1,21 +1,48 @@
 import get from 'lodash.get';
 import {
-  GOOGLE_API_BASE,
+  YOUTUBE_API_BASE,
+  YOUTUBE_PAGINATION_LIMIT,
+  YOUTUBE_SUBSCRIPTIONS_POLL_DELAY_SECONDS,
+  GOOGLE_CLIENT_ID,
 } from 'app-constants';
-import { error } from 'logging';
-import { Channel, ChannelType, IntentionalAny, LiveYouTubeChannel, YouTubeChannel } from 'types';
+import { error, log } from 'logging';
+import {
+  AccountType,
+  ChannelType,
+  IntentionalAny,
+  LiveYouTubeChannel,
+  StorageType,
+  YouTubeChannel,
+  YouTubeLogin,
+  YouTubeSubscription,
+} from 'types';
 import { notEmpty } from 'utils';
+import { setStorage } from 'chrome-utils';
+import { waitFullStorage } from 'storage';
+import { tryRefreshToken } from '../auth/youtube';
+import { logout } from '../auth';
 
-const getApi = (apiKey: string) => async (route: string, params: [string, string | number][]) => {
-  const url = new URL(`${GOOGLE_API_BASE}${route}`);
+type GetApiOptions = {
+  apiKey: string,
+} | {
+  clientId: string,
+  accessToken: string,
+};
+
+type Api = (route: string, params: [string, string | number][]) => Promise<IntentionalAny>;
+
+const getApi = (options: GetApiOptions) => async (route: string, params: [string, string | number][]) => {
+  const url = new URL(`${YOUTUBE_API_BASE}${route}`);
   params.forEach(([key, value]) => {
     if (value) url.searchParams.append(key, String(value));
   });
+  const headers: HeadersInit = {};
+  if ('apiKey' in options) headers['X-GOOG-API-KEY'] = options.apiKey;
+  if ('clientId' in options) headers['Client-ID'] = options.clientId;
+  if ('accessToken' in options) headers.Authorization = `Bearer ${options.accessToken}`;
   const res = await fetch(url.href, {
     method: 'GET',
-    headers: {
-      'X-GOOG-API-KEY': apiKey,
-    },
+    headers,
   });
   const json = await res.json();
   if (res.status >= 400) throw json;
@@ -24,8 +51,33 @@ const getApi = (apiKey: string) => async (route: string, params: [string, string
 
 const channelInfoCache = new Map<string, YouTubeChannel>();
 
-export async function fetchYouTubeData(apiKey: string, addedChannels: string[]): Promise<YouTubeChannel[]> {
-  const fetch = getApi(apiKey);
+export type FetchYouTubeDataOptions = ({
+  accessToken: string,
+  refreshToken: string,
+  clientId: string,
+  clientSecret: string,
+  expiry: number,
+} | {
+  apiKey: string,
+}) & {
+  addedChannels: string[],
+};
+
+export async function fetchYouTubeData(options: FetchYouTubeDataOptions): Promise<YouTubeChannel[]> {
+  let fetch: Api;
+  const { addedChannels } = options;
+  if ('accessToken' in options) {
+    const refreshedData = await tryRefreshToken({
+      clientId: options.clientId,
+      clientSecret: options.clientSecret,
+      accessToken: options.accessToken,
+      refreshToken: options.refreshToken,
+      expiry: options.expiry,
+    });
+    fetch = getApi({ clientId: options.clientId, accessToken: refreshedData.accessToken });
+  } else {
+    fetch = getApi({ apiKey: options.apiKey });
+  }
   const baseChannels: (YouTubeChannel | null)[] = await Promise.all(addedChannels.map(async addedChannel => {
     if (channelInfoCache.has(addedChannel)) {
       return channelInfoCache.get(addedChannel)!;
@@ -70,7 +122,7 @@ export async function fetchYouTubeData(apiKey: string, addedChannels: string[]):
         // We need to check a lot of videos since any videos uploaded to the channel after the livestream has started will offset the livestream
         // from the end of the results. E.g. esports streams that are live for 11 hours may have uploaded a bunch of clips or player interviews
         // since the stream started.
-        ['maxResults', 50],
+        ['maxResults', YOUTUBE_PAGINATION_LIMIT],
       ]);
       return recentVidsRes.items
         // This filter is extremely flakey, but this prevents us from having to request so many video IDs
@@ -120,4 +172,68 @@ export async function fetchYouTubeData(apiKey: string, addedChannels: string[]):
     }
   });
   return channels.flat();
+}
+
+export async function fetchYouTubeSubscriptions(login: YouTubeLogin) {
+  const clientId = login.clientId || GOOGLE_CLIENT_ID;
+  const refreshedData = await tryRefreshToken({
+    clientId,
+    clientSecret: login.clientSecret,
+    accessToken: login.accessToken,
+    refreshToken: login.refreshToken,
+    expiry: login.expiry,
+  });
+  const fetch = getApi({
+    accessToken: refreshedData.accessToken,
+    clientId,
+  });
+  const subscriptions: YouTubeSubscription[] = [];
+  let pageToken;
+  do {
+    const res = await fetch('/subscriptions', [
+      ['part', 'snippet,contentDetails'],
+      ['mine', 'true'],
+      ['maxResults', YOUTUBE_PAGINATION_LIMIT],
+      ['pageToken', pageToken],
+    ]);
+    if (res.items) {
+      subscriptions.push(...(res.items as IntentionalAny[]).map((item: IntentionalAny) => {
+        const channelId = get<string>(item, 'snippet.resourceId.channelId', '');
+        const displayName = get<string>(item, 'snippet.title', '');
+        if (channelId && displayName) {
+          return {
+            channelId,
+            displayName,
+          };
+        }
+        return null;
+      }).filter(notEmpty));
+    }
+    pageToken = res.nextPageToken;
+  } while (pageToken);
+  setStorage({
+    youtubeSubscriptions: {
+      fetchTime: Date.now() / 1000,
+      subscriptions,
+    },
+  }, StorageType.LOCAL);
+  return subscriptions;
+}
+
+export async function tryPollYouTubeSubscriptions(login: YouTubeLogin): Promise<YouTubeSubscription[]| null> {
+  const storageLocal = await waitFullStorage(StorageType.LOCAL);
+  const fetchTime = storageLocal.youtubeSubscriptions?.fetchTime;
+  if (fetchTime == null || (Date.now() / 1000 - fetchTime) > YOUTUBE_SUBSCRIPTIONS_POLL_DELAY_SECONDS) {
+    return fetchYouTubeSubscriptions(login);
+  }
+  return null;
+}
+
+export function handleError(err: unknown): void {
+  error(err);
+  const status: string | undefined = get(err, 'error.status');
+  if (status && ['UNAUTHENTICATED', 'PERMISSION_DENIED'].includes(status)) {
+    log('Logged out of YouTube account due to (assumed) invalid access token');
+    logout(AccountType.YOUTUBE);
+  }
 }

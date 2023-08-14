@@ -17,7 +17,7 @@ async function createAuthEndpoint() {
   return url.href;
 }
 
-export async function handleLogin() {
+export async function login() {
   const authEndpoint = await createAuthEndpoint();
   const state = new URL(authEndpoint).searchParams.get('state');
   const nonce = new URL(authEndpoint).searchParams.get('nonce');

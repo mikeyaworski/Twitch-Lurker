@@ -1,24 +1,33 @@
 import { browser } from 'webextension-polyfill-ts';
 import type { Runtime } from 'webextension-polyfill-ts';
 import debounce from 'lodash.debounce';
-import { getStorage, hookStorage } from 'chrome-utils';
+import { hookStorage } from 'chrome-utils';
 import {
   MessageType,
   BADGE_PURPLE_BACKGROUND_COLOR,
   BADGE_DEFAULT_BACKGROUND_COLOR,
 } from 'app-constants';
-import { AccountType, Channel, ChannelType, LiveChannel, TwitchLogin, YouTubeApiKey } from 'types';
-import { error } from 'logging';
-import { getChannelUrl, getFavoriteId, getHiddenChannelsKey, sortChannels } from 'utils';
+import { getFullStorage, waitFullStorage } from 'storage';
+import { AccountType, Channel, ChannelType, LiveChannel, TwitchLogin, YouTubeApiKey, StorageType } from 'types';
+import { error, log } from 'logging';
+import { getChannelUrl, getFavoriteId, getHiddenChannelsKey, getIsLoggedInWithAnyAccount, getYouTubeLogin, sortChannels } from 'utils';
 import { openTwitchTabs } from '../tabs';
 import { fetchTwitchData, handleError as handleTwitchError } from './twitch';
-import { fetchYouTubeData } from './youtube';
+import {
+  FetchYouTubeDataOptions,
+  fetchYouTubeData,
+  fetchYouTubeSubscriptions,
+  tryPollYouTubeSubscriptions,
+  handleError as handleYouTubeError,
+} from './youtube';
+
+const storage = getFullStorage();
 
 let globalChannels: Channel[] = [];
 let popupPort: Runtime.Port | null = null;
 
-async function getSortedLiveChannels(channels: Channel[]): Promise<LiveChannel[]> {
-  const { hiddenChannels, favorites = [] } = await getStorage(['notifications', 'hiddenChannels', 'favorites']);
+function getSortedLiveChannels(channels: Channel[]): LiveChannel[] {
+  const { hiddenChannels, favorites } = storage;
   return channels
     .filter(channel => !(channel.type === ChannelType.TWITCH
       && hiddenChannels?.twitch.map(username => username.toLowerCase()).includes(getHiddenChannelsKey(channel))))
@@ -37,7 +46,7 @@ browser.notifications.onClicked.addListener((favoriteId: string) => {
 });
 
 async function notify(channelsBefore: Channel[], channelsAfter: Channel[]): Promise<void> {
-  const { notifications } = await getStorage(['notifications']);
+  const { notifications } = storage;
   if (notifications) {
     const oldLiveChannels = await getSortedLiveChannels(channelsBefore);
     const newLiveChannels = await getSortedLiveChannels(channelsAfter);
@@ -54,7 +63,7 @@ async function notify(channelsBefore: Channel[], channelsAfter: Channel[]): Prom
 }
 
 async function refreshBadgeData(): Promise<void> {
-  const { favorites, hiddenChannels } = await getStorage(['favorites', 'hiddenChannels']);
+  const { favorites, hiddenChannels } = storage;
   const filteredChannels = globalChannels.filter(channel => {
     const isHiddenTwitch = channel.type === ChannelType.TWITCH
       && hiddenChannels?.twitch.map(c => c.toLowerCase()).includes(channel.username.toLowerCase());
@@ -84,12 +93,10 @@ async function setChannels(channels: Channel[]) {
 }
 
 async function fetchData() {
-  const { logins, addedChannels } = await getStorage([
-    'logins',
-    'addedChannels',
-  ]);
-  const twitchLogin = logins?.find(l => l.type === AccountType.TWITCH) as TwitchLogin | undefined;
-  const youtubeLogin = logins?.find(l => l.type === AccountType.YOUTUBE_API_KEY) as YouTubeApiKey | undefined;
+  const { logins, addedChannels, autoOpenTabs } = storage;
+  const twitchLogin = logins?.find((l): l is TwitchLogin => l.type === AccountType.TWITCH);
+  const youtubeApiKey = logins?.find((l): l is YouTubeApiKey => l.type === AccountType.YOUTUBE_API_KEY);
+  let youtubeLogin = getYouTubeLogin(storage);
   const newChannels: Channel[] = [];
   if (twitchLogin) {
     try {
@@ -103,34 +110,56 @@ async function fetchData() {
       handleTwitchError(err);
     }
   }
-  // TODO: Suport auto opening tabs with YouTube
-  getStorage([{
-    key: 'autoOpenTabs',
-    cb: autoOpenTabs => {
-      if (autoOpenTabs) openTwitchTabs(globalChannels);
-    },
-  }]);
-  if (youtubeLogin) {
+  // TODO: Support auto opening tabs with YouTube
+  if (youtubeApiKey || youtubeLogin) {
     try {
-      const youTubeChannels = await fetchYouTubeData(youtubeLogin.apiKey, addedChannels?.youtube || []);
-      newChannels.push(...youTubeChannels);
+      // Only use the accessToken to fetch data if it comes from a custom app
+      const options: FetchYouTubeDataOptions | null = youtubeLogin?.clientId && youtubeLogin?.clientSecret ? {
+        accessToken: youtubeLogin.accessToken,
+        refreshToken: youtubeLogin.refreshToken,
+        clientId: youtubeLogin.clientId,
+        clientSecret: youtubeLogin.clientSecret,
+        expiry: youtubeLogin.expiry,
+        addedChannels: addedChannels?.youtube || [],
+      } : youtubeApiKey ? {
+        apiKey: youtubeApiKey?.apiKey,
+        addedChannels: addedChannels?.youtube || [],
+      } : null;
+      if (options) {
+        try {
+          const youTubeChannels = await fetchYouTubeData(options);
+          newChannels.push(...youTubeChannels);
+        } catch (err) {
+          error(err);
+          // Use apiKey as backup if possible
+          if (youtubeApiKey && 'accessToken' in options) {
+            log('Using YouTube API Key as fallback');
+            const youTubeChannels = await fetchYouTubeData({
+              apiKey: youtubeApiKey.apiKey,
+              addedChannels: options.addedChannels,
+            });
+            newChannels.push(...youTubeChannels);
+          } else {
+            throw err;
+          }
+        }
+      }
     } catch (err) {
-      // TODO: Handle this
-      error(err);
+      handleYouTubeError(err);
     }
   }
   setChannels(newChannels);
+  youtubeLogin = getYouTubeLogin(storage); // get the login again because the accessToken and expiry may have been updated
+  if (youtubeLogin) tryPollYouTubeSubscriptions(youtubeLogin)?.catch(error);
+  if (autoOpenTabs) openTwitchTabs(globalChannels);
 }
 
 let pollingInterval: NodeJS.Timeout | undefined;
 async function poll() {
-  const { logins, enabled, pollDelay } = await getStorage([
-    'logins',
-    'enabled',
-    'pollDelay',
-  ]);
+  await waitFullStorage();
+  const { logins, enabled, pollDelay } = storage;
   if (pollingInterval) clearInterval(pollingInterval);
-  if (enabled && logins && logins.length > 0) {
+  if (enabled && logins && getIsLoggedInWithAnyAccount(logins)) {
     fetchData();
     pollingInterval = setInterval(fetchData, Number(pollDelay) * 1000 * 60);
   } else {
@@ -189,6 +218,11 @@ function listen() {
             type: MessageType.SEND_CHANNELS,
             data: globalChannels,
           });
+          break;
+        }
+        case MessageType.FETCH_YOUTUBE_SUBSCRIPTIONS: {
+          const youtubeLogin = getYouTubeLogin(storage);
+          if (youtubeLogin) fetchYouTubeSubscriptions(youtubeLogin);
           break;
         }
         default: {

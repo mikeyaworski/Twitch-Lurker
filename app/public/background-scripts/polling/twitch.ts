@@ -4,7 +4,7 @@ import {
   TWITCH_CLIENT_ID,
   TWITCH_PAGINATION_LIMIT,
 } from 'app-constants';
-import { log } from 'logging';
+import { error, log } from 'logging';
 import { AccountType, ChannelType, IntentionalAny, TwitchChannel } from 'types';
 import { logout } from '../auth';
 
@@ -132,7 +132,8 @@ export function handleError(err: unknown) {
     && [400, 401].includes(err.status)
   ) {
     // Access token is probably invalid
-    log('Logged out due to (assumed) invalid access token', err);
+    error(err);
+    log('Logged out of Twitch account due to (assumed) invalid access token');
     logout(AccountType.TWITCH);
   } else {
     throw err;

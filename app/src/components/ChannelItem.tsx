@@ -9,7 +9,7 @@ import { ChannelType, Channel, SvgClickEventHandler } from 'types';
 import StorageContext from 'contexts/Storage';
 import Hoverable from 'components/Hoverable';
 import LiveCount from 'components/LiveCount';
-import { getChannelUrl, getFavoriteId } from 'utils';
+import { getChannelUrl, getFavoriteId, getIsLoggedInWithMultipleAccounts } from 'utils';
 
 const useStyles = makeStyles({
   icon: {
@@ -110,7 +110,7 @@ export default function ChannelItem({
     <>{channel.displayName}</>
   );
 
-  const platformIcon = storage.logins.length > 1 && !hidePlatformIcon
+  const platformIcon = getIsLoggedInWithMultipleAccounts(storage.logins) && !hidePlatformIcon
     ? channel.type === ChannelType.TWITCH
       ? (
         <img src={`${process.env.PUBLIC_URL}/twitch-icon.svg`} alt="" className={classes.twitchIcon} />

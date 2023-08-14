@@ -1,4 +1,4 @@
-import { ChannelType, Channel, LiveChannel } from 'types';
+import { ChannelType, Channel, LiveChannel, Login, AccountType, YouTubeLogin, StorageSync } from 'types';
 
 export function getSortableValue(channel: Channel): string {
   switch (channel.type) {
@@ -58,8 +58,9 @@ export function getId(channel: Channel): string {
       return channel.username;
     }
     case ChannelType.YOUTUBE: {
-      if (channel.videoId) return channel.id + channel.videoId;
-      return channel.id;
+      const baseId = channel.id + channel.manualInputQuery;
+      if (channel.videoId) return baseId + channel.videoId;
+      return baseId;
     }
     default: {
       // This should never happen
@@ -135,4 +136,18 @@ export function getChannelUrl(channel: Channel): string {
 
 export function notEmpty<T>(value: T | null | undefined): value is T {
   return value !== null && value !== undefined;
+}
+
+const accountsThatCanFetchChannels: AccountType[] = [AccountType.TWITCH, AccountType.YOUTUBE_API_KEY, AccountType.YOUTUBE];
+
+export function getIsLoggedInWithAnyAccount(logins: Login[]): boolean {
+  return logins.some(login => accountsThatCanFetchChannels.includes(login.type));
+}
+
+export function getIsLoggedInWithMultipleAccounts(logins: Login[]): boolean {
+  return logins.filter(login => accountsThatCanFetchChannels.includes(login.type)).length > 1;
+}
+
+export function getYouTubeLogin(storage: StorageSync): YouTubeLogin | undefined {
+  return storage.logins.find((login): login is YouTubeLogin => login.type === AccountType.YOUTUBE);
 }

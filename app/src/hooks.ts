@@ -1,6 +1,7 @@
 import { useContext, useCallback, useState, useEffect } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 import StorageContext from 'contexts/Storage';
+import { getIsLoggedInWithAnyAccount } from 'utils';
 
 export function useOpen(initial = false) {
   const [open, setOpen] = useState<boolean>(initial);
@@ -49,7 +50,7 @@ export function useTemporaryToggle({
 export function useAuth(): { loading: boolean, loggedIn?: boolean } {
   const { loading, storage } = useContext(StorageContext);
   if (loading) return { loading };
-  if (storage.logins.length === 0) return { loading, loggedIn: false };
+  if (!getIsLoggedInWithAnyAccount(storage.logins)) return { loading, loggedIn: false };
   return { loading, loggedIn: true };
 }
 

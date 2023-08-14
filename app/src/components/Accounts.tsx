@@ -1,11 +1,20 @@
 import React, { useContext, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 import { Box, Button, Card, CardActions, CardContent, TextField, Typography, Link, makeStyles } from '@material-ui/core';
-
-import StorageContext from 'contexts/Storage';
-import { AccountType, MessageType, YOUTUBE_API_KEY_DOCUMENTATION } from 'types';
 import { Skeleton } from '@material-ui/lab';
+
+import {
+  AccountType,
+  Login,
+  MessageType,
+  YouTubeOAuthCredentials,
+} from 'types';
+import {
+  YOUTUBE_API_KEY_DOCUMENTATION,
+  YOUTUBE_OAUTH_CREDENTIALS_DOCUMENTATION,
+} from 'app-constants';
 import { useHandleOpenLink } from 'hooks';
+import StorageContext from 'contexts/Storage';
 import BackWrapper from './Router/BackWrapper';
 
 const useStyles = makeStyles({
@@ -18,20 +27,14 @@ const useStyles = makeStyles({
 });
 
 function logout(accountType: AccountType) {
-  const messageTypeMap = {
-    [AccountType.TWITCH]: MessageType.LOGOUT_TWITCH,
-    [AccountType.YOUTUBE]: MessageType.LOGOUT_YOUTUBE,
-  };
-  // @ts-ignore
-  browser.runtime.sendMessage({ type: messageTypeMap[accountType] });
+  browser.runtime.sendMessage({ type: MessageType.LOGOUT, accountType });
 }
 
-function login(accountType: AccountType) {
+function login(accountType: AccountType.TWITCH | AccountType.YOUTUBE) {
   const messageTypeMap = {
     [AccountType.TWITCH]: MessageType.LOGIN_TWITCH,
     [AccountType.YOUTUBE]: MessageType.LOGIN_YOUTUBE,
   };
-  // @ts-ignore
   browser.runtime.sendMessage({ type: messageTypeMap[accountType] });
 }
 
@@ -57,32 +60,111 @@ function CardSkeleton({ title }: CardSkeletonProps) {
   );
 }
 
+interface CardInputProps {
+  inputs: {
+    label: string,
+    name: string,
+    defaultValue: string,
+  }[],
+  onSubmit: React.FormEventHandler<HTMLFormElement>,
+  onCancel: () => void,
+}
+
+function CardInput({ inputs, onSubmit, onCancel }: CardInputProps) {
+  return (
+    <form
+      onSubmit={e => {
+        onSubmit(e);
+        onCancel();
+      }}
+    >
+      <Box display="flex" flexDirection="column" gridGap={8} style={{ marginTop: 8 }}>
+        {inputs.map(input => (
+          <TextField
+            key={input.name}
+            name={input.name}
+            label={input.label}
+            defaultValue={input.defaultValue}
+            variant="outlined"
+            size="small"
+            fullWidth
+          />
+        ))}
+      </Box>
+      <Box display="flex" gridGap={6} mt={1}>
+        <Button type="submit" variant="contained" color="primary" size="small">
+          Save
+        </Button>
+        <Button
+          variant="contained"
+          color="default"
+          size="small"
+          onClick={onCancel}
+        >
+          Cancel
+        </Button>
+      </Box>
+    </form>
+  );
+}
+
 interface CardProps {
   accountType: AccountType,
 }
 
+// TODO: If my app gets published, revert back to the cards which require that the API key be used in addition to logging in. Logging in will only
+// be used to fetch channel subscriptions.
 function AccountCard({ accountType }: CardProps) {
   const classes = useStyles();
   const { loading, storage, setStorage } = useContext(StorageContext);
   const [youtubeApiKeyInputOpen, setYouTubeApiKeyInputOpen] = useState(false);
-  const [youtubeApiKey, setYouTubeApiKey] = useState('');
+  const [youtubeClientIdInputOpen, setYouTubeOAuthCredentialsInputOpen] = useState(false);
 
   const openYouTubeApiKeyDocumentation = useHandleOpenLink(YOUTUBE_API_KEY_DOCUMENTATION, true);
+  const openYouTubeOAuthCredentialsDocumentation = useHandleOpenLink(YOUTUBE_OAUTH_CREDENTIALS_DOCUMENTATION, true);
 
-  function removeYouTubeApiKey() {
-    setStorage({
-      logins: storage.logins.filter(login => login.type !== AccountType.YOUTUBE_API_KEY),
-    }, true);
-  }
+  const account = storage.logins.find(login => login.type === accountType);
+  const oauthCredentials = storage.logins.find((login): login is YouTubeOAuthCredentials => login.type === AccountType.YOUTUBE_OAUTH_CREDENTIALS);
+
+  const getOnSubmitLoginProperty = (type: AccountType): React.FormEventHandler<HTMLFormElement> => e => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const newLogin: Partial<Login> = {
+      type,
+    };
+    // eslint-disable-next-line no-restricted-syntax
+    for (const [key, value] of formData.entries()) {
+      // Trust that the form was created properly
+      // @ts-expect-error
+      newLogin[key] = value;
+    }
+    const hasEmptyValue = Object.values(newLogin).some(value => !value);
+    if (!hasEmptyValue) {
+      if (newLogin) {
+        const newLogins = Array.from(storage.logins);
+        const existingApiKeyLoginIdx = storage.logins.findIndex(login => login.type === type);
+        if (existingApiKeyLoginIdx < 0) {
+          newLogins.push(newLogin as Login);
+        } else {
+          newLogins.splice(existingApiKeyLoginIdx, 1, newLogin as Login);
+        }
+        setStorage({
+          logins: newLogins,
+        });
+      }
+    }
+  };
 
   const title = (() => {
     switch (accountType) {
       case AccountType.TWITCH: {
         return 'Twitch';
       }
-      case AccountType.YOUTUBE:
-      case AccountType.YOUTUBE_API_KEY: {
+      case AccountType.YOUTUBE: {
         return 'YouTube';
+      }
+      case AccountType.YOUTUBE_API_KEY: {
+        return 'YouTube API Key';
       }
       default: {
         return '';
@@ -90,44 +172,9 @@ function AccountCard({ accountType }: CardProps) {
     }
   })();
 
-  if (loading) return <CardSkeleton title={title} />;
-
-  const account = storage.logins.find(login => login.type === accountType);
-
-  function openYouTubeApiKeyInput() {
-    if (account && account.type === AccountType.YOUTUBE_API_KEY) {
-      setYouTubeApiKey(account.apiKey);
-    }
-    setYouTubeApiKeyInputOpen(true);
-  }
-
-  const submitYouTubeApiKey: React.FormEventHandler<HTMLFormElement> = e => {
-    e.preventDefault();
-    if (youtubeApiKey) {
-      const newLogins = Array.from(storage.logins);
-      const existingApiKeyLoginIdx = storage.logins.findIndex(login => login.type === AccountType.YOUTUBE_API_KEY);
-      if (existingApiKeyLoginIdx < 0) {
-        newLogins.push({
-          type: AccountType.YOUTUBE_API_KEY,
-          apiKey: youtubeApiKey,
-        });
-      } else {
-        newLogins.splice(existingApiKeyLoginIdx, 1, {
-          type: AccountType.YOUTUBE_API_KEY,
-          apiKey: youtubeApiKey,
-        });
-      }
-      setStorage({
-        logins: newLogins,
-      });
-    }
-    setYouTubeApiKeyInputOpen(false);
-    setYouTubeApiKey('');
-  };
-
   let loginName: string | undefined;
   if (account && 'username' in account) loginName = `@${account.username}`;
-  else if (account && 'name' in account) loginName = account.name;
+  else if (account && 'email' in account) loginName = account.email;
 
   let buttons: React.ReactNode = null;
   let secondaryText: React.ReactNode = '';
@@ -149,26 +196,78 @@ function AccountCard({ accountType }: CardProps) {
           : 'Logged in';
       break;
     }
+    case AccountType.YOUTUBE: {
+      const clientIdLogin = storage.logins.find(l => l.type === AccountType.YOUTUBE_OAUTH_CREDENTIALS);
+      if (!youtubeClientIdInputOpen) {
+        buttons = (!clientIdLogin && !account)
+          ? (
+            <Button variant="contained" size="small" color="primary" onClick={() => setYouTubeOAuthCredentialsInputOpen(true)}>
+              Set Credentials
+            </Button>
+          ) : account ? (
+            <Button variant="contained" size="small" color="primary" onClick={() => logout(accountType)}>
+              Log Out
+            </Button>
+          ) : (
+            <>
+              <Button variant="contained" size="small" color="primary" onClick={() => login(accountType)}>
+                Log In
+              </Button>
+              <Button variant="contained" size="small" color="primary" onClick={() => logout(AccountType.YOUTUBE_OAUTH_CREDENTIALS)}>
+                Remove Credentials
+              </Button>
+              <Button variant="contained" size="small" color="primary" onClick={() => setYouTubeOAuthCredentialsInputOpen(true)}>
+                Update Credentials
+              </Button>
+            </>
+          );
+      }
+      const loginText = !account
+        ? 'Not logged in'
+        : loginName
+          ? `Logged in as ${loginName}`
+          : 'Logged in';
+      secondaryText = (
+        <>
+          {loginText}
+          <br />
+          <br />
+          To log in with YouTube, you must provide your own client ID and secret.
+          {' '}
+          Instructions to do so are
+          {' '}
+          <Link
+            href={YOUTUBE_OAUTH_CREDENTIALS_DOCUMENTATION}
+            color="textPrimary"
+            onClick={openYouTubeOAuthCredentialsDocumentation}
+          >
+            here
+          </Link>
+          . This has slightly more steps than providing an API key, but it allows your subscriptions to be populated when adding channels.
+        </>
+      );
+      break;
+    }
     case AccountType.YOUTUBE_API_KEY: {
       if (!youtubeApiKeyInputOpen) {
         buttons = account ? (
           <>
-            <Button variant="contained" size="small" color="primary" onClick={removeYouTubeApiKey}>
+            <Button variant="contained" size="small" color="primary" onClick={() => logout(accountType)}>
               Remove API Key
             </Button>
-            <Button variant="contained" size="small" color="primary" onClick={openYouTubeApiKeyInput}>
+            <Button variant="contained" size="small" color="primary" onClick={() => setYouTubeApiKeyInputOpen(true)}>
               Update API Key
             </Button>
           </>
         ) : (
-          <Button variant="contained" size="small" color="primary" onClick={openYouTubeApiKeyInput}>
+          <Button variant="contained" size="small" color="primary" onClick={() => setYouTubeApiKeyInputOpen(true)}>
             Set API Key
           </Button>
         );
       }
       secondaryText = (
         <>
-          Because of limitations with the YouTube API, you must provide your own API key.
+          Instead of logging in with your YouTube account, you may instead provide an API key.
           {' '}
           Instructions to do so are
           {' '}
@@ -179,7 +278,9 @@ function AccountCard({ accountType }: CardProps) {
           >
             here
           </Link>
-          .
+          . Note that your subscriptions cannot be populated if you use an API key, so all channels need to be added manually by their username or ID.
+          {' '}
+          This can also be used as a fallback in case the access token from your YouTube login expires for whatever reason.
         </>
       );
       break;
@@ -189,41 +290,51 @@ function AccountCard({ accountType }: CardProps) {
     }
   }
 
+  if (loading) return <CardSkeleton title={title} />;
+
   return (
     <Card>
       <CardContent>
         <Typography gutterBottom variant="h5">
           {title}
         </Typography>
-        <Typography variant="body2" color="textSecondary" gutterBottom={youtubeApiKeyInputOpen}>
+        <Typography variant="body2" color="textSecondary">
           {secondaryText}
         </Typography>
         {youtubeApiKeyInputOpen && (
-          <form onSubmit={submitYouTubeApiKey}>
-            <TextField
-              value={youtubeApiKey}
-              onChange={e => setYouTubeApiKey(e.target.value)}
-              variant="outlined"
-              size="small"
-              fullWidth
-            />
-            <Box display="flex" gridGap={6} mt={1}>
-              <Button type="submit" variant="contained" color="primary" size="small">
-                Save
-              </Button>
-              <Button
-                variant="contained"
-                color="default"
-                size="small"
-                onClick={() => {
-                  setYouTubeApiKeyInputOpen(false);
-                  setYouTubeApiKey('');
-                }}
-              >
-                Cancel
-              </Button>
-            </Box>
-          </form>
+          <CardInput
+            inputs={[
+              {
+                label: 'API Key',
+                name: 'apiKey',
+                defaultValue: account && account.type === AccountType.YOUTUBE_API_KEY ? account.apiKey : '',
+              },
+            ]}
+            onSubmit={getOnSubmitLoginProperty(AccountType.YOUTUBE_API_KEY)}
+            onCancel={() => {
+              setYouTubeApiKeyInputOpen(false);
+            }}
+          />
+        )}
+        {youtubeClientIdInputOpen && (
+          <CardInput
+            inputs={[
+              {
+                label: 'Client ID',
+                name: 'clientId',
+                defaultValue: oauthCredentials ? oauthCredentials.clientId : '',
+              },
+              {
+                label: 'Client Secret',
+                name: 'clientSecret',
+                defaultValue: oauthCredentials ? oauthCredentials.clientSecret : '',
+              },
+            ]}
+            onSubmit={getOnSubmitLoginProperty(AccountType.YOUTUBE_OAUTH_CREDENTIALS)}
+            onCancel={() => {
+              setYouTubeOAuthCredentialsInputOpen(false);
+            }}
+          />
         )}
       </CardContent>
       <CardActions classes={{ spacing: classes.actionsSpacing }}>
@@ -239,6 +350,7 @@ export default function Accounts() {
       <Typography variant="h5" align="center" gutterBottom>Accounts</Typography>
       <Box display="flex" flexDirection="column" gridGap="10px">
         <AccountCard accountType={AccountType.TWITCH} />
+        <AccountCard accountType={AccountType.YOUTUBE} />
         <AccountCard accountType={AccountType.YOUTUBE_API_KEY} />
       </Box>
     </BackWrapper>
