@@ -29,8 +29,8 @@ async function fetchFollowing(accessToken: string, userId: string) {
   let cursor = '';
   const channels = [];
   do {
-    const res = await getApi(accessToken)('/users/follows', [
-      ['from_id', userId],
+    const res = await getApi(accessToken)('/channels/followed', [
+      ['user_id', userId],
       ['first', TWITCH_PAGINATION_LIMIT],
       ['after', cursor],
     ]);
@@ -87,11 +87,11 @@ export async function fetchTwitchData(accessToken: string, userId: string, added
   ]);
 
   // Filter out added channels which are duplicates (already followed)
-  const followedChannelUsernames = new Set<string>(channels.map(channel => channel.to_login.toLowerCase()));
+  const followedChannelUsernames = new Set<string>(channels.map(channel => channel.broadcaster_login.toLowerCase()));
   const filteredAddedChannels = addedChanels.filter(username => !followedChannelUsernames.has(username.toLowerCase()));
 
   const channelParamData = [
-    ...channels.map(channel => ['id', channel.to_id] as [string, string]),
+    ...channels.map(channel => ['id', channel.broadcaster_id] as [string, string]),
     ...filteredAddedChannels.map(username => ['login', username] as [string, string]),
   ];
   const usersDatas = await Promise.all(chunk(channelParamData, TWITCH_PAGINATION_LIMIT).map(async paramDataChunk => {
