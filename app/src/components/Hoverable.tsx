@@ -114,7 +114,10 @@ const Hoverable = ({ children, channel }: Props) => {
           src={getThumbnailUrl(channel.thumbnail)}
           alt="Thumbnail"
           onLoad={handleImageLoaded}
-          style={{ display: imgLoaded ? 'block' : 'none' }}
+          style={{
+            display: imgLoaded ? 'block' : 'none',
+            maxWidth: THUMBNAIL_WIDTH,
+          }}
         />
       </Popover>
     </>
