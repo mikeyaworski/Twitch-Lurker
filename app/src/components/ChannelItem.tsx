@@ -5,11 +5,11 @@ import { ListItem, ListItemIcon, ListItemText, Link } from '@material-ui/core';
 import Skeleton from '@material-ui/lab/Skeleton';
 import StarRoundedIcon from '@material-ui/icons/StarRounded';
 
-import { ChannelType, Channel, SvgClickEventHandler } from 'types';
+import { ChannelType, Channel } from 'types';
 import StorageContext from 'contexts/Storage';
 import Hoverable from 'components/Hoverable';
 import LiveCount from 'components/LiveCount';
-import { getChannelUrl, getFavoriteId, getIsLoggedInWithMultipleAccounts } from 'utils';
+import { getChannelUrl, getIsLoggedInWithMultipleAccounts } from 'utils';
 
 const useStyles = makeStyles({
   icon: {
@@ -44,7 +44,7 @@ const useStyles = makeStyles({
 export interface ChannelItemProps {
   className?: string,
   channel: Channel;
-  onIconClick: SvgClickEventHandler;
+  onIconClick: (channel: Channel) => void;
   Icon: typeof StarRoundedIcon,
   iconColor?: React.ComponentProps<typeof StarRoundedIcon>['color'],
   hoverable?: boolean,
@@ -94,6 +94,10 @@ export default function ChannelItem({
       active: false,
     });
   }, []);
+
+  const handleIconClick = useCallback(() => {
+    onIconClick(channel);
+  }, [onIconClick, channel]);
 
   const avatar = <img src={channel.profilePic} alt="avatar" className={classes.profilePic} />;
   const href = getChannelUrl(channel);
@@ -155,8 +159,7 @@ export default function ChannelItem({
         <Icon
           className={classes.icon}
           color={iconColor}
-          data-favorite-id={getFavoriteId(channel)}
-          onClick={onIconClick}
+          onClick={handleIconClick}
         />
       </ListItemIcon>
     </ListItem>

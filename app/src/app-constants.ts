@@ -1,4 +1,4 @@
-import type { DeepMutable, Login, YouTubeSubscription } from './types';
+import type { ChannelType, DeepMutable, Login, YouTubeSubscription } from './types';
 
 export const BADGE_TEXT_COLOR = '#FFFFFF';
 export const BADGE_DEFAULT_BACKGROUND_COLOR = '#777777';
@@ -19,6 +19,11 @@ export const UNMUTE_INTERVAL_LENGTH = 3 * 1000; // 3 seconds
 export const REFRESH_TOKEN_EXPIRY_THRESHOLD_SECONDS = 10 * 60; // 10 minutes
 export const YOUTUBE_SUBSCRIPTIONS_POLL_DELAY_SECONDS = 60 * 60 * 48; // 2 days
 
+export interface Favorite {
+  type: ChannelType,
+  value: string,
+}
+
 export const PREFERENCE_STORAGE_VALUES = {
   enabled: true,
   autoOpenTabs: true,
@@ -26,7 +31,8 @@ export const PREFERENCE_STORAGE_VALUES = {
   notifications: false,
   pollDelay: '5', // in minutes
   maxStreams: '2',
-  favorites: [] as string[],
+  // string[] is for backwards compatibility
+  favorites: [] as string[] | Favorite[],
   hiddenChannels: {
     twitch: [] as string[],
     youtube: [] as string[],

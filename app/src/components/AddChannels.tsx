@@ -4,7 +4,7 @@ import { Button, Typography, Radio, FormControlLabel, RadioGroup, InputAdornment
 import RefreshIcon from '@material-ui/icons/Refresh';
 
 import { AccountType, Channel, ChannelType, StorageSync } from 'types';
-import { getAddedChannelsKey, getYouTubeLogin } from 'utils';
+import { getAddedChannelsKey, getYouTubeLogin, shouldConvertKeyToLowerCase } from 'utils';
 import { useTemporaryToggle } from 'hooks';
 import StorageContext from 'contexts/Storage';
 import BackWrapper from 'components/Router/BackWrapper';
@@ -44,6 +44,7 @@ export default function AddChannels() {
     });
 
   function onAdd(username: string): void {
+    username = shouldConvertKeyToLowerCase(selectedAccount) ? username.toLowerCase() : username;
     setStorage({
       addedChannels: {
         ...storage.addedChannels,
