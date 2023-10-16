@@ -8,7 +8,7 @@ import {
   BADGE_DEFAULT_BACKGROUND_COLOR,
 } from 'app-constants';
 import { getFullStorage, waitFullStorage } from 'storage';
-import { AccountType, Channel, ChannelType, LiveChannel, TwitchLogin, YouTubeApiKey, StorageType } from 'types';
+import { AccountType, Channel, ChannelType, LiveChannel, TwitchLogin, YouTubeApiKey, KickLogin } from 'types';
 import { error, log } from 'logging';
 import {
   getChannelUrl,
@@ -21,6 +21,7 @@ import {
 } from 'utils';
 import { openTwitchTabs } from '../tabs';
 import { fetchTwitchData, handleError as handleTwitchError } from './twitch';
+import { fetchData as fetchKickData } from './kick';
 import {
   FetchYouTubeDataOptions,
   fetchYouTubeData,
@@ -104,6 +105,7 @@ async function fetchData() {
   const { logins, addedChannels, autoOpenTabs } = storage;
   const twitchLogin = logins?.find((l): l is TwitchLogin => l.type === AccountType.TWITCH);
   const youtubeApiKey = logins?.find((l): l is YouTubeApiKey => l.type === AccountType.YOUTUBE_API_KEY);
+  const kickLogin = logins?.find((l): l is KickLogin => l.type === AccountType.KICK);
   let youtubeLogin = getYouTubeLogin(storage);
   const newChannels: Channel[] = [];
   if (twitchLogin) {
@@ -116,6 +118,16 @@ async function fetchData() {
       newChannels.push(...twitchChannels);
     } catch (err) {
       handleTwitchError(err);
+    }
+  }
+  if (kickLogin) {
+    try {
+      const kickChannels = await fetchKickData(
+        addedChannels?.kick || [],
+      );
+      newChannels.push(...kickChannels);
+    } catch (err) {
+      error(err);
     }
   }
   // TODO: Support auto opening tabs with YouTube

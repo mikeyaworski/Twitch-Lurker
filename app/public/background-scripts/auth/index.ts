@@ -6,6 +6,7 @@ import { BADGE_DEFAULT_BACKGROUND_COLOR } from 'app-constants';
 import { AccountType, MessageType, Login, StorageType } from 'types';
 import { login as loginTwitch } from './twitch';
 import { login as loginYouTube } from './youtube';
+import { login as loginKick } from './kick';
 
 const storage = getFullStorage();
 
@@ -48,6 +49,10 @@ export default async function initAuth() {
       }
       case MessageType.LOGIN_YOUTUBE: {
         loginYouTube();
+        break;
+      }
+      case MessageType.LOGIN_KICK: {
+        loginKick();
         break;
       }
       case MessageType.LOGOUT: {

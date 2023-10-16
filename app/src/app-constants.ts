@@ -12,6 +12,7 @@ export const YOUTUBE_API_KEY_DOCUMENTATION = 'https://github.com/mikeyaworski/Tw
 export const YOUTUBE_OAUTH_CREDENTIALS_DOCUMENTATION = 'https://github.com/mikeyaworski/Twitch-Lurker/wiki/YouTube-OAuth-2.0';
 export const TWITCH_API_BASE = 'https://api.twitch.tv/helix';
 export const YOUTUBE_API_BASE = 'https://www.googleapis.com/youtube/v3';
+export const KICK_API_BASE = 'https://kick.com/api/v2';
 export const GOOGLE_OAUTH_API_BASE = 'https://oauth2.googleapis.com/token';
 export const TWITCH_PAGINATION_LIMIT = 100;
 export const YOUTUBE_PAGINATION_LIMIT = 50;
@@ -36,10 +37,12 @@ export const PREFERENCE_STORAGE_VALUES = {
   hiddenChannels: {
     twitch: [] as string[],
     youtube: [] as string[],
+    kick: [] as string[],
   },
   addedChannels: {
     twitch: [] as string[],
     youtube: [] as string[],
+    kick: [] as string[],
   },
   autoMuteTabs: true,
   sortLow: true,
@@ -70,6 +73,7 @@ export const DEFAULT_STORAGE_LOCAL = Object.freeze(DEFAULT_STORAGE_LOCAL_VALUES)
 export enum MessageType {
   LOGIN_TWITCH,
   LOGIN_YOUTUBE,
+  LOGIN_KICK,
   LOGOUT,
   FETCH_CHANNELS,
   SEND_CHANNELS,

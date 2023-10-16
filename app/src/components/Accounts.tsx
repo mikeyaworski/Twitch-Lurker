@@ -30,10 +30,11 @@ function logout(accountType: AccountType) {
   browser.runtime.sendMessage({ type: MessageType.LOGOUT, accountType });
 }
 
-function login(accountType: AccountType.TWITCH | AccountType.YOUTUBE) {
+function login(accountType: AccountType.TWITCH | AccountType.YOUTUBE | AccountType.KICK) {
   const messageTypeMap = {
     [AccountType.TWITCH]: MessageType.LOGIN_TWITCH,
     [AccountType.YOUTUBE]: MessageType.LOGIN_YOUTUBE,
+    [AccountType.KICK]: MessageType.LOGIN_KICK,
   };
   browser.runtime.sendMessage({ type: messageTypeMap[accountType] });
 }
@@ -166,6 +167,9 @@ function AccountCard({ accountType }: CardProps) {
       case AccountType.YOUTUBE_API_KEY: {
         return 'YouTube API Key';
       }
+      case AccountType.KICK: {
+        return 'Kick';
+      }
       default: {
         return '';
       }
@@ -285,6 +289,23 @@ function AccountCard({ accountType }: CardProps) {
       );
       break;
     }
+    case AccountType.KICK: {
+      buttons = account ? (
+        <Button variant="contained" size="small" color="primary" onClick={() => logout(accountType)}>
+          Disable
+        </Button>
+      ) : (
+        <Button variant="contained" size="small" color="primary" onClick={() => login(accountType)}>
+          Enable
+        </Button>
+      );
+      secondaryText = (
+        <>
+          Logging in will not be supported until the official Kick API is operational. In the meantime, individual Kick channels can be added.
+        </>
+      );
+      break;
+    }
     default: {
       break;
     }
@@ -352,6 +373,7 @@ export default function Accounts() {
         <AccountCard accountType={AccountType.TWITCH} />
         <AccountCard accountType={AccountType.YOUTUBE} />
         <AccountCard accountType={AccountType.YOUTUBE_API_KEY} />
+        <AccountCard accountType={AccountType.KICK} />
       </Box>
     </BackWrapper>
   );

@@ -5,6 +5,7 @@ export function getSortableValue(channel: Channel): string {
     case ChannelType.TWITCH: {
       return channel.username.toLowerCase();
     }
+    case ChannelType.KICK:
     case ChannelType.YOUTUBE: {
       return channel.displayName.toLowerCase();
     }
@@ -17,6 +18,7 @@ export function getSortableValue(channel: Channel): string {
 
 export function getAddedChannelsKey(channel: Channel): string {
   switch (channel.type) {
+    case ChannelType.KICK:
     case ChannelType.TWITCH: {
       return channel.username;
     }
@@ -46,6 +48,7 @@ export const getHiddenChannelsKey = getAddedChannelsKey;
 
 export function getFavoriteValue(channel: Channel): string {
   switch (channel.type) {
+    case ChannelType.KICK:
     case ChannelType.TWITCH: {
       return channel.username;
     }
@@ -69,8 +72,9 @@ export function getFavoriteKey(channel: Channel): string {
  */
 export function getId(channel: Channel): string {
   switch (channel.type) {
+    case ChannelType.KICK:
     case ChannelType.TWITCH: {
-      // Twitch cannot have multiple entries
+      // Twitch and Kick cannot have multiple entries
       return `${channel.type}-${channel.username}`;
     }
     case ChannelType.YOUTUBE: {
@@ -156,18 +160,29 @@ export function getStreamLength(utcTimestamp: string) {
 }
 
 export function getChannelUrl(channel: Channel): string {
-  return channel.type === ChannelType.TWITCH
-    ? `https://twitch.tv/${channel.username}`
-    : channel.viewerCount != null
-      ? `https://youtube.com/watch?v=${channel.videoId}`
-      : `https://youtube.com/channel/${channel.id}`;
+  switch (channel.type) {
+    case ChannelType.TWITCH: {
+      return `https://twitch.tv/${channel.username}`;
+    }
+    case ChannelType.YOUTUBE: {
+      return channel.viewerCount != null
+        ? `https://youtube.com/watch?v=${channel.videoId}`
+        : `https://youtube.com/channel/${channel.id}`;
+    }
+    case ChannelType.KICK: {
+      return `https://kick.com/${channel.username}`;
+    }
+    default: {
+      return '';
+    }
+  }
 }
 
 export function notEmpty<T>(value: T | null | undefined): value is T {
   return value !== null && value !== undefined;
 }
 
-const accountsThatCanFetchChannels: AccountType[] = [AccountType.TWITCH, AccountType.YOUTUBE_API_KEY, AccountType.YOUTUBE];
+const accountsThatCanFetchChannels: AccountType[] = [AccountType.TWITCH, AccountType.YOUTUBE_API_KEY, AccountType.YOUTUBE, AccountType.KICK];
 
 export function getIsLoggedInWithAnyAccount(logins: Login[]): boolean {
   return logins.some(login => accountsThatCanFetchChannels.includes(login.type));

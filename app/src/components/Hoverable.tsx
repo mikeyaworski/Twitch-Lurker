@@ -51,13 +51,22 @@ const Hoverable = ({ children, channel }: Props) => {
   const open = Boolean(anchorEl);
 
   let title: string | undefined;
+  let startUtcTimestamp = channel.start;
   switch (channel.type) {
     case ChannelType.TWITCH: {
-      if (channel.game) title = channel.game;
+      title = channel.game;
       break;
     }
     case ChannelType.YOUTUBE: {
-      if (channel.title) title = channel.title;
+      title = channel.title;
+      break;
+    }
+    case ChannelType.KICK: {
+      title = channel.category || channel.title;
+      // if (channel.start) startUtcTimestamp = `${channel.start.replace(' ', 'T')}.000Z`;
+      if (channel.start) {
+        startUtcTimestamp = new Date(new Date(channel.start).getTime() - new Date().getTimezoneOffset() * 60 * 1000).toISOString();
+      }
       break;
     }
     default: {
@@ -67,7 +76,7 @@ const Hoverable = ({ children, channel }: Props) => {
 
   if (!title
     || !channel.thumbnail
-    || !channel.start) {
+    || !startUtcTimestamp) {
     return children;
   }
 
@@ -96,7 +105,7 @@ const Hoverable = ({ children, channel }: Props) => {
         disableRestoreFocus
       >
         <Typography variant="body2" color="textSecondary">
-          {title} - {channel.viewerCount} viewers ({getStreamLength(channel.start)})
+          {title} - {channel.viewerCount} viewers ({getStreamLength(startUtcTimestamp)})
         </Typography>
         {!imgLoaded && (
           <Skeleton variant="rect" width={THUMBNAIL_WIDTH} height={THUMBNAIL_HEIGHT} />
