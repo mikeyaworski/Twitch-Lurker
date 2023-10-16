@@ -32,6 +32,7 @@ export interface BaseChannel {
   displayName: string,
   profilePic?: string,
   viewerCount?: number,
+  start?: string,
 }
 
 export interface TwitchChannel extends BaseChannel {
@@ -39,7 +40,6 @@ export interface TwitchChannel extends BaseChannel {
   username: string,
   thumbnail?: string,
   game?: string,
-  start?: string,
 }
 
 export interface YouTubeChannel extends BaseChannel {
@@ -49,7 +49,6 @@ export interface YouTubeChannel extends BaseChannel {
   uploadsPlaylist?: string,
   customUrl?: string,
   videoId?: string,
-  start?: string,
   title?: string,
   thumbnail?: string,
 }
