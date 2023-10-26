@@ -12,8 +12,10 @@ import Favorites from 'components/Favorites';
 import AddChannels from 'components/AddChannels';
 import HideChannels from 'components/HideChannels';
 import ImportExportSettings from 'components/ImportExportSettings';
+import PlatformButtonIcon from 'widgets/PlatformButtonIcon';
 import { MessageType } from 'app-constants';
 import { useAuth } from 'hooks';
+import { AccountType } from 'types';
 
 const MAX_POPUP_WIDTH = 800;
 export const SIDEBAR_WIDTH = 303;
@@ -40,10 +42,6 @@ const useStyles = makeStyles(theme => ({
     width: MAX_POPUP_WIDTH - SIDEBAR_WIDTH,
     height: '100%',
   },
-  loginIcon: {
-    width: 20,
-    height: 20,
-  },
 }));
 
 function Home() {
@@ -65,13 +63,11 @@ function Home() {
             <Box height="100%" display="flex" alignItems="center" justifyContent="center" flexDirection="column" gridGap="10px">
               <Button
                 color="primary"
-                startIcon={(
-                  <img src={`${process.env.PUBLIC_URL}/login-icon.svg`} alt="" className={classes.loginIcon} />
-                )}
+                startIcon={<PlatformButtonIcon type={AccountType.TWITCH} />}
                 variant="contained"
                 onClick={() => login(MessageType.LOGIN_TWITCH)}
               >
-                Login with Twitch
+                Log In with Twitch
               </Button>
               <Typography variant="body1">or</Typography>
               <Button
