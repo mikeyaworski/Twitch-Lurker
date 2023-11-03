@@ -1,3 +1,4 @@
+import { browser } from 'webextension-polyfill-ts';
 import get from 'lodash.get';
 import {
   YOUTUBE_API_BASE,
@@ -235,5 +236,11 @@ export function handleError(err: unknown): void {
   if (status && ['UNAUTHENTICATED', 'PERMISSION_DENIED'].includes(status)) {
     log('Logged out of YouTube account due to (assumed) invalid access token');
     logout(AccountType.YOUTUBE);
+    browser.notifications.create('youtube-logged-out', {
+      title: 'YouTube needs to be reauthenticated',
+      message: 'Your authentication token was likely revoked. You need to log into YouTube again.',
+      type: 'basic',
+      iconUrl: 'icons/icon128.png',
+    });
   }
 }
