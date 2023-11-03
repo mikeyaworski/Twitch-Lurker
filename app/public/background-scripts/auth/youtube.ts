@@ -12,7 +12,7 @@ import {
   YouTubeOAuthCredentials,
 } from 'types';
 import { getFullStorage } from 'storage';
-import { log } from 'logging';
+import { error, log } from 'logging';
 import { getRandomString, parseIdToken } from '../utils';
 
 const storage = getFullStorage();
@@ -155,6 +155,13 @@ export async function tryRefreshToken({
       },
     );
     const data = await res.json();
+    if (res.status >= 400) {
+      error(`${data.error}: ${data.error_description}`);
+      return {
+        accessToken,
+        expiry,
+      };
+    }
     const newAccessToken = data.access_token;
     const newExpiry = Date.now() / 1000 + (data.expires_in as number);
     setStorage({
