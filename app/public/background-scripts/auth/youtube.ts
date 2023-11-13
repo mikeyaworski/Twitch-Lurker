@@ -133,7 +133,7 @@ export async function tryRefreshToken({
     log('Refreshing YouTube access token');
     const url = clientSecret
       ? GOOGLE_OAUTH_API_BASE
-      : `${OAUTH_AUTHORIZATION_CODE_SERVER_API_BASE}/google/exchange-code`;
+      : `${OAUTH_AUTHORIZATION_CODE_SERVER_API_BASE}/google/refresh-token`;
     const body = clientSecret
       ? {
         client_id: clientId,

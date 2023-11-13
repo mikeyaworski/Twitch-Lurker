@@ -55,7 +55,6 @@ export interface ChannelItemProps {
   hoverable?: boolean,
   linked?: boolean,
   showLiveCount?: boolean,
-  loading?: boolean,
   hidePlatformIcon?: boolean,
 }
 

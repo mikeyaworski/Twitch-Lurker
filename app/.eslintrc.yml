@@ -80,6 +80,7 @@ rules:
   no-nested-ternary: off
   prefer-destructuring: off
   no-shadow: off # This is broken with enums
+  react/jsx-no-bind: off
   function-paren-newline: off
 
   # We are not worried about accessibility.
