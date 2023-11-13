@@ -201,9 +201,14 @@ function AccountCard({ accountType }: CardProps) {
       if (!youtubeClientIdInputOpen) {
         buttons = (!clientIdLogin && !account)
           ? (
-            <Button variant="contained" size="small" color="primary" onClick={() => setYouTubeOAuthCredentialsInputOpen(true)}>
-              Set Credentials
-            </Button>
+            <>
+              <Button variant="contained" size="small" color="primary" onClick={() => login(accountType)}>
+                Log In
+              </Button>
+              <Button variant="contained" size="small" color="primary" onClick={() => setYouTubeOAuthCredentialsInputOpen(true)}>
+                Override Credentials
+              </Button>
+            </>
           ) : account ? (
             <Button variant="contained" size="small" color="primary" onClick={() => logout(accountType)}>
               Log Out
@@ -214,10 +219,10 @@ function AccountCard({ accountType }: CardProps) {
                 Log In
               </Button>
               <Button variant="contained" size="small" color="primary" onClick={() => logout(AccountType.YOUTUBE_OAUTH_CREDENTIALS)}>
-                Remove Credentials
+                Remove Credentials Override
               </Button>
               <Button variant="contained" size="small" color="primary" onClick={() => setYouTubeOAuthCredentialsInputOpen(true)}>
-                Update Credentials
+                Update Credentials Override
               </Button>
             </>
           );
@@ -232,7 +237,7 @@ function AccountCard({ accountType }: CardProps) {
           {loginText}
           <br />
           <br />
-          To log in with YouTube, you must provide your own client ID and secret.
+          You may optionally provide your own app credentials.
           {' '}
           Instructions to do so are
           {' '}
@@ -243,7 +248,7 @@ function AccountCard({ accountType }: CardProps) {
           >
             here
           </Link>
-          . This has slightly more steps than providing an API key, but it allows your subscriptions to be populated when adding channels.
+          .
         </>
       );
       break;
@@ -267,7 +272,7 @@ function AccountCard({ accountType }: CardProps) {
       }
       secondaryText = (
         <>
-          Instead of logging in with your YouTube account, you may instead provide an API key.
+          You must provide an API key to fetch YouTube data (unless you override the credentials for logging in).
           {' '}
           Instructions to do so are
           {' '}
@@ -278,9 +283,9 @@ function AccountCard({ accountType }: CardProps) {
           >
             here
           </Link>
-          . Note that your subscriptions cannot be populated if you use an API key, so all channels need to be added manually by their username or ID.
+          . Note that your subscriptions cannot be populated using this key,
           {' '}
-          This can also be used as a fallback in case the access token from your YouTube login expires for whatever reason.
+          so you will also need to log in with a YouTube account to populate subscriptions.
         </>
       );
       break;
@@ -350,8 +355,8 @@ export default function Accounts() {
       <Typography variant="h5" align="center" gutterBottom>Accounts</Typography>
       <Box display="flex" flexDirection="column" gridGap="10px">
         <AccountCard accountType={AccountType.TWITCH} />
-        <AccountCard accountType={AccountType.YOUTUBE} />
         <AccountCard accountType={AccountType.YOUTUBE_API_KEY} />
+        <AccountCard accountType={AccountType.YOUTUBE} />
       </Box>
     </BackWrapper>
   );

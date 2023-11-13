@@ -22,7 +22,7 @@ export default function AddChannels() {
 
   const hasYouTubeLogin = getYouTubeLogin(storage);
   const hasYouTubeAccount = storage.logins.some(login => login.type === AccountType.YOUTUBE_API_KEY
-    || (login.type === AccountType.YOUTUBE && login.clientId && login.clientSecret));
+    || login.type === AccountType.YOUTUBE);
   const [selectedAccount, setSelectedAccount] = useState<AccountKey>(hasYouTubeAccount ? 'youtube' : 'twitch');
 
   const addedChannels: Channel[] = loading
