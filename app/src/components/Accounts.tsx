@@ -113,8 +113,6 @@ interface CardProps {
   accountType: AccountType,
 }
 
-// TODO: If my app gets published, revert back to the cards which require that the API key be used in addition to logging in. Logging in will only
-// be used to fetch channel subscriptions.
 function AccountCard({ accountType }: CardProps) {
   const classes = useStyles();
   const { loading, storage, setStorage } = useContext(StorageContext);
