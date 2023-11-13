@@ -12,8 +12,8 @@
     "build:popup": "env-path -p .env.development react-app-rewired build",
     "p": "npm run build:popup",
     "build:all": "npm run build:popup && npm run build:scripts",
-    "watch:popup": "npm run watch:popup",
-    "wp": "cra-build-watch --disable-chunks",
+    "watch:popup": "cra-build-watch --disable-chunks",
+    "wp": "npm run watch:popup",
     "watch:scripts": "rollup -c -w",
     "ws": "npm run watch:scripts"
   },
