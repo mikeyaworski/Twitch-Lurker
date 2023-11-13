@@ -78,6 +78,7 @@ rules:
   no-await-in-loop: off
   no-continue: off
   no-shadow: off # This is broken with enums
+  react/jsx-no-bind: off
 
   # We are not worried about accessibility.
   jsx-a11y/anchor-is-valid: off
