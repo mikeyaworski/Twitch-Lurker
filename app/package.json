@@ -6,10 +6,10 @@
   "scripts": {
     "lint": "npx eslint .",
     "test": "npm run lint && jest",
-    "build:prod": "env-path -p .env.production react-app-rewired --openssl-legacy-provider build && rollup -c && rm -r build/background-scripts build/content-scripts",
+    "build:prod": "env-path -p .env.production react-app-rewired build && rollup -c && rm -r build/background-scripts build/content-scripts",
     "build:scripts": "rollup -c && cp public/manifest.json build",
     "s": "npm run build:scripts",
-    "build:popup": "env-path -p .env.development react-app-rewired --openssl-legacy-provider build",
+    "build:popup": "env-path -p .env.development react-app-rewired build",
     "p": "npm run build:popup",
     "build:all": "npm run build:popup && npm run build:scripts",
     "watch:popup": "cra-build-watch --disable-chunks",
