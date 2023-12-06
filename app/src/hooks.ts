@@ -1,5 +1,7 @@
 import { useContext, useCallback, useState, useEffect } from 'react';
+import { browser } from 'webextension-polyfill-ts';
 import StorageContext from 'contexts/Storage';
+import { getIsLoggedInWithAnyAccount } from 'utils';
 
 export function useOpen(initial = false) {
   const [open, setOpen] = useState<boolean>(initial);
@@ -48,6 +50,17 @@ export function useTemporaryToggle({
 export function useAuth(): { loading: boolean, loggedIn?: boolean } {
   const { loading, storage } = useContext(StorageContext);
   if (loading) return { loading };
-  if (!storage.accessToken || !storage.userId) return { loading, loggedIn: false };
+  if (!getIsLoggedInWithAnyAccount(storage.logins)) return { loading, loggedIn: false };
   return { loading, loggedIn: true };
+}
+
+export function useHandleOpenLink(url: string, active = false): React.MouseEventHandler<HTMLAnchorElement> {
+  const handleOpenLink: React.MouseEventHandler<HTMLAnchorElement> = useCallback(e => {
+    e.preventDefault();
+    browser.tabs.create({
+      url,
+      active,
+    });
+  }, [url, active]);
+  return handleOpenLink;
 }

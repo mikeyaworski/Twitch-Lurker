@@ -1,8 +1,8 @@
 import { createContext, useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
-import type { Channel, Storage, StorageKey } from 'types';
+import { ChannelType, Channel, StorageSync } from 'types';
 
-import { MESSAGE_TYPES } from 'app-constants';
+import { MessageType } from 'app-constants';
 import { hookStorage } from 'chrome-utils';
 import { getFullStorage } from 'storage';
 
@@ -11,7 +11,11 @@ const storage = getFullStorage();
 const port = browser.runtime.connect();
 
 function fetchChannels() {
-  port.postMessage({ type: MESSAGE_TYPES.FETCH_CHANNELS });
+  port.postMessage({ type: MessageType.FETCH_CHANNELS });
+}
+
+export function fetchYouTubeSubscriptions() {
+  port.postMessage({ type: MessageType.FETCH_YOUTUBE_SUBSCRIPTIONS });
 }
 
 type UseBackgroundPort = {
@@ -25,16 +29,21 @@ export default createContext<UseBackgroundPort>({
   filteredChannels: [],
 });
 
+function isHiddenChannel(channel: Channel, hiddenChannels: StorageSync['hiddenChannels']): boolean {
+  return channel.type === ChannelType.TWITCH
+    && hiddenChannels.twitch.includes(channel.username.toLowerCase());
+}
+
 export function useBackgroundPort(): UseBackgroundPort {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [filteredChannels, setFilteredChannels] = useState<Channel[]>([]);
 
   useEffect(() => {
     port.onMessage.addListener(msg => {
-      if (msg.type === MESSAGE_TYPES.SEND_CHANNELS) {
+      if (msg.type === MessageType.SEND_CHANNELS) {
         const channelsMsg = msg.data as Channel[];
         setChannels(channelsMsg);
-        setFilteredChannels(channelsMsg.filter(channel => !storage.hiddenChannels.twitch.includes(channel.username.toLowerCase())));
+        setFilteredChannels(channelsMsg.filter(channel => !isHiddenChannel(channel, storage.hiddenChannels)));
       }
     });
     fetchChannels();
@@ -44,10 +53,10 @@ export function useBackgroundPort(): UseBackgroundPort {
     hookStorage([
       {
         key: 'hiddenChannels',
-        cb: (value: Storage[StorageKey]) => {
-          const hiddenChannels = value as Storage['hiddenChannels'];
+        cb: (value: unknown) => {
+          const hiddenChannels = value as StorageSync['hiddenChannels'];
           setChannels(currentChannels => {
-            setFilteredChannels(currentChannels.filter(channel => !hiddenChannels.twitch.includes(channel.username.toLowerCase())));
+            setFilteredChannels(currentChannels.filter(channel => !isHiddenChannel(channel, hiddenChannels)));
             return currentChannels;
           });
         },

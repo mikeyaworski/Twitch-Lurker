@@ -34,6 +34,7 @@ export default function Preferences() {
     handleShowPreviewOnHoverEnabledToggle,
     handleAutoMuteTabsToggle,
     handleAutoOpenTabsToggle,
+    handleNotificationsToggle,
     handleOpenTabsInBackgroundToggle,
     handlePollDelayChange,
     handleMaxStreamsChange,
@@ -64,10 +65,15 @@ export default function Preferences() {
             labelPlacement="start"
           />
         </div>
-        <div style={{ marginBottom: 24 }}>
+        <div className={classes.switchesContainer}>
           <FormControlLabel
             control={<Switch checked={storage.showPreviewOnHover} onChange={handleShowPreviewOnHoverEnabledToggle} />}
             label={<FormLabel>Show preview on hover</FormLabel>}
+            labelPlacement="start"
+          />
+          <FormControlLabel
+            control={<Switch checked={storage.notifications} onChange={handleNotificationsToggle} />}
+            label={<FormLabel>Browser notifications</FormLabel>}
             labelPlacement="start"
           />
         </div>

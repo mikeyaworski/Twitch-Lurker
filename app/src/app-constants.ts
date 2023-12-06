@@ -1,49 +1,84 @@
-import type { DeepMutable } from './types';
+import type { DeepMutable, Login, YouTubeSubscription } from './types';
 
 export const BADGE_TEXT_COLOR = '#FFFFFF';
 export const BADGE_DEFAULT_BACKGROUND_COLOR = '#777777';
 export const BADGE_PURPLE_BACKGROUND_COLOR = '#8561c5';
 export const THEME_COLOR = '#9147FF';
 export const TITLE = 'Twitch Lurker';
-export const CLIENT_ID = 'xms2vxkmtn3rsrv1id2glcnu74fevs';
+export const TWITCH_CLIENT_ID = 'xms2vxkmtn3rsrv1id2glcnu74fevs';
+export const GOOGLE_CLIENT_ID = '1098259349368-ds1kaq3f76gpl80lk9juu8tfnhfpqgon.apps.googleusercontent.com';
+export const OAUTH_AUTHORIZATION_CODE_SERVER_API_BASE = 'https://oauth-authorization-code-server.vercel.app/api';
+export const YOUTUBE_API_KEY_DOCUMENTATION = 'https://github.com/mikeyaworski/Twitch-Lurker/wiki/YouTube-API-Key';
+export const YOUTUBE_OAUTH_CREDENTIALS_DOCUMENTATION = 'https://github.com/mikeyaworski/Twitch-Lurker/wiki/YouTube-OAuth-2.0';
 export const TWITCH_API_BASE = 'https://api.twitch.tv/helix';
-export const PAGINATION_LIMIT = 100;
-export const UNMUTE_INTERVAL_LENGTH = 3 * 1000;
+export const YOUTUBE_API_BASE = 'https://www.googleapis.com/youtube/v3';
+export const GOOGLE_OAUTH_API_BASE = 'https://oauth2.googleapis.com/token';
+export const TWITCH_PAGINATION_LIMIT = 100;
+export const YOUTUBE_PAGINATION_LIMIT = 50;
+export const UNMUTE_INTERVAL_LENGTH = 3 * 1000; // 3 seconds
+export const REFRESH_TOKEN_EXPIRY_THRESHOLD_SECONDS = 10 * 60; // 10 minutes
+export const YOUTUBE_SUBSCRIPTIONS_POLL_DELAY_SECONDS = 60 * 60 * 48; // 2 days
 
-const DEFAULT_STORAGE_VALUES = {
-  // Preferences
+export const PREFERENCE_STORAGE_VALUES = {
   enabled: true,
   autoOpenTabs: true,
   openTabsInBackground: true,
+  notifications: false,
   pollDelay: '5', // in minutes
   maxStreams: '2',
   favorites: [] as string[],
   hiddenChannels: {
     twitch: [] as string[],
+    youtube: [] as string[],
   },
   addedChannels: {
     twitch: [] as string[],
+    youtube: [] as string[],
   },
   autoMuteTabs: true,
   sortLow: true,
   showPreviewOnHover: true,
-
-  // Auth credentials
-  accessToken: null as (null | string),
-  userId: null as (null | string),
 };
 
-export const DEFAULT_STORAGE = Object.freeze(DEFAULT_STORAGE_VALUES);
+const DEFAULT_STORAGE_SYNC_VALUES = {
+  // Preferences
+  ...PREFERENCE_STORAGE_VALUES,
 
-export const MESSAGE_TYPES = Object.freeze({
-  LOGIN: 0,
-  LOGOUT: 1,
-  FETCH_CHANNELS: 2,
-  SEND_CHANNELS: 3,
-  MUTE_PLAYER: 4,
-} as const);
+  // Auth credentials
+  logins: [] as Login[],
+};
 
-export type Storage = typeof DEFAULT_STORAGE;
-export type MutableStorage = DeepMutable<Storage>;
-export type StorageKey = keyof Storage;
-export type StorageKeys = StorageKey[];
+export const DEFAULT_STORAGE_SYNC = Object.freeze(DEFAULT_STORAGE_SYNC_VALUES);
+
+// Local storage is used for larger data, since there are stricter size requirements on synced storage
+const DEFAULT_STORAGE_LOCAL_VALUES = {
+  // Cache
+  youtubeSubscriptions: null as null | {
+    fetchTime: number | null, // epoch in seconds
+    subscriptions: YouTubeSubscription[],
+  },
+};
+
+export const DEFAULT_STORAGE_LOCAL = Object.freeze(DEFAULT_STORAGE_LOCAL_VALUES);
+
+export enum MessageType {
+  LOGIN_TWITCH,
+  LOGIN_YOUTUBE,
+  LOGOUT,
+  FETCH_CHANNELS,
+  SEND_CHANNELS,
+  MUTE_PLAYER,
+  FETCH_YOUTUBE_SUBSCRIPTIONS,
+}
+
+export type Preferences = typeof PREFERENCE_STORAGE_VALUES;
+export type StorageSync = typeof DEFAULT_STORAGE_SYNC;
+export type StorageLocal = typeof DEFAULT_STORAGE_LOCAL;
+export type AnyStorage = StorageSync | StorageLocal;
+export type MutableStorageSync = DeepMutable<StorageSync>;
+export type MutableStorageLocal = DeepMutable<StorageLocal>;
+export type StorageSyncKey = keyof StorageSync;
+export type PreferencesKey = keyof Preferences;
+export type StorageLocalKey = keyof StorageLocal;
+export type StorageSyncKeys = StorageSyncKey[];
+export type StorageLocalKeys = StorageLocalKey[];

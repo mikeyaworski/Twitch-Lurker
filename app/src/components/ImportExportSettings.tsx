@@ -9,17 +9,14 @@ import {
 } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 
+import { getStorage } from 'chrome-utils';
 import StorageContext from 'contexts/Storage';
 import { useTemporaryToggle, useToggleState } from 'hooks';
-import { MutableStorage } from 'types';
+import { PREFERENCE_STORAGE_VALUES, PreferencesKey } from 'types';
 import BackWrapper from './Router/BackWrapper';
 
 export default function ImportExportSettings() {
-  const {
-    loading,
-    storage,
-    setStorage,
-  } = useContext(StorageContext);
+  const { setStorage } = useContext(StorageContext);
 
   const [importValue, setImportValue] = useState('');
   const { value: exported, setValue: setExported } = useToggleState(false);
@@ -44,13 +41,11 @@ export default function ImportExportSettings() {
     }
   }, [setStorage, importValue, setImported]);
 
-  const handleExportMapping = useCallback(() => {
-    const storageExport = { ...storage } as Partial<MutableStorage>;
-    delete storageExport.accessToken;
-    delete storageExport.userId;
-    copy(JSON.stringify(storageExport));
+  const handleExportMapping = useCallback(async () => {
+    const preferencesExport = await getStorage(Object.keys(PREFERENCE_STORAGE_VALUES) as PreferencesKey[]);
+    copy(JSON.stringify(preferencesExport));
     setExported(true);
-  }, [storage, setExported]);
+  }, [setExported]);
 
   return (
     <BackWrapper>
@@ -70,7 +65,7 @@ export default function ImportExportSettings() {
           <Button size="small" color="primary" variant="contained" onClick={handleImportMapping}>
             Import
           </Button>
-          <Button size="small" color="primary" variant="contained" onClick={handleExportMapping} disabled={loading}>
+          <Button size="small" color="primary" variant="contained" onClick={handleExportMapping}>
             Export
           </Button>
         </Box>

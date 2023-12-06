@@ -1,17 +1,21 @@
-import React, { useContext } from 'react';
-import { Route } from 'react-router-dom';
+import React from 'react';
+import { browser } from 'webextension-polyfill-ts';
+import { Route, useHistory } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
-import { Button } from '@material-ui/core';
+import { Box, Button, Typography } from '@material-ui/core';
 
 import Following from 'components/Following';
 import Sidebar from 'components/Sidebar';
+import Accounts from 'components/Accounts';
 import Preferences from 'components/Preferences';
 import Favorites from 'components/Favorites';
 import AddChannels from 'components/AddChannels';
 import HideChannels from 'components/HideChannels';
 import ImportExportSettings from 'components/ImportExportSettings';
-import { MESSAGE_TYPES } from 'app-constants';
+import PlatformButtonIcon from 'widgets/PlatformButtonIcon';
+import { MessageType } from 'app-constants';
 import { useAuth } from 'hooks';
+import { AccountType } from 'types';
 
 const MAX_POPUP_WIDTH = 800;
 export const SIDEBAR_WIDTH = 303;
@@ -38,24 +42,15 @@ const useStyles = makeStyles(theme => ({
     width: MAX_POPUP_WIDTH - SIDEBAR_WIDTH,
     height: '100%',
   },
-  loginIcon: {
-    width: 20,
-    height: 20,
-  },
-  center: {
-    height: '100%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
 }));
 
 function Home() {
   const classes = useStyles();
+  const history = useHistory();
   const { loading, loggedIn } = useAuth();
 
-  function handleLogin() {
-    chrome.runtime.sendMessage({ type: MESSAGE_TYPES.LOGIN });
+  function login(type: MessageType) {
+    browser.runtime.sendMessage({ type });
   }
 
   return (
@@ -65,22 +60,31 @@ function Home() {
           {loggedIn || loading ? (
             <Following />
           ) : (
-            <div className={classes.center}>
+            <Box height="100%" display="flex" alignItems="center" justifyContent="center" flexDirection="column" gridGap="10px">
               <Button
                 color="primary"
-                startIcon={(
-                  <img src={`${process.env.PUBLIC_URL}/login-icon.svg`} alt="" className={classes.loginIcon} />
-                )}
+                startIcon={<PlatformButtonIcon type={AccountType.TWITCH} />}
                 variant="contained"
-                onClick={handleLogin}
+                onClick={() => login(MessageType.LOGIN_TWITCH)}
               >
-                Login with Twitch
+                Log In with Twitch
               </Button>
-            </div>
+              <Typography variant="body1">or</Typography>
+              <Button
+                color="primary"
+                variant="contained"
+                onClick={() => {
+                  if (history.location.pathname !== '/accounts') history.push('/accounts');
+                }}
+              >
+                Manage Accounts
+              </Button>
+            </Box>
           )}
         </div>
         <div className={classes.sidebarContainer}>
           <Route exact path="/" component={Sidebar} />
+          <Route exact path="/accounts" component={Accounts} />
           <Route exact path="/preferences" component={Preferences} />
           <Route exact path="/favorites" component={Favorites} />
           <Route exact path="/add-channels" component={AddChannels} />

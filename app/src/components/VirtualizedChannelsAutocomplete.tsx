@@ -4,11 +4,12 @@ import Autocomplete, { createFilterOptions } from '@material-ui/lab/Autocomplete
 import DeleteIcon from '@material-ui/icons/Delete';
 import { makeStyles } from '@material-ui/core/styles';
 import { VariableSizeList, ListChildComponentProps } from 'react-window';
-import { Typography, List } from '@material-ui/core';
+import { Typography, List, Tooltip, Box } from '@material-ui/core';
+import InfoIcon from '@material-ui/icons/Info';
 
 import type { Channel } from 'types';
-import { sortByName } from 'utils';
-import ChannelItem from 'components/ChannelItem';
+import { getId, sortByName } from 'utils';
+import ChannelItem, { ChannelItemProps } from 'components/ChannelItem';
 
 const LISTBOX_PADDING = 8; // px
 
@@ -92,18 +93,28 @@ const useStyles = makeStyles({
 
 interface Props {
   onAdd: (value: string) => void,
-  onRemove: (value: string) => void,
-  options: string[],
+  onRemove: (channel: Channel) => void,
+  options: Channel[],
+  getOptionValue: (option: Channel) => string,
   channels: Channel[],
   disabled?: boolean,
+  hint?: string,
+  tooltip?: React.ReactNode,
+  channelItemProps?: Partial<ChannelItemProps>,
+  endAdornment?: React.ReactNode,
 }
 
-export default function VirtualizedTagsInput({
+export default function VirtualizedChannelsAutocomplete({
   onAdd,
   onRemove,
   options,
+  getOptionValue,
   channels,
   disabled,
+  hint = 'Username',
+  channelItemProps,
+  tooltip = null,
+  endAdornment,
 }: Props) {
   const classes = useStyles();
   const [value, setValue] = React.useState('');
@@ -113,6 +124,55 @@ export default function VirtualizedTagsInput({
     setValue('');
   }
 
+  const autocomplete = (
+    <Autocomplete
+      style={{ width: '100%' }}
+      freeSolo
+      disableClearable={Boolean(endAdornment)}
+      disabled={disabled}
+      disableListWrap
+      classes={{
+        listbox: classes.listbox,
+      }}
+      ListboxComponent={ListboxComponent as React.ComponentType<React.HTMLAttributes<HTMLElement>>}
+      options={options}
+      // This getOptionLabel shouldn't be necessary, but it gets called for some reason and causes console errors if not implemented like this.
+      getOptionLabel={channelOrInput => {
+        if (typeof channelOrInput === 'string') return channelOrInput;
+        return channelOrInput.displayName;
+      }}
+      filterOptions={(o, _) => createFilterOptions<Channel>()(o, {
+        inputValue: value,
+        getOptionLabel: channel => channel.displayName,
+      })}
+      renderInput={params => (
+        <TextField
+          {...params}
+          variant="outlined"
+          size="small"
+          label={hint}
+          InputProps={{
+            ...params.InputProps,
+            endAdornment: endAdornment || params.InputProps.endAdornment,
+          }}
+        />
+      )}
+      renderOption={option => <Typography noWrap>{option.displayName}</Typography>}
+      onInputChange={(_, newValue, reason) => {
+        if (reason === 'input' || reason === 'clear') setValue(newValue);
+      }}
+      onChange={(e, newValue) => {
+        if (!newValue || typeof newValue === 'string') {
+          onSubmit(newValue);
+        } else {
+          onSubmit(getOptionValue(newValue));
+        }
+      }}
+      value={value}
+      inputValue={value}
+    />
+  );
+
   return (
     <>
       <form onSubmit={e => {
@@ -120,29 +180,14 @@ export default function VirtualizedTagsInput({
         onSubmit(value);
       }}
       >
-        <Autocomplete
-          style={{ width: '100%' }}
-          freeSolo
-          disabled={disabled}
-          disableListWrap
-          classes={classes}
-          ListboxComponent={ListboxComponent as React.ComponentType<React.HTMLAttributes<HTMLElement>>}
-          options={options}
-          filterOptions={(o, _) => createFilterOptions<string>()(o, {
-            inputValue: value,
-            getOptionLabel: option => option,
-          })}
-          renderInput={params => <TextField {...params} variant="outlined" size="small" label="Username" />}
-          renderOption={option => <Typography noWrap>{option}</Typography>}
-          onInputChange={(_, newValue, reason) => {
-            if (reason === 'input' || reason === 'clear') setValue(newValue);
-          }}
-          onChange={(e, newValue) => {
-            onSubmit(newValue);
-          }}
-          value={value}
-          inputValue={value}
-        />
+        {tooltip ? (
+          <Box display="flex" gridGap={6} alignItems="center">
+            {autocomplete}
+            <Tooltip arrow title={tooltip} style={{ cursor: 'pointer' }}>
+              <InfoIcon />
+            </Tooltip>
+          </Box>
+        ) : autocomplete}
       </form>
       <List
         className={classes.scrollZone}
@@ -150,14 +195,13 @@ export default function VirtualizedTagsInput({
       >
         {channels.sort(sortByName).map(channel => (
           <ChannelItem
-            key={channel.username}
+            key={getId(channel)}
             channel={channel}
-            handleIconClick={e => {
-              if (e.currentTarget.dataset.username) onRemove(e.currentTarget.dataset.username);
-            }}
+            onIconClick={() => onRemove(channel)}
             Icon={DeleteIcon}
             iconColor="error"
             linked
+            {...channelItemProps}
           />
         ))}
       </List>
