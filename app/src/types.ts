@@ -26,12 +26,14 @@ export enum StorageType {
 export enum ChannelType {
   TWITCH,
   YOUTUBE,
+  KICK,
 }
 
 export interface BaseChannel {
   displayName: string,
   profilePic?: string,
   viewerCount?: number,
+  start?: string,
 }
 
 export interface TwitchChannel extends BaseChannel {
@@ -39,7 +41,6 @@ export interface TwitchChannel extends BaseChannel {
   username: string,
   thumbnail?: string,
   game?: string,
-  start?: string,
 }
 
 export interface YouTubeChannel extends BaseChannel {
@@ -49,12 +50,19 @@ export interface YouTubeChannel extends BaseChannel {
   uploadsPlaylist?: string,
   customUrl?: string,
   videoId?: string,
-  start?: string,
   title?: string,
   thumbnail?: string,
 }
 
-export type Channel = TwitchChannel | YouTubeChannel;
+export interface KickChannel extends BaseChannel {
+  type: ChannelType.KICK,
+  username: string,
+  thumbnail?: string,
+  category?: string,
+  title?: string,
+}
+
+export type Channel = TwitchChannel | YouTubeChannel | KickChannel;
 
 export type LiveTwitchChannel = TwitchChannel & {
   viewerCount: number,
@@ -71,13 +79,21 @@ export type LiveYouTubeChannel = YouTubeChannel & {
   title: string,
 };
 
-export type LiveChannel = LiveTwitchChannel | LiveYouTubeChannel;
+export type LiveKickChannel = KickChannel & {
+  viewerCount: number,
+  thumbnail: string,
+  start: string,
+  title: string,
+};
+
+export type LiveChannel = LiveTwitchChannel | LiveYouTubeChannel | LiveKickChannel;
 
 export enum AccountType {
   TWITCH,
   YOUTUBE_OAUTH_CREDENTIALS,
   YOUTUBE,
   YOUTUBE_API_KEY,
+  KICK,
 }
 
 export interface TwitchLogin {
@@ -111,7 +127,13 @@ export interface YouTubeApiKey {
   apiKey: string,
 }
 
-export type Login = TwitchLogin | YouTubeOAuthCredentials | YouTubeLogin | YouTubeApiKey;
+export interface KickLogin {
+  type: typeof AccountType.KICK,
+  // TODO: Once the API is public, add a way to actually log in
+  // https://developers.kick.com
+}
+
+export type Login = TwitchLogin | YouTubeOAuthCredentials | YouTubeLogin | YouTubeApiKey | KickLogin;
 
 export interface YouTubeSubscription {
   channelId: string,

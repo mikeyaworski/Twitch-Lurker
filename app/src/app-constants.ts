@@ -1,4 +1,4 @@
-import type { DeepMutable, Login, YouTubeSubscription } from './types';
+import type { ChannelType, DeepMutable, Login, YouTubeSubscription } from './types';
 
 export const BADGE_TEXT_COLOR = '#FFFFFF';
 export const BADGE_DEFAULT_BACKGROUND_COLOR = '#777777';
@@ -12,12 +12,18 @@ export const YOUTUBE_API_KEY_DOCUMENTATION = 'https://github.com/mikeyaworski/Tw
 export const YOUTUBE_OAUTH_CREDENTIALS_DOCUMENTATION = 'https://github.com/mikeyaworski/Twitch-Lurker/wiki/YouTube-OAuth-2.0';
 export const TWITCH_API_BASE = 'https://api.twitch.tv/helix';
 export const YOUTUBE_API_BASE = 'https://www.googleapis.com/youtube/v3';
+export const KICK_API_BASE = 'https://kick.com/api/v2';
 export const GOOGLE_OAUTH_API_BASE = 'https://oauth2.googleapis.com/token';
 export const TWITCH_PAGINATION_LIMIT = 100;
 export const YOUTUBE_PAGINATION_LIMIT = 50;
 export const UNMUTE_INTERVAL_LENGTH = 3 * 1000; // 3 seconds
 export const REFRESH_TOKEN_EXPIRY_THRESHOLD_SECONDS = 10 * 60; // 10 minutes
 export const YOUTUBE_SUBSCRIPTIONS_POLL_DELAY_SECONDS = 60 * 60 * 48; // 2 days
+
+export interface Favorite {
+  type: ChannelType,
+  value: string,
+}
 
 export const PREFERENCE_STORAGE_VALUES = {
   enabled: true,
@@ -26,14 +32,17 @@ export const PREFERENCE_STORAGE_VALUES = {
   notifications: false,
   pollDelay: '5', // in minutes
   maxStreams: '2',
-  favorites: [] as string[],
+  // string[] is for backwards compatibility
+  favorites: [] as string[] | Favorite[],
   hiddenChannels: {
     twitch: [] as string[],
     youtube: [] as string[],
+    kick: [] as string[],
   },
   addedChannels: {
     twitch: [] as string[],
     youtube: [] as string[],
+    kick: [] as string[],
   },
   autoMuteTabs: true,
   sortLow: true,
@@ -64,6 +73,7 @@ export const DEFAULT_STORAGE_LOCAL = Object.freeze(DEFAULT_STORAGE_LOCAL_VALUES)
 export enum MessageType {
   LOGIN_TWITCH,
   LOGIN_YOUTUBE,
+  LOGIN_KICK,
   LOGOUT,
   FETCH_CHANNELS,
   SEND_CHANNELS,

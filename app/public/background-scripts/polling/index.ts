@@ -8,11 +8,20 @@ import {
   BADGE_DEFAULT_BACKGROUND_COLOR,
 } from 'app-constants';
 import { getFullStorage, waitFullStorage } from 'storage';
-import { AccountType, Channel, ChannelType, LiveChannel, TwitchLogin, YouTubeApiKey, StorageType } from 'types';
+import { AccountType, Channel, ChannelType, LiveChannel, TwitchLogin, YouTubeApiKey, KickLogin } from 'types';
 import { error, log } from 'logging';
-import { getChannelUrl, getFavoriteId, getHiddenChannelsKey, getIsLoggedInWithAnyAccount, getYouTubeLogin, sortChannels } from 'utils';
+import {
+  getChannelUrl,
+  getFavoriteKey,
+  getFavoritesIncludesChannel,
+  getHiddenChannelsKey,
+  getIsLoggedInWithAnyAccount,
+  getYouTubeLogin,
+  sortChannels,
+} from 'utils';
 import { openTwitchTabs } from '../tabs';
 import { fetchTwitchData, handleError as handleTwitchError } from './twitch';
+import { fetchData as fetchKickData } from './kick';
 import {
   FetchYouTubeDataOptions,
   fetchYouTubeData,
@@ -31,12 +40,12 @@ function getSortedLiveChannels(channels: Channel[]): LiveChannel[] {
   return channels
     .filter(channel => !(channel.type === ChannelType.TWITCH
       && hiddenChannels?.twitch.map(username => username.toLowerCase()).includes(getHiddenChannelsKey(channel))))
-    .filter((channel): channel is LiveChannel => channel.viewerCount != null && favorites.includes(getFavoriteId(channel)))
+    .filter((channel): channel is LiveChannel => channel.viewerCount != null && getFavoritesIncludesChannel(favorites, channel))
     .sort((a, b) => sortChannels(a, b, favorites));
 }
 
 browser.notifications.onClicked.addListener((favoriteId: string) => {
-  const clickedChannel = globalChannels.find(channel => favoriteId === getFavoriteId(channel));
+  const clickedChannel = globalChannels.find(channel => favoriteId === getFavoriteKey(channel));
   if (clickedChannel) {
     browser.tabs.create({
       url: getChannelUrl(clickedChannel),
@@ -51,8 +60,8 @@ async function notify(channelsBefore: Channel[], channelsAfter: Channel[]): Prom
     const oldLiveChannels = await getSortedLiveChannels(channelsBefore);
     const newLiveChannels = await getSortedLiveChannels(channelsAfter);
     const topChannel = newLiveChannels[0];
-    if (topChannel && (!oldLiveChannels[0] || getFavoriteId(topChannel) !== getFavoriteId(oldLiveChannels[0]))) {
-      await browser.notifications.create(getFavoriteId(topChannel), {
+    if (topChannel && (!oldLiveChannels[0] || getFavoriteKey(topChannel) !== getFavoriteKey(oldLiveChannels[0]))) {
+      await browser.notifications.create(getFavoriteKey(topChannel), {
         title: `${topChannel.displayName} is live!`,
         message: 'Click to view their stream.',
         type: 'basic',
@@ -71,7 +80,7 @@ async function refreshBadgeData(): Promise<void> {
       && hiddenChannels?.youtube.includes(channel.manualInputQuery.toLowerCase());
     return !isHiddenTwitch && !isHiddenYouTube;
   });
-  const isAnyFavoriteLive = filteredChannels.some(channel => channel.viewerCount != null && favorites?.includes(getFavoriteId(channel)));
+  const isAnyFavoriteLive = filteredChannels.some(channel => channel.viewerCount != null && getFavoritesIncludesChannel(favorites, channel));
   const numStreamsLive = filteredChannels.reduce(
     (acc, channel) => acc + (channel.viewerCount != null ? 1 : 0),
     0,
@@ -96,6 +105,7 @@ async function fetchData() {
   const { logins, addedChannels, autoOpenTabs } = storage;
   const twitchLogin = logins?.find((l): l is TwitchLogin => l.type === AccountType.TWITCH);
   const youtubeApiKey = logins?.find((l): l is YouTubeApiKey => l.type === AccountType.YOUTUBE_API_KEY);
+  const kickLogin = logins?.find((l): l is KickLogin => l.type === AccountType.KICK);
   let youtubeLogin = getYouTubeLogin(storage);
   const newChannels: Channel[] = [];
   if (twitchLogin) {
@@ -108,6 +118,16 @@ async function fetchData() {
       newChannels.push(...twitchChannels);
     } catch (err) {
       handleTwitchError(err);
+    }
+  }
+  if (kickLogin) {
+    try {
+      const kickChannels = await fetchKickData(
+        addedChannels?.kick || [],
+      );
+      newChannels.push(...kickChannels);
+    } catch (err) {
+      error(err);
     }
   }
   // TODO: Support auto opening tabs with YouTube

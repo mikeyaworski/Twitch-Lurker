@@ -1,7 +1,7 @@
 import { browser, Tabs } from 'webextension-polyfill-ts';
-import { Channel, LiveChannel, ChannelType, LiveTwitchChannel, TwitchChannel } from 'types';
+import { Channel, ChannelType, LiveTwitchChannel, TwitchChannel } from 'types';
 import { getStorage } from 'chrome-utils';
-import { sortChannels } from 'utils';
+import { getFavoritesIncludesChannel, sortChannels } from 'utils';
 import { getTwitchUsernameFromUrl } from './utils';
 
 export async function getTwitchTabs() {
@@ -86,7 +86,7 @@ export async function openTwitchTabs(channels: Channel[]) {
   const liveChannels = channels
     .filter((c): c is TwitchChannel => c.type === ChannelType.TWITCH)
     .filter(channel => !hiddenChannels?.twitch.map(c => c.toLowerCase()).includes(channel.username.toLowerCase()))
-    .filter((c): c is LiveTwitchChannel => Boolean(c.viewerCount) && favorites.includes(c.username))
+    .filter((c): c is LiveTwitchChannel => Boolean(c.viewerCount) && getFavoritesIncludesChannel(favorites, c))
     .sort((a, b) => sortChannels(a, b, favorites));
   const tabs = await getTwitchTabs();
   // If they have the auto mute tabs pref enabled, then only take over tabs which are muted.

@@ -1,10 +1,11 @@
-import { ChannelType, Channel, LiveChannel, Login, AccountType, YouTubeLogin, StorageSync } from 'types';
+import { ChannelType, Channel, LiveChannel, Login, AccountType, YouTubeLogin, StorageSync, Favorite } from 'types';
 
 export function getSortableValue(channel: Channel): string {
   switch (channel.type) {
     case ChannelType.TWITCH: {
       return channel.username.toLowerCase();
     }
+    case ChannelType.KICK:
     case ChannelType.YOUTUBE: {
       return channel.displayName.toLowerCase();
     }
@@ -17,6 +18,7 @@ export function getSortableValue(channel: Channel): string {
 
 export function getAddedChannelsKey(channel: Channel): string {
   switch (channel.type) {
+    case ChannelType.KICK:
     case ChannelType.TWITCH: {
       return channel.username;
     }
@@ -30,10 +32,23 @@ export function getAddedChannelsKey(channel: Channel): string {
   }
 }
 
+export function shouldConvertKeyToLowerCase(platformKey: 'twitch' | 'youtube' | 'kick'): boolean {
+  switch (platformKey) {
+    case 'twitch':
+    case 'kick': {
+      return true;
+    }
+    default: {
+      return false;
+    }
+  }
+}
+
 export const getHiddenChannelsKey = getAddedChannelsKey;
 
-export function getFavoriteId(channel: Channel): string {
+export function getFavoriteValue(channel: Channel): string {
   switch (channel.type) {
+    case ChannelType.KICK:
     case ChannelType.TWITCH: {
       return channel.username;
     }
@@ -47,18 +62,23 @@ export function getFavoriteId(channel: Channel): string {
   }
 }
 
+export function getFavoriteKey(channel: Channel): string {
+  return channel.type + getFavoriteValue(channel);
+}
+
 /**
  * There can be multiple YouTube channel entries for the same channel if that channel has multiple simultaneous livestreams happening.
  * This function is useful to get a unique ID based on each channel and each ID.
  */
 export function getId(channel: Channel): string {
   switch (channel.type) {
+    case ChannelType.KICK:
     case ChannelType.TWITCH: {
-      // Twitch cannot have multiple entries
-      return channel.username;
+      // Twitch and Kick cannot have multiple entries
+      return `${channel.type}-${channel.username}`;
     }
     case ChannelType.YOUTUBE: {
-      const baseId = channel.id + channel.manualInputQuery;
+      const baseId = channel.type + channel.id + channel.manualInputQuery;
       if (channel.videoId) return baseId + channel.videoId;
       return baseId;
     }
@@ -69,6 +89,17 @@ export function getId(channel: Channel): string {
   }
 }
 
+export function getFormattedFavorites(favorites: string[] | Favorite[]): Favorite[] {
+  return favorites.map((favorite: string | Favorite): Favorite => {
+    if (typeof favorite === 'string') return { type: ChannelType.TWITCH, value: favorite };
+    return favorite;
+  });
+}
+
+export function getFavoritesIncludesChannel(favorites: string[] | Favorite[], channel: Channel): boolean {
+  return getFormattedFavorites(favorites).map(f => f.type + f.value).includes(getFavoriteKey(channel));
+}
+
 export function sortByName(a: Channel, b: Channel) {
   return getSortableValue(a) < getSortableValue(b) ? -1 : 1;
 }
@@ -77,9 +108,10 @@ function sortByViewerCounts(a: LiveChannel, b: LiveChannel, sortLow: boolean) {
   return sortLow ? a.viewerCount - b.viewerCount : b.viewerCount - a.viewerCount;
 }
 
-function sortByFavorites(a: Channel, b: Channel, favs: string[]) {
-  const aFav = favs.indexOf(getFavoriteId(a));
-  const bFav = favs.indexOf(getFavoriteId(b));
+function sortByFavorites(a: Channel, b: Channel, favs: Favorite[]) {
+  const favIds = favs.map(f => f.type + f.value);
+  const aFav = favIds.indexOf(getFavoriteKey(a));
+  const bFav = favIds.indexOf(getFavoriteKey(b));
 
   if (aFav === -1 && bFav >= 0) return 1;
   if (bFav === -1 && aFav >= 0) return -1;
@@ -91,7 +123,8 @@ function sortByFavorites(a: Channel, b: Channel, favs: string[]) {
 /**
  * Returns negative number if a has higher precedence than b, else positive.
  */
-export function sortChannels(a: Channel, b: Channel, favs: string[], sortLow = true) {
+export function sortChannels(a: Channel, b: Channel, favs: string[] | Favorite[], sortLow = true) {
+  favs = getFormattedFavorites(favs);
   const aLive = a.viewerCount != null;
   const bLive = b.viewerCount != null;
 
@@ -127,18 +160,29 @@ export function getStreamLength(utcTimestamp: string) {
 }
 
 export function getChannelUrl(channel: Channel): string {
-  return channel.type === ChannelType.TWITCH
-    ? `https://twitch.tv/${channel.username}`
-    : channel.viewerCount != null
-      ? `https://youtube.com/watch?v=${channel.videoId}`
-      : `https://youtube.com/channel/${channel.id}`;
+  switch (channel.type) {
+    case ChannelType.TWITCH: {
+      return `https://twitch.tv/${channel.username}`;
+    }
+    case ChannelType.YOUTUBE: {
+      return channel.viewerCount != null
+        ? `https://youtube.com/watch?v=${channel.videoId}`
+        : `https://youtube.com/channel/${channel.id}`;
+    }
+    case ChannelType.KICK: {
+      return `https://kick.com/${channel.username}`;
+    }
+    default: {
+      return '';
+    }
+  }
 }
 
 export function notEmpty<T>(value: T | null | undefined): value is T {
   return value !== null && value !== undefined;
 }
 
-const accountsThatCanFetchChannels: AccountType[] = [AccountType.TWITCH, AccountType.YOUTUBE_API_KEY, AccountType.YOUTUBE];
+const accountsThatCanFetchChannels: AccountType[] = [AccountType.TWITCH, AccountType.YOUTUBE_API_KEY, AccountType.YOUTUBE, AccountType.KICK];
 
 export function getIsLoggedInWithAnyAccount(logins: Login[]): boolean {
   return logins.some(login => accountsThatCanFetchChannels.includes(login.type));

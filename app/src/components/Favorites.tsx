@@ -5,12 +5,12 @@ import { makeStyles } from '@material-ui/core/styles';
 import { List, Typography } from '@material-ui/core';
 import StarRoundedIcon from '@material-ui/icons/StarRounded';
 
-import type { Channel } from 'types';
+import type { Channel, Favorite } from 'types';
 import StorageContext from 'contexts/Storage';
 import BackWrapper from 'components/Router/BackWrapper';
 import ChannelItem from 'components/ChannelItem';
 import BackgroundPortContext from 'contexts/BackgroundPort';
-import { getFavoriteId } from 'utils';
+import { getFavoriteKey, getFavoriteValue, getFormattedFavorites } from 'utils';
 
 const useStyles = makeStyles({
   helperClass: {
@@ -32,9 +32,9 @@ const useStyles = makeStyles({
 const FavoritesItem = SortableElement(ChannelItem);
 
 interface FavoritesListProps {
-  favorites: string[];
+  favorites: Favorite[];
   channels: Channel[];
-  onRemoveFavorite: (e: React.SyntheticEvent<SVGElement>) => void;
+  onRemoveFavorite: (channel: Channel) => void;
 }
 
 const FavoritesList = SortableContainer(({ favorites, channels, onRemoveFavorite }: FavoritesListProps) => {
@@ -45,11 +45,12 @@ const FavoritesList = SortableContainer(({ favorites, channels, onRemoveFavorite
       dense
     >
       {favorites.map((fav, index) => {
-        const channel = channels.find(c => getFavoriteId(c) === fav);
+        const favKey = fav.type + fav.value;
+        const channel = channels.find(c => getFavoriteKey(c) === favKey);
         if (!channel) return null;
         return (
           <FavoritesItem
-            key={fav}
+            key={favKey}
             index={index}
             className={classes.item}
             channel={channel}
@@ -67,14 +68,14 @@ export default function Favorites() {
   const { storage, setStorage } = useContext(StorageContext);
   const { channels } = useContext(BackgroundPortContext);
 
-  const handleRemoveFavorite = useCallback((e: React.SyntheticEvent<SVGElement>) => {
+  const handleRemoveFavorite = useCallback((channel: Channel) => {
     setStorage({
-      favorites: storage.favorites.filter(f => f !== e.currentTarget.dataset.favoriteId),
+      favorites: getFormattedFavorites(storage.favorites).filter(f => f.type !== channel.type || f.value !== getFavoriteValue(channel)),
     });
   }, [setStorage, storage.favorites]);
 
   const handleMoveFavorite: SortEndHandler = useCallback(({ oldIndex, newIndex }) => {
-    setStorage({ favorites: arrayMove(storage.favorites, oldIndex, newIndex) }, true);
+    setStorage({ favorites: arrayMove(getFormattedFavorites(storage.favorites), oldIndex, newIndex) }, true);
   }, [setStorage, storage.favorites]);
 
   return (
@@ -84,7 +85,7 @@ export default function Favorites() {
         helperClass={classes.helperClass}
         distance={1}
         channels={channels}
-        favorites={storage.favorites}
+        favorites={getFormattedFavorites(storage.favorites)}
         onRemoveFavorite={handleRemoveFavorite}
         onSortEnd={handleMoveFavorite}
       />

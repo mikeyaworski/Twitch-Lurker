@@ -5,10 +5,10 @@ import SearchIcon from '@material-ui/icons/Search';
 import StarRoundedIcon from '@material-ui/icons/StarRounded';
 import StarBorderRoundedIcon from '@material-ui/icons/StarBorderRounded';
 import ClearIcon from '@material-ui/icons/Clear';
-import { Channel, SvgClickEventHandler, ChannelType } from 'types';
+import { Channel, ChannelType } from 'types';
 import StorageContext from 'contexts/Storage';
 import BackgroundPortContext from 'contexts/BackgroundPort';
-import { getFavoriteId, getId, sortChannels } from 'utils';
+import { getFavoriteValue, getFavoritesIncludesChannel, getFormattedFavorites, getId, sortChannels } from 'utils';
 import ChannelItem, { ChannelItemSkeleton } from './ChannelItem';
 
 const useStyles = makeStyles({
@@ -35,15 +35,18 @@ export default function FollowingComponent() {
   const { storage, loading, setStorage } = useContext(StorageContext);
   const { filteredChannels: channels } = useContext(BackgroundPortContext);
 
-  const handleRemoveFavorite: SvgClickEventHandler = useCallback(e => {
+  const handleRemoveFavorite = useCallback((channel: Channel) => {
     setStorage({
-      favorites: storage.favorites.filter(f => f !== e.currentTarget.dataset.favoriteId),
+      favorites: getFormattedFavorites(storage.favorites).filter(f => f.type !== channel.type || f.value !== getFavoriteValue(channel)),
     });
   }, [setStorage, storage.favorites]);
 
-  const handleAddFavorite: SvgClickEventHandler = useCallback(e => {
+  const handleAddFavorite = useCallback((channel: Channel) => {
     setStorage({
-      favorites: storage.favorites.concat(e.currentTarget.dataset.favoriteId!),
+      favorites: getFormattedFavorites(storage.favorites).concat({
+        type: channel.type,
+        value: getFavoriteValue(channel),
+      }),
     });
   }, [setStorage, storage.favorites]);
 
@@ -121,7 +124,7 @@ export default function FollowingComponent() {
           .filter(filterFn)
           .sort((a, b) => sortChannels(a, b, storage.favorites, storage.sortLow))
           .map(channel => {
-            const isFavorite = storage.favorites.includes(getFavoriteId(channel));
+            const isFavorite = getFavoritesIncludesChannel(storage.favorites, channel);
             return (
               <ChannelItem
                 key={getId(channel)}

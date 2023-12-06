@@ -5,11 +5,11 @@ import { ListItem, ListItemIcon, ListItemText, Link } from '@material-ui/core';
 import Skeleton from '@material-ui/lab/Skeleton';
 import StarRoundedIcon from '@material-ui/icons/StarRounded';
 
-import { ChannelType, Channel, SvgClickEventHandler } from 'types';
+import { ChannelType, Channel } from 'types';
 import StorageContext from 'contexts/Storage';
 import Hoverable from 'components/Hoverable';
 import LiveCount from 'components/LiveCount';
-import { getChannelUrl, getFavoriteId, getIsLoggedInWithMultipleAccounts } from 'utils';
+import { getChannelUrl, getIsLoggedInWithMultipleAccounts } from 'utils';
 
 const useStyles = makeStyles({
   icon: {
@@ -39,12 +39,17 @@ const useStyles = makeStyles({
     width: 17,
     marginLeft: 6,
   },
+  kickIcon: {
+    height: 14,
+    width: 14,
+    marginLeft: 4,
+  },
 });
 
 export interface ChannelItemProps {
   className?: string,
   channel: Channel;
-  onIconClick: SvgClickEventHandler;
+  onIconClick: (channel: Channel) => void;
   Icon: typeof StarRoundedIcon,
   iconColor?: React.ComponentProps<typeof StarRoundedIcon>['color'],
   hoverable?: boolean,
@@ -94,6 +99,10 @@ export default function ChannelItem({
     });
   }, []);
 
+  const handleIconClick = useCallback(() => {
+    onIconClick(channel);
+  }, [onIconClick, channel]);
+
   const avatar = <img src={channel.profilePic} alt="avatar" className={classes.profilePic} />;
   const href = getChannelUrl(channel);
   const displayName = linked ? (
@@ -109,14 +118,26 @@ export default function ChannelItem({
     <>{channel.displayName}</>
   );
 
-  const platformIcon = getIsLoggedInWithMultipleAccounts(storage.logins) && !hidePlatformIcon
-    ? channel.type === ChannelType.TWITCH
-      ? (
-        <img src={`${process.env.PUBLIC_URL}/twitch-icon.svg`} alt="" className={classes.twitchIcon} />
-      ) : (
-        <img src={`${process.env.PUBLIC_URL}/youtube-icon.svg`} alt="" className={classes.youtubeIcon} />
-      )
-    : null;
+  let platformIcon: React.ReactNode = null;
+  if (getIsLoggedInWithMultipleAccounts(storage.logins) && !hidePlatformIcon) {
+    switch (channel.type) {
+      case ChannelType.TWITCH: {
+        platformIcon = <img src={`${process.env.PUBLIC_URL}/twitch-icon.svg`} alt="" className={classes.twitchIcon} />;
+        break;
+      }
+      case ChannelType.YOUTUBE: {
+        platformIcon = <img src={`${process.env.PUBLIC_URL}/youtube-icon.svg`} alt="" className={classes.youtubeIcon} />;
+        break;
+      }
+      case ChannelType.KICK: {
+        platformIcon = <img src={`${process.env.PUBLIC_URL}/kick-icon.png`} alt="" className={classes.kickIcon} />;
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+  }
 
   return (
     <ListItem
@@ -154,8 +175,7 @@ export default function ChannelItem({
         <Icon
           className={classes.icon}
           color={iconColor}
-          data-favorite-id={getFavoriteId(channel)}
-          onClick={onIconClick}
+          onClick={handleIconClick}
         />
       </ListItemIcon>
     </ListItem>

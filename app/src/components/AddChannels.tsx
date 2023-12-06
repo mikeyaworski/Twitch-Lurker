@@ -1,14 +1,15 @@
 import React, { useContext, useState } from 'react';
 import uniq from 'lodash.uniq';
-import { Button, Typography, Radio, FormControlLabel, RadioGroup, InputAdornment, IconButton, Tooltip } from '@material-ui/core';
+import { Typography, FormControlLabel, RadioGroup, InputAdornment, IconButton, Tooltip } from '@material-ui/core';
 import RefreshIcon from '@material-ui/icons/Refresh';
 
 import { AccountType, Channel, ChannelType, StorageSync } from 'types';
-import { getAddedChannelsKey, getYouTubeLogin } from 'utils';
+import { getAddedChannelsKey, getYouTubeLogin, shouldConvertKeyToLowerCase } from 'utils';
 import { useTemporaryToggle } from 'hooks';
 import StorageContext from 'contexts/Storage';
 import BackWrapper from 'components/Router/BackWrapper';
 import BackgroundPortContext, { fetchYouTubeSubscriptions } from 'contexts/BackgroundPort';
+import SmallRadio from 'widgets/SmallRadio';
 import VirtualizedChannelsAutocomplete from './VirtualizedChannelsAutocomplete';
 
 type AccountKey = keyof StorageSync['addedChannels'];
@@ -23,27 +24,51 @@ export default function AddChannels() {
   const hasYouTubeLogin = getYouTubeLogin(storage);
   const hasYouTubeAccount = storage.logins.some(login => login.type === AccountType.YOUTUBE_API_KEY
     || login.type === AccountType.YOUTUBE);
-  const [selectedAccount, setSelectedAccount] = useState<AccountKey>(hasYouTubeAccount ? 'youtube' : 'twitch');
+  const hasKickAccount = storage.logins.some(login => login.type === AccountType.KICK);
+  const [selectedAccount, setSelectedAccount] = useState<AccountKey>(hasYouTubeAccount
+    ? 'youtube'
+    : hasKickAccount
+      ? 'kick'
+      : 'twitch',
+  );
 
   const addedChannels: Channel[] = loading
     ? []
     : storage.addedChannels[selectedAccount].map(addedChannel => {
+      let type: ChannelType = ChannelType.TWITCH;
+      let channel: Channel | undefined;
+      switch (selectedAccount) {
+        case 'twitch': {
+          type = ChannelType.TWITCH;
+          channel = channels.find(c => c.type === ChannelType.TWITCH && c.username.toLowerCase() === addedChannel.toLowerCase());
+          break;
+        }
+        case 'youtube': {
+          type = ChannelType.YOUTUBE;
+          channel = channels.find(c => c.type === ChannelType.YOUTUBE && c.manualInputQuery === addedChannel);
+          break;
+        }
+        case 'kick': {
+          type = ChannelType.KICK;
+          channel = channels.find(c => c.type === ChannelType.KICK && c.username.toLowerCase() === addedChannel.toLowerCase());
+          break;
+        }
+        default: {
+          break;
+        }
+      }
       const notFoundChannel = {
-        type: selectedAccount === 'twitch'
-          ? ChannelType.TWITCH
-          : ChannelType.YOUTUBE,
+        type,
         id: addedChannel,
         username: addedChannel,
         manualInputQuery: addedChannel,
         displayName: addedChannel,
       };
-      const channel = selectedAccount === 'twitch'
-        ? channels.find(c => c.type === ChannelType.TWITCH && c.username.toLowerCase() === addedChannel.toLowerCase())
-        : channels.find(c => c.type === ChannelType.YOUTUBE && c.manualInputQuery === addedChannel);
       return channel || notFoundChannel;
     });
 
   function onAdd(username: string): void {
+    username = shouldConvertKeyToLowerCase(selectedAccount) ? username.toLowerCase() : username;
     setStorage({
       addedChannels: {
         ...storage.addedChannels,
@@ -74,15 +99,20 @@ export default function AddChannels() {
   return (
     <BackWrapper>
       <Typography variant="h5" align="center" gutterBottom>Add Channels</Typography>
-      {hasYouTubeAccount && (
+      {(hasYouTubeAccount || hasKickAccount) && (
         <RadioGroup
-          style={{ flexDirection: 'row' }}
+          style={{ flexDirection: 'row', marginBottom: 4 }}
           name="account"
           value={selectedAccount}
           onChange={e => setSelectedAccount(e.target.value as AccountKey)}
         >
-          <FormControlLabel value="twitch" control={<Radio color="primary" />} label="Twitch" />
-          <FormControlLabel value="youtube" control={<Radio color="primary" />} label="YouTube" />
+          <FormControlLabel value="twitch" control={<SmallRadio color="primary" size="small" />} label="Twitch" />
+          {hasYouTubeAccount && (
+            <FormControlLabel value="youtube" control={<SmallRadio color="primary" size="small" />} label="YouTube" />
+          )}
+          {hasKickAccount && (
+            <FormControlLabel value="kick" control={<SmallRadio color="primary" size="small" />} label="Kick" />
+          )}
         </RadioGroup>
       )}
       <VirtualizedChannelsAutocomplete
