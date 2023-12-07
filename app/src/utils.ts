@@ -1,4 +1,4 @@
-import { ChannelType, Channel, LiveChannel, Login, AccountType, YouTubeLogin, StorageSync, Favorite } from 'types';
+import { ChannelType, Channel, LiveChannel, Login, AccountType, YouTubeLogin, StorageSync, Favorite } from './types';
 
 export function getSortableValue(channel: Channel): string {
   switch (channel.type) {
