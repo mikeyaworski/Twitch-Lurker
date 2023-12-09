@@ -2,14 +2,13 @@ import { browser, Tabs } from 'webextension-polyfill-ts';
 import { Channel, ChannelType, LiveTwitchChannel, TwitchChannel } from 'types';
 import { getStorage } from 'chrome-utils';
 import { getFavoritesIncludesChannel, sortChannels } from 'utils';
-import { getTwitchUsernameFromUrl } from './utils';
+import { getTwitchUsernameFromUrl, isUrlTwitchChannel } from './utils';
 
-export async function getTwitchTabs() {
+async function getTwitchChannelTabs() {
   const tabs = await browser.tabs.query({});
   return tabs.filter(tab => {
     if (!tab.url) return false;
-    const url = new URL(tab.url);
-    return /(www.|m.)?twitch.tv/.test(url.hostname) && /^\/([^/]+)\/?$/;
+    return isUrlTwitchChannel(tab.url);
   });
 }
 
@@ -83,19 +82,19 @@ async function updateTwitchTab(liveChannel: LiveTwitchChannel, candidateTwitchTa
 export async function openTwitchTabs(channels: Channel[]) {
   const { favorites, maxStreams, autoMuteTabs, hiddenChannels } = await getStorage(['favorites', 'maxStreams', 'autoMuteTabs', 'hiddenChannels']);
   if (!maxStreams || !favorites) return;
-  const liveChannels = channels
+  const liveFavorites = channels
     .filter((c): c is TwitchChannel => c.type === ChannelType.TWITCH)
     .filter(channel => !hiddenChannels?.twitch.map(c => c.toLowerCase()).includes(channel.username.toLowerCase()))
     .filter((c): c is LiveTwitchChannel => Boolean(c.viewerCount) && getFavoritesIncludesChannel(favorites, c))
     .sort((a, b) => sortChannels(a, b, favorites));
-  const tabs = await getTwitchTabs();
+  const tabs = await getTwitchChannelTabs();
   // If they have the auto mute tabs pref enabled, then only take over tabs which are muted.
   const allOpenTwitchUsernames = tabs.map(tab => getTwitchUsernameFromUrl(tab.url!)).filter(Boolean) as string[];
   const replaceableTwitchTabs = tabs
     .filter(tab => (!autoMuteTabs || tab.mutedInfo?.muted) && Boolean(getTwitchUsernameFromUrl(tab.url!)))
     .sort((a, b) => {
-      const aChannel = liveChannels.find(channel => channel.username === getTwitchUsernameFromUrl(a.url!));
-      const bChannel = liveChannels.find(channel => channel.username === getTwitchUsernameFromUrl(b.url!));
+      const aChannel = liveFavorites.find(channel => channel.username === getTwitchUsernameFromUrl(a.url!));
+      const bChannel = liveFavorites.find(channel => channel.username === getTwitchUsernameFromUrl(b.url!));
       if (!aChannel) return 1;
       if (!bChannel) return -1;
       return sortChannels(aChannel, bChannel, favorites);
@@ -103,11 +102,11 @@ export async function openTwitchTabs(channels: Channel[]) {
     // Reverse so that we can replace ones at the beginning of the list (increasing order of importance).
     .reverse()
     .slice(0, Number(maxStreams));
-  const liveCandidates = liveChannels
+  const liveCandidates = liveFavorites
     // Filter out replacement candidates that are already open
     .filter(channel => !allOpenTwitchUsernames.includes(channel.username))
     .slice(0, Number(maxStreams));
-  const numNewTabs = Math.max(0, Number(maxStreams) - tabs.length);
+  const numNewTabs = Math.max(0, Number(maxStreams) - replaceableTwitchTabs.length);
   const newLiveChannels = liveCandidates.slice(0, numNewTabs);
   const numReplaceables = Math.min(liveCandidates.length - numNewTabs, replaceableTwitchTabs.length);
   for (let i = 0; i < newLiveChannels.length; i++) {
@@ -118,7 +117,7 @@ export async function openTwitchTabs(channels: Channel[]) {
     const candidateTwitchTab = replaceableTwitchTabs[i];
     const tabUsername = getTwitchUsernameFromUrl(candidateTwitchTab.url!);
     if (tabUsername === liveChannel.username) continue;
-    const tabChannel = liveChannels.find(channel => channel.username === tabUsername);
+    const tabChannel = liveFavorites.find(channel => channel.username === tabUsername);
     await updateTwitchTab(liveChannel, candidateTwitchTab, tabChannel);
   }
 }
