@@ -91,8 +91,8 @@ async function refreshBadgeData(): Promise<void> {
   });
 }
 
-async function setChannels(channels: Channel[]) {
-  await notify(globalChannels, channels);
+function setChannels(channels: Channel[]) {
+  notify(globalChannels, channels);
   globalChannels = channels;
   popupPort?.postMessage({
     type: MessageType.SEND_CHANNELS,
@@ -171,7 +171,7 @@ async function fetchData() {
   setChannels(newChannels);
   youtubeLogin = getYouTubeLogin(storage); // get the login again because the accessToken and expiry may have been updated
   if (youtubeLogin) tryPollYouTubeSubscriptions(youtubeLogin)?.catch(error);
-  if (autoOpenTabs) openTwitchTabs(globalChannels);
+  if (autoOpenTabs) openTwitchTabs(newChannels);
 }
 
 let pollingInterval: NodeJS.Timeout | undefined;
