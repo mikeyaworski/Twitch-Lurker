@@ -106,7 +106,7 @@ export async function openTwitchTabs(channels: Channel[]) {
     // Filter out replacement candidates that are already open
     .filter(channel => !allOpenTwitchUsernames.includes(channel.username))
     .slice(0, Number(maxStreams));
-  const numNewTabs = Math.max(0, Number(maxStreams) - replaceableTwitchTabs.length);
+  const numNewTabs = Math.max(0, Number(maxStreams) - tabs.length);
   const newLiveChannels = liveCandidates.slice(0, numNewTabs);
   const numReplaceables = Math.min(liveCandidates.length - numNewTabs, replaceableTwitchTabs.length);
   for (let i = 0; i < newLiveChannels.length; i++) {
