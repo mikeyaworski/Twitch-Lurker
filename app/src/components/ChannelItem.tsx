@@ -1,4 +1,4 @@
-import React, { useCallback, useContext } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 import { makeStyles } from '@material-ui/core/styles';
 import { ListItem, ListItemIcon, ListItemText, Link } from '@material-ui/core';
@@ -11,15 +11,17 @@ import Hoverable from 'components/Hoverable';
 import LiveCount from 'components/LiveCount';
 import { getChannelUrl, getIsLoggedInWithMultipleAccounts } from 'utils';
 
+const AVATAR_SIZE = 22;
+
 const useStyles = makeStyles({
   icon: {
     marginLeft: 'auto',
     cursor: 'pointer',
   },
   profilePic: {
-    width: 22,
-    height: 22,
-    minWidth: 22,
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    minWidth: AVATAR_SIZE,
     marginRight: 8,
   },
   itemText: {
@@ -90,6 +92,7 @@ export default function ChannelItem({
 }: ChannelItemProps) {
   const classes = useStyles();
   const { storage } = useContext(StorageContext);
+  const [avatarLoaded, setAvatarLoaded] = useState(false);
 
   const handleOpenLink: React.MouseEventHandler<HTMLAnchorElement> = useCallback(e => {
     e.preventDefault();
@@ -103,7 +106,26 @@ export default function ChannelItem({
     onIconClick(channel);
   }, [onIconClick, channel]);
 
-  const avatar = <img src={channel.profilePic} alt="avatar" className={classes.profilePic} />;
+  const handleAvatarLoaded = useCallback(() => {
+    setAvatarLoaded(true);
+  }, []);
+
+  const avatar = (
+    <>
+      {!avatarLoaded && (
+        <Skeleton variant="rect" className={classes.profilePic} />
+      )}
+      <img
+        src={channel.profilePic}
+        alt="avatar"
+        className={classes.profilePic}
+        onLoad={handleAvatarLoaded}
+        style={{
+          display: avatarLoaded ? 'block' : 'none',
+        }}
+      />
+    </>
+  );
   const href = getChannelUrl(channel);
   const displayName = linked ? (
     <Link
