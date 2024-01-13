@@ -1,6 +1,7 @@
 import {
   getTwitchUsernameFromUrl,
   isUrlTwitchChannel,
+  isLockedTwitchPage,
 } from '../utils';
 
 describe('background-scripts/utils', () => {
@@ -14,6 +15,12 @@ describe('background-scripts/utils', () => {
     it('works for a regular twitch page 2', () => {
       const username = getTwitchUsernameFromUrl(
         'https://www.twitch.tv/foobar',
+      );
+      expect(username).toEqual('foobar');
+    });
+    it('works for the moderator page', () => {
+      const username = getTwitchUsernameFromUrl(
+        'https://www.twitch.tv/moderator/foobar',
       );
       expect(username).toEqual('foobar');
     });
@@ -61,9 +68,30 @@ describe('background-scripts/utils', () => {
         'https://www.twitch.tv/foobar/videos',
       )).toBe(true);
     });
+    it('works when viewing a piece of VOD content', () => {
+      expect(isUrlTwitchChannel(
+        'https://www.twitch.tv/videos/123',
+      )).toBe(false);
+      expect(isUrlTwitchChannel(
+        'https://www.twitch.tv/foo/clip/bar',
+      )).toBe(false);
+    });
     it('works for a random URL', () => {
       expect(isUrlTwitchChannel(
         'https://example.com/test',
+      )).toBe(false);
+    });
+    it('works for moderator view of a channel', () => {
+      expect(isUrlTwitchChannel(
+        'https://www.twitch.tv/moderator/foobar',
+      )).toBe(true);
+    });
+    it('works for popout chat', () => {
+      expect(isUrlTwitchChannel(
+        'https://www.twitch.tv/popout/foobar/chat?popout=',
+      )).toBe(false);
+      expect(isUrlTwitchChannel(
+        'https://www.twitch.tv/popout/foobar/guest-star',
       )).toBe(false);
     });
     it('works for home page', () => {
@@ -112,6 +140,48 @@ describe('background-scripts/utils', () => {
       )).toBe(false);
       expect(isUrlTwitchChannel(
         'https://www.twitch.tv/directory/category/just-chatting',
+      )).toBe(false);
+    });
+  });
+  describe('isLockedTwitchPage', () => {
+    it('works with query parameters', () => {
+      expect(isLockedTwitchPage(
+        'https://www.twitch.tv/foobar/videos?filter=archives&sort=time',
+      )).toBe(true);
+      expect(isLockedTwitchPage(
+        'https://www.twitch.tv/foobar/clips?period=24hr',
+      )).toBe(true);
+    });
+    it('works with a trailing route', () => {
+      expect(isLockedTwitchPage(
+        'https://www.twitch.tv/foobar/videos',
+      )).toBe(true);
+      expect(isLockedTwitchPage(
+        'https://www.twitch.tv/foobar/clips',
+      )).toBe(true);
+      expect(isLockedTwitchPage(
+        'https://www.twitch.tv/foo/clip/bar',
+      )).toBe(true);
+      expect(isLockedTwitchPage(
+        'https://www.twitch.tv/foobar/about',
+      )).toBe(true);
+      expect(isLockedTwitchPage(
+        'https://www.twitch.tv/foobar/schedule',
+      )).toBe(true);
+    });
+    it('works for moderator view of a channel', () => {
+      expect(isLockedTwitchPage(
+        'https://www.twitch.tv/moderator/foobar',
+      )).toBe(true);
+    });
+    it('works for a base channel URL', () => {
+      expect(isLockedTwitchPage(
+        'https://www.twitch.tv/foobar',
+      )).toBe(false);
+    });
+    it('works for a random URL', () => {
+      expect(isLockedTwitchPage(
+        'https://example.com/test',
       )).toBe(false);
     });
   });

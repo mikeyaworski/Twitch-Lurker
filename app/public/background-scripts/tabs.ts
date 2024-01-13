@@ -2,7 +2,7 @@ import { browser, Tabs } from 'webextension-polyfill-ts';
 import { Channel, ChannelType, LiveTwitchChannel, TwitchChannel } from 'types';
 import { getStorage } from 'chrome-utils';
 import { getFavoritesIncludesChannel, sortChannels } from 'utils';
-import { getTwitchUsernameFromUrl, isUrlTwitchChannel } from './utils';
+import { getTwitchUsernameFromUrl, isUrlTwitchChannel, isLockedTwitchPage } from './utils';
 
 async function getTwitchChannelTabs() {
   const tabs = await browser.tabs.query({});
@@ -79,6 +79,7 @@ async function updateTwitchTab(liveChannel: LiveTwitchChannel, candidateTwitchTa
   }
 }
 
+// TODO: Write unit tests for this
 export async function openTwitchTabs(channels: Channel[]) {
   const { favorites, maxStreams, autoMuteTabs, hiddenChannels } = await getStorage(['favorites', 'maxStreams', 'autoMuteTabs', 'hiddenChannels']);
   if (!maxStreams || !favorites) return;
@@ -91,6 +92,7 @@ export async function openTwitchTabs(channels: Channel[]) {
   // If they have the auto mute tabs pref enabled, then only take over tabs which are muted.
   const allOpenTwitchUsernames = tabs.map(tab => getTwitchUsernameFromUrl(tab.url!)).filter(Boolean) as string[];
   const replaceableTwitchTabs = tabs
+    .filter(tab => tab.url && !isLockedTwitchPage(tab.url))
     .filter(tab => (!autoMuteTabs || tab.mutedInfo?.muted) && Boolean(getTwitchUsernameFromUrl(tab.url!)))
     .sort((a, b) => {
       const aChannel = liveFavorites.find(channel => channel.username === getTwitchUsernameFromUrl(a.url!));
