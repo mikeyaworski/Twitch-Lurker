@@ -1,3 +1,4 @@
+import jwtDecode from 'jwt-decode';
 import { IntentionalAny } from 'types';
 
 const TWITCH_HOSTNAME_REGEX = /^(www.|m.)?twitch.tv$/i;
@@ -17,9 +18,7 @@ export function getRandomString() {
 }
 
 export function parseIdToken(idToken: string, nonce: string): Record<string, IntentionalAny> {
-  const userInfoBase64 = idToken?.split('.')[1];
-  if (!userInfoBase64) throw new Error();
-  const userInfo = JSON.parse(atob(userInfoBase64));
+  const userInfo: IntentionalAny = jwtDecode(idToken);
   if (nonce !== userInfo.nonce) throw new Error('Invalid nonce parameter during authorization');
   return userInfo;
 }
