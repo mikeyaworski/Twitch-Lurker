@@ -162,12 +162,12 @@ export function getStreamLength(utcTimestamp: string) {
 export function getChannelUrl(channel: Channel): string {
   switch (channel.type) {
     case ChannelType.TWITCH: {
-      return `https://twitch.tv/${channel.username}`;
+      return `https://www.twitch.tv/${channel.username}`;
     }
     case ChannelType.YOUTUBE: {
       return channel.viewerCount != null
-        ? `https://youtube.com/watch?v=${channel.videoId}`
-        : `https://youtube.com/channel/${channel.id}`;
+        ? `https://www.youtube.com/watch?v=${channel.videoId}`
+        : `https://www.youtube.com/channel/${channel.id}`;
     }
     case ChannelType.KICK: {
       return `https://kick.com/${channel.username}`;

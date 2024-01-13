@@ -54,6 +54,12 @@ browser.notifications.onClicked.addListener((favoriteId: string) => {
   }
 });
 
+async function isStreamOpen(channel: LiveChannel): Promise<boolean> {
+  // TODO: There are some edge cases which are not handled here, but it's not really that important.
+  const tabs = await browser.tabs.query({});
+  return Boolean(tabs.some(tab => tab.url && tab.url === getChannelUrl(channel)));
+}
+
 async function notify(channelsBefore: Channel[], channelsAfter: Channel[]): Promise<void> {
   const { notifications } = storage;
   if (notifications) {
@@ -61,12 +67,15 @@ async function notify(channelsBefore: Channel[], channelsAfter: Channel[]): Prom
     const newLiveChannels = await getSortedLiveChannels(channelsAfter);
     const topChannel = newLiveChannels[0];
     if (topChannel && (!oldLiveChannels[0] || getFavoriteKey(topChannel) !== getFavoriteKey(oldLiveChannels[0]))) {
-      await browser.notifications.create(getFavoriteKey(topChannel), {
-        title: `${topChannel.displayName} is live!`,
-        message: 'Click to view their stream.',
-        type: 'basic',
-        iconUrl: 'icons/icon128.png',
-      });
+      const streamIsOpen = await isStreamOpen(topChannel);
+      if (!streamIsOpen) {
+        await browser.notifications.create(getFavoriteKey(topChannel), {
+          title: `${topChannel.displayName} is live!`,
+          message: 'Click to view their stream.',
+          type: 'basic',
+          iconUrl: 'icons/icon128.png',
+        });
+      }
     }
   }
 }

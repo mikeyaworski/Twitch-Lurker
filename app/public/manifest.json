@@ -21,7 +21,9 @@
     "unlimitedStorage",
     "notifications",
     "https://*.googleapis.com/*",
-    "https://*.twitch.tv/*"
+    "https://*.twitch.tv/*",
+    "https://*.kick.com/*",
+    "https://*.youtube.com/*"
   ],
 
   "icons": {
