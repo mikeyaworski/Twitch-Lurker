@@ -14,3 +14,16 @@ if (browser.browserAction.setBadgeTextColor) {
 
 initAuth();
 initPolling();
+
+browser.contextMenus.create({
+  title: 'Open Full Page Viewer',
+  contexts: ['browser_action'],
+  onclick: async () => {
+    // TODO: Update this to use a separate document once the project is migrated from CRA to Vite
+    const url = browser.extension.getURL('index.html');
+    await browser.tabs.create({
+      url,
+      active: true,
+    });
+  },
+});
