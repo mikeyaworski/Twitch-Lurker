@@ -33,7 +33,7 @@ import {
 const storage = getFullStorage();
 
 let globalChannels: Channel[] = [];
-let popupPort: Runtime.Port | null = null;
+let ports: Runtime.Port[] = [];
 
 function getSortedLiveChannels(channels: Channel[]): LiveChannel[] {
   const { hiddenChannels, favorites } = storage;
@@ -103,9 +103,11 @@ async function refreshBadgeData(): Promise<void> {
 function setChannels(channels: Channel[]) {
   notify(globalChannels, channels);
   globalChannels = channels;
-  popupPort?.postMessage({
-    type: MessageType.SEND_CHANNELS,
-    data: globalChannels,
+  ports.forEach(port => {
+    port.postMessage({
+      type: MessageType.SEND_CHANNELS,
+      data: globalChannels,
+    });
   });
   refreshBadgeData();
 }
@@ -239,7 +241,7 @@ function initHooks() {
 
 function listen() {
   browser.runtime.onConnect.addListener(port => {
-    popupPort = port;
+    ports.push(port);
     port.onMessage.addListener(msg => {
       switch (msg.type) {
         case MessageType.FETCH_CHANNELS: {
@@ -260,7 +262,7 @@ function listen() {
       }
     });
     port.onDisconnect.addListener(() => {
-      popupPort = null;
+      ports = ports.filter(p => p !== port);
     });
   });
 }
