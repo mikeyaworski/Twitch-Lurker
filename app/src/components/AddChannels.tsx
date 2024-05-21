@@ -1,22 +1,28 @@
 import React, { useContext, useState } from 'react';
+import browser from 'webextension-polyfill';
+import { useAtomValue } from 'jotai';
 import uniq from 'lodash.uniq';
 import { Typography, FormControlLabel, RadioGroup, InputAdornment, IconButton, Tooltip } from '@material-ui/core';
 import RefreshIcon from '@material-ui/icons/Refresh';
 
-import { AccountType, Channel, ChannelType, StorageSync } from 'types';
+import { AccountType, Channel, ChannelType, StorageSync, MessageType } from 'types';
 import { getAddedChannelsKey, getYouTubeLogin, shouldConvertKeyToLowerCase } from 'utils';
 import { useTemporaryToggle } from 'hooks';
 import StorageContext from 'contexts/Storage';
 import BackWrapper from 'components/Router/BackWrapper';
-import BackgroundPortContext, { fetchYouTubeSubscriptions } from 'contexts/BackgroundPort';
+import { ChannelsAtom } from 'atoms/Channels';
 import SmallRadio from 'widgets/SmallRadio';
 import VirtualizedChannelsAutocomplete from './VirtualizedChannelsAutocomplete';
+
+function fetchYouTubeSubscriptions() {
+  browser.runtime.sendMessage({ type: MessageType.FETCH_YOUTUBE_SUBSCRIPTIONS });
+}
 
 type AccountKey = keyof StorageSync['addedChannels'];
 
 export default function AddChannels() {
   const { storage, storageLocal, setStorage, loading } = useContext(StorageContext);
-  const { channels } = useContext(BackgroundPortContext);
+  const channels = useAtomValue(ChannelsAtom);
 
   const [fetchYouTubeSubscriptionsDisabled, setFetchYouTubeSubscriptionsDisabled] = useState(false);
   useTemporaryToggle({ value: fetchYouTubeSubscriptionsDisabled, setValue: setFetchYouTubeSubscriptionsDisabled, timeoutMs: 5000 });

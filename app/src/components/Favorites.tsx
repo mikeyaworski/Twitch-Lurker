@@ -1,4 +1,5 @@
 import React, { useCallback, useContext } from 'react';
+import { useAtomValue } from 'jotai';
 import type { SortEndHandler } from 'react-sortable-hoc';
 import { SortableContainer, SortableElement, arrayMove } from 'react-sortable-hoc';
 import { makeStyles } from '@material-ui/core/styles';
@@ -9,7 +10,7 @@ import type { Channel, Favorite } from 'types';
 import StorageContext from 'contexts/Storage';
 import BackWrapper from 'components/Router/BackWrapper';
 import ChannelItem from 'components/ChannelItem';
-import BackgroundPortContext from 'contexts/BackgroundPort';
+import { ChannelsAtom } from 'atoms/Channels';
 import { getFavoriteKey, getFavoriteValue, getFormattedFavorites } from 'utils';
 
 const useStyles = makeStyles({
@@ -66,7 +67,7 @@ const FavoritesList = SortableContainer(({ favorites, channels, onRemoveFavorite
 export default function Favorites() {
   const classes = useStyles();
   const { storage, setStorage } = useContext(StorageContext);
-  const { channels } = useContext(BackgroundPortContext);
+  const channels = useAtomValue(ChannelsAtom);
 
   const handleRemoveFavorite = useCallback((channel: Channel) => {
     setStorage({
