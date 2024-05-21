@@ -4,7 +4,7 @@ import {
   isLockedTwitchPage,
 } from '../utils';
 
-describe('background-scripts/utils', () => {
+describe('service-worker/utils', () => {
   describe('getTwitchUsernameFromUrl', () => {
     it('works for a regular twitch page 1', () => {
       const username = getTwitchUsernameFromUrl(

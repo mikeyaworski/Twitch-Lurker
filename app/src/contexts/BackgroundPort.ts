@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState } from 'react';
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { ChannelType, Channel, StorageSync } from 'types';
 
 import { MessageType } from 'app-constants';

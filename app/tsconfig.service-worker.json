@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "include": [
-    "public/background-scripts",
+    "public/service-worker",
     "src/app-constants.ts",
     "src/chrome-utils.ts",
     "src/utils.ts",

@@ -1,26 +1,28 @@
 {
   "name": "Twitch Lurker",
   "description": "Always support your favorite streamer by automatically pulling up their stream when they go live.",
-  "version": "2.0.4",
-  "manifest_version": 2,
+  "version": "3.0.0",
+  "manifest_version": 3,
 
   "background": {
-    "scripts": [
-      "background-script-bundle.js"
-    ],
-    "persistent": true
+    "service_worker": "service-worker-bundle.js",
+    "type": "module"
   },
 
-  "browser_action": {
+  "action": {
     "default_popup": "index.html"
   },
 
   "permissions": [
     "identity",
-    "storage",
-    "unlimitedStorage",
-    "notifications",
+    "alarms",
+    "scripting",
     "contextMenus",
+    "notifications",
+    "storage",
+    "unlimitedStorage"
+  ],
+  "host_permissions": [
     "https://*.googleapis.com/*",
     "https://*.twitch.tv/*",
     "https://*.kick.com/*",

@@ -27,10 +27,10 @@ const contentScriptConfig = {
   ],
 };
 
-const backgroundScriptConfig = {
-  input: 'public/background-scripts/main.ts',
+const serviceWorkerConfig = {
+  input: 'public/service-worker/main.ts',
   output: {
-    file: 'build/background-script-bundle.js',
+    file: 'build/service-worker-bundle.js',
     format: 'esm',
   },
   plugins: [
@@ -40,7 +40,7 @@ const backgroundScriptConfig = {
       browser: true,
     }),
     typescript({
-      tsconfig: './tsconfig.background-scripts.json',
+      tsconfig: './tsconfig.service-worker.json',
     }),
     terser({
       output: {
@@ -64,12 +64,12 @@ export default [
       file: 'public/content-script-bundle.js',
     },
   },
-  backgroundScriptConfig,
+  serviceWorkerConfig,
   {
-    ...backgroundScriptConfig,
+    ...serviceWorkerConfig,
     output: {
-      ...backgroundScriptConfig.output,
-      file: 'public/background-script-bundle.js',
+      ...serviceWorkerConfig.output,
+      file: 'public/service-worker-bundle.js',
     },
   },
 ];

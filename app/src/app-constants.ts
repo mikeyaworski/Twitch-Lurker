@@ -1,5 +1,6 @@
 import type { ChannelType, DeepMutable, Login, YouTubeSubscription } from './types';
 
+export const POLL_ALARM_NAME = 'POLL';
 export const BADGE_TEXT_COLOR = '#FFFFFF';
 export const BADGE_DEFAULT_BACKGROUND_COLOR = '#777777';
 export const BADGE_PURPLE_BACKGROUND_COLOR = '#8561c5';

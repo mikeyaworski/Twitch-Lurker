@@ -1,4 +1,4 @@
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { getFullStorage } from 'storage';
 import { getYouTubeLogin } from 'utils';
 import { setStorage } from 'chrome-utils';
@@ -33,8 +33,8 @@ export async function logout(type: AccountType) {
   if (newLogin) newLogins.push(newLogin);
   setStorage({ logins: newLogins });
   if (newLogins.length === 0) {
-    browser.browserAction.setBadgeText({ text: '' });
-    browser.browserAction.setBadgeBackgroundColor({
+    browser.action.setBadgeText({ text: '' });
+    browser.action.setBadgeBackgroundColor({
       color: BADGE_DEFAULT_BACKGROUND_COLOR,
     });
   }

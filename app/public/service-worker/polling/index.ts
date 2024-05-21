@@ -1,11 +1,12 @@
-import { browser } from 'webextension-polyfill-ts';
-import type { Runtime } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
+import type { Runtime } from 'webextension-polyfill';
 import debounce from 'lodash.debounce';
 import { hookStorage } from 'chrome-utils';
 import {
   MessageType,
   BADGE_PURPLE_BACKGROUND_COLOR,
   BADGE_DEFAULT_BACKGROUND_COLOR,
+  POLL_ALARM_NAME,
 } from 'app-constants';
 import { getFullStorage, waitFullStorage } from 'storage';
 import { AccountType, Channel, ChannelType, LiveChannel, TwitchLogin, YouTubeApiKey, KickLogin } from 'types';
@@ -94,8 +95,8 @@ async function refreshBadgeData(): Promise<void> {
     (acc, channel) => acc + (channel.viewerCount != null ? 1 : 0),
     0,
   );
-  await browser.browserAction.setBadgeText({ text: String(numStreamsLive) });
-  await browser.browserAction.setBadgeBackgroundColor({
+  await browser.action.setBadgeText({ text: String(numStreamsLive) });
+  await browser.action.setBadgeBackgroundColor({
     color: isAnyFavoriteLive ? BADGE_PURPLE_BACKGROUND_COLOR : BADGE_DEFAULT_BACKGROUND_COLOR,
   });
 }
@@ -185,14 +186,15 @@ async function fetchData() {
   if (autoOpenTabs) openTwitchTabs(newChannels);
 }
 
-let pollingInterval: NodeJS.Timeout | undefined;
 async function poll() {
   await waitFullStorage();
   const { logins, enabled, pollDelay } = storage;
-  if (pollingInterval) clearInterval(pollingInterval);
+  await browser.alarms.clear(POLL_ALARM_NAME);
   if (enabled && logins && getIsLoggedInWithAnyAccount(logins)) {
     fetchData();
-    pollingInterval = setInterval(fetchData, Number(pollDelay) * 1000 * 60);
+    await browser.alarms.create(POLL_ALARM_NAME, {
+      delayInMinutes: Number(pollDelay),
+    });
   } else {
     setChannels([]);
   }
@@ -219,9 +221,9 @@ function initHooks() {
     key: 'enabled',
     cb: enabled => {
       if (!enabled) {
-        if (pollingInterval) clearInterval(pollingInterval);
+        browser.alarms.clear(POLL_ALARM_NAME);
         setChannels([]);
-      } else if (pollingInterval) {
+      } else {
         poll();
       }
     },
@@ -240,6 +242,17 @@ function initHooks() {
 }
 
 function listen() {
+  browser.alarms.onAlarm.addListener(alarm => {
+    switch (alarm.name) {
+      case POLL_ALARM_NAME: {
+        log('Polling...');
+        poll();
+        break;
+      }
+      default: break;
+    }
+  });
+  // TODO: Migrate port usage to just sending runtime messages instead
   browser.runtime.onConnect.addListener(port => {
     ports.push(port);
     port.onMessage.addListener(msg => {

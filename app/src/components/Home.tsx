@@ -1,5 +1,5 @@
 import React from 'react';
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { Route, useHistory } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
 import { Box, Button, Typography } from '@material-ui/core';

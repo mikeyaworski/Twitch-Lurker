@@ -1,5 +1,5 @@
 import { useContext, useCallback, useState, useEffect } from 'react';
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import StorageContext from 'contexts/Storage';
 import { getIsLoggedInWithAnyAccount } from 'utils';
 

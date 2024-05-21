@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { Box, Button, Card, CardActions, CardContent, TextField, Typography, Link, makeStyles } from '@material-ui/core';
 import { Skeleton } from '@material-ui/lab';
 

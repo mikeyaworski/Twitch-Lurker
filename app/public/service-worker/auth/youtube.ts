@@ -1,4 +1,4 @@
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { getStorage, setStorage } from 'chrome-utils';
 import {
   GOOGLE_CLIENT_ID,

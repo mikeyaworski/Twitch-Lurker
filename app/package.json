@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "npx eslint .",
     "test": "npm run lint && jest",
-    "build:prod": "env-path -p .env.production react-app-rewired build && rollup -c && rm -r build/background-scripts build/content-scripts",
+    "build:prod": "env-path -p .env.production react-app-rewired build && rollup -c && rm -r build/service-worker build/content-scripts",
     "build:scripts": "rollup -c && cp public/manifest.json build",
     "s": "npm run build:scripts",
     "build:popup": "env-path -p .env.development react-app-rewired build",
@@ -48,7 +48,7 @@
     "react-router-dom": "^5.2.0",
     "react-sortable-hoc": "^2.0.0",
     "react-window": "^1.8.9",
-    "webextension-polyfill-ts": "^0.25.0"
+    "webextension-polyfill": "^0.12.0"
   },
   "devDependencies": {
     "@rollup/plugin-alias": "^3.0.1",
@@ -69,6 +69,7 @@
     "@types/react-dom": "^16.9.9",
     "@types/react-router-dom": "^5.1.6",
     "@types/react-window": "^1.8.5",
+    "@types/webextension-polyfill": "^0.10.7",
     "@typescript-eslint/eslint-plugin": "^4.6.1",
     "@typescript-eslint/parser": "^4.6.1",
     "browserify": "^17.0.0",

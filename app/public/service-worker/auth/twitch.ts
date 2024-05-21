@@ -1,4 +1,4 @@
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { getStorage, setStorage } from 'chrome-utils';
 import { TWITCH_CLIENT_ID } from 'app-constants';
 import { AccountType, Login } from 'types';

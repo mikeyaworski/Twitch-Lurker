@@ -24,7 +24,7 @@
   },
   "include": [
     "src",
-    "public/background-scripts",
+    "public/service-worker",
     "public/content-scripts"
   ]
 }

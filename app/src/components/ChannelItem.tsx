@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useState } from 'react';
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { makeStyles } from '@material-ui/core/styles';
 import { ListItem, ListItemIcon, ListItemText, Link } from '@material-ui/core';
 import Skeleton from '@material-ui/lab/Skeleton';

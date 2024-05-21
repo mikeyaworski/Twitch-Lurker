@@ -1,4 +1,4 @@
-import { browser, Tabs } from 'webextension-polyfill-ts';
+import browser, { Tabs } from 'webextension-polyfill';
 import { Channel, ChannelType, LiveTwitchChannel, TwitchChannel } from 'types';
 import { getStorage } from 'chrome-utils';
 import { getFavoritesIncludesChannel, sortChannels } from 'utils';
@@ -15,8 +15,9 @@ async function getTwitchChannelTabs() {
 function injectContentScript(tabId: number) {
   browser.tabs.onUpdated.addListener(async (updateTabId, changeInfo, tab) => {
     if (changeInfo.status === 'complete' && updateTabId === tabId) {
-      await browser.tabs.executeScript(tabId, {
-        file: 'content-script-bundle.js',
+      await browser.scripting.executeScript({
+        target: { tabId },
+        files: ['content-script-bundle.js'],
       });
     }
   });
@@ -39,6 +40,7 @@ async function openTwitchTab(channel: TwitchChannel) {
       function listener(tabId: number, changeInfo: Tabs.OnUpdatedChangeInfoType) {
         if (changeInfo.status === 'complete' && tabId === newTab.id) {
           resolve();
+          browser.tabs.onUpdated.removeListener(listener);
         }
       }
       browser.tabs.onUpdated.addListener(listener);

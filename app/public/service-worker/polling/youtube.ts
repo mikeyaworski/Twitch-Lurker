@@ -1,4 +1,4 @@
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import get from 'lodash.get';
 import {
   YOUTUBE_API_BASE,
