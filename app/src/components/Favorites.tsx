@@ -86,7 +86,7 @@ export default function Favorites() {
       <FavoritesList
         helperClass={classes.helperClass}
         distance={1}
-        channels={channels}
+        channels={channels || []}
         favorites={getFormattedFavorites(storage.favorites)}
         onRemoveFavorite={handleRemoveFavorite}
         onSortEnd={handleMoveFavorite}

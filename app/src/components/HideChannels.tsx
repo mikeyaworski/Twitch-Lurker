@@ -16,13 +16,13 @@ export default function HideChannels() {
   const setStorage = useStorage(store => store.setStorage);
   const channels = useAtomValue(ChannelsAtom);
 
-  const options = loading
+  const options = loading || !channels
     ? []
     : channels
       .filter((channel): channel is TwitchChannel => channel.type === ChannelType.TWITCH)
       .filter(channel => !storage.hiddenChannels.twitch.includes(getHiddenChannelsKey(channel)));
 
-  const hiddenChannels: Channel[] = loading
+  const hiddenChannels: Channel[] = loading || !channels
     ? []
     : storage.hiddenChannels.twitch.map(username => {
       return channels.find(c => c.type === ChannelType.TWITCH

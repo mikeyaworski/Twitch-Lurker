@@ -52,17 +52,17 @@ export default function AddChannels() {
       switch (selectedAccount) {
         case 'twitch': {
           type = ChannelType.TWITCH;
-          channel = channels.find(c => c.type === ChannelType.TWITCH && c.username.toLowerCase() === addedChannel.toLowerCase());
+          channel = channels?.find(c => c.type === ChannelType.TWITCH && c.username.toLowerCase() === addedChannel.toLowerCase());
           break;
         }
         case 'youtube': {
           type = ChannelType.YOUTUBE;
-          channel = channels.find(c => c.type === ChannelType.YOUTUBE && c.manualInputQuery === addedChannel);
+          channel = channels?.find(c => c.type === ChannelType.YOUTUBE && c.manualInputQuery === addedChannel);
           break;
         }
         case 'kick': {
           type = ChannelType.KICK;
-          channel = channels.find(c => c.type === ChannelType.KICK && c.username.toLowerCase() === addedChannel.toLowerCase());
+          channel = channels?.find(c => c.type === ChannelType.KICK && c.username.toLowerCase() === addedChannel.toLowerCase());
           break;
         }
         default: {

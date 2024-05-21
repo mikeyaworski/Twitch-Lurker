@@ -105,7 +105,7 @@ export default function FollowingComponent() {
     </div>
   );
 
-  if (loading) {
+  if (loading || !channels) {
     return (
       <>
         {searchContainer}

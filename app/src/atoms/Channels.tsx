@@ -7,8 +7,8 @@ import { MessageType } from 'app-constants';
 import { hookStorage } from 'chrome-utils';
 import { getFullStorage } from 'storage';
 
-export const ChannelsAtom = atom<Channel[]>([]);
-export const FilteredChannelsAtom = atom<Channel[]>([]);
+export const ChannelsAtom = atom<Channel[] | null>(null);
+export const FilteredChannelsAtom = atom<Channel[] | null>(null);
 
 const storage = getFullStorage();
 
@@ -43,7 +43,7 @@ export function useChannelAtomsInitialization() {
         cb: (value: unknown) => {
           const hiddenChannels = value as StorageSync['hiddenChannels'];
           setChannels(currentChannels => {
-            setFilteredChannels(currentChannels.filter(channel => !isHiddenChannel(channel, hiddenChannels)));
+            setFilteredChannels((currentChannels || []).filter(channel => !isHiddenChannel(channel, hiddenChannels)));
             return currentChannels;
           });
         },
