@@ -8,14 +8,12 @@ import { getFullStorage } from 'storage';
 
 const storage = getFullStorage();
 
-const port = browser.runtime.connect();
-
 function fetchChannels() {
-  port.postMessage({ type: MessageType.FETCH_CHANNELS });
+  browser.runtime.sendMessage({ type: MessageType.FETCH_CHANNELS });
 }
 
 export function fetchYouTubeSubscriptions() {
-  port.postMessage({ type: MessageType.FETCH_YOUTUBE_SUBSCRIPTIONS });
+  browser.runtime.sendMessage({ type: MessageType.FETCH_YOUTUBE_SUBSCRIPTIONS });
 }
 
 type UseBackgroundPort = {
@@ -39,7 +37,7 @@ export function useBackgroundPort(): UseBackgroundPort {
   const [filteredChannels, setFilteredChannels] = useState<Channel[]>([]);
 
   useEffect(() => {
-    port.onMessage.addListener(msg => {
+    browser.runtime.onMessage.addListener(msg => {
       if (msg.type === MessageType.SEND_CHANNELS) {
         const channelsMsg = msg.data as Channel[];
         setChannels(channelsMsg);

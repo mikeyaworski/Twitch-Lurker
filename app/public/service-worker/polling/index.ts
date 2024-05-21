@@ -1,5 +1,4 @@
 import browser from 'webextension-polyfill';
-import type { Runtime } from 'webextension-polyfill';
 import debounce from 'lodash.debounce';
 import { hookStorage } from 'chrome-utils';
 import {
@@ -34,7 +33,6 @@ import {
 const storage = getFullStorage();
 
 let globalChannels: Channel[] = [];
-let ports: Runtime.Port[] = [];
 
 function getSortedLiveChannels(channels: Channel[]): LiveChannel[] {
   const { hiddenChannels, favorites } = storage;
@@ -104,11 +102,12 @@ async function refreshBadgeData(): Promise<void> {
 function setChannels(channels: Channel[]) {
   notify(globalChannels, channels);
   globalChannels = channels;
-  ports.forEach(port => {
-    port.postMessage({
-      type: MessageType.SEND_CHANNELS,
-      data: globalChannels,
-    });
+  browser.runtime.sendMessage({
+    type: MessageType.SEND_CHANNELS,
+    data: globalChannels,
+  }).catch(err => {
+    // This is an expected error since there may not be a context to receive the message
+    log(err);
   });
   refreshBadgeData();
 }
@@ -252,31 +251,27 @@ function listen() {
       default: break;
     }
   });
-  // TODO: Migrate port usage to just sending runtime messages instead
-  browser.runtime.onConnect.addListener(port => {
-    ports.push(port);
-    port.onMessage.addListener(msg => {
-      switch (msg.type) {
-        case MessageType.FETCH_CHANNELS: {
-          port.postMessage({
-            type: MessageType.SEND_CHANNELS,
-            data: globalChannels,
-          });
-          break;
-        }
-        case MessageType.FETCH_YOUTUBE_SUBSCRIPTIONS: {
-          const youtubeLogin = getYouTubeLogin(storage);
-          if (youtubeLogin) fetchYouTubeSubscriptions(youtubeLogin);
-          break;
-        }
-        default: {
-          break;
-        }
+  browser.runtime.onMessage.addListener(msg => {
+    switch (msg.type) {
+      case MessageType.FETCH_CHANNELS: {
+        browser.runtime.sendMessage({
+          type: MessageType.SEND_CHANNELS,
+          data: globalChannels,
+        }).catch(err => {
+          // This is an expected error since there may not be a context to receive the message
+          log(err);
+        });
+        break;
       }
-    });
-    port.onDisconnect.addListener(() => {
-      ports = ports.filter(p => p !== port);
-    });
+      case MessageType.FETCH_YOUTUBE_SUBSCRIPTIONS: {
+        const youtubeLogin = getYouTubeLogin(storage);
+        if (youtubeLogin) fetchYouTubeSubscriptions(youtubeLogin);
+        break;
+      }
+      default: {
+        break;
+      }
+    }
   });
 }
 
