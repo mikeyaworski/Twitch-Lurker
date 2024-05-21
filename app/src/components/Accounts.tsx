@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import browser from 'webextension-polyfill';
 import { Box, Button, Card, CardActions, CardContent, TextField, Typography, Link, makeStyles } from '@material-ui/core';
 import { Skeleton } from '@material-ui/lab';
@@ -14,7 +14,7 @@ import {
   YOUTUBE_OAUTH_CREDENTIALS_DOCUMENTATION,
 } from 'app-constants';
 import { useHandleOpenLink } from 'hooks';
-import StorageContext from 'contexts/Storage';
+import { useStorage } from 'stores/Storage';
 import BackWrapper from './Router/BackWrapper';
 
 const useStyles = makeStyles({
@@ -115,7 +115,9 @@ interface CardProps {
 
 function AccountCard({ accountType }: CardProps) {
   const classes = useStyles();
-  const { loading, storage, setStorage } = useContext(StorageContext);
+  const loading = useStorage(store => store.loading);
+  const storage = useStorage(store => store.storage);
+  const setStorage = useStorage(store => store.setStorage);
   const [youtubeApiKeyInputOpen, setYouTubeApiKeyInputOpen] = useState(false);
   const [youtubeClientIdInputOpen, setYouTubeOAuthCredentialsInputOpen] = useState(false);
 

@@ -1,7 +1,7 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { Typography, FormLabel, FormControlLabel, Switch, TextField } from '@material-ui/core';
-import StorageContext from 'contexts/Storage';
+import { useStorage } from 'stores/Storage';
 import BackWrapper from 'components/Router/BackWrapper';
 
 const useStyles = makeStyles({
@@ -29,16 +29,8 @@ const useStyles = makeStyles({
 
 export default function Preferences() {
   const classes = useStyles();
-  const {
-    storage,
-    handleShowPreviewOnHoverEnabledToggle,
-    handleAutoMuteTabsToggle,
-    handleAutoOpenTabsToggle,
-    handleNotificationsToggle,
-    handleOpenTabsInBackgroundToggle,
-    handlePollDelayChange,
-    handleMaxStreamsChange,
-  } = useContext(StorageContext);
+  const storage = useStorage(store => store.storage);
+  const setStorage = useStorage(store => store.setStorage);
   return (
     <BackWrapper>
       <div className={classes.container}>
@@ -50,29 +42,29 @@ export default function Preferences() {
         </Typography>
         <div className={classes.switchesContainer}>
           <FormControlLabel
-            control={<Switch checked={storage.autoOpenTabs} onChange={handleAutoOpenTabsToggle} />}
+            control={<Switch checked={storage.autoOpenTabs} onChange={e => setStorage({ autoOpenTabs: e.target.checked })} />}
             label={<FormLabel>Automatically open tabs</FormLabel>}
             labelPlacement="start"
           />
           <FormControlLabel
-            control={<Switch checked={storage.openTabsInBackground} onChange={handleOpenTabsInBackgroundToggle} />}
+            control={<Switch checked={storage.openTabsInBackground} onChange={e => setStorage({ openTabsInBackground: e.target.checked })} />}
             label={<FormLabel>Tabs open in background</FormLabel>}
             labelPlacement="start"
           />
           <FormControlLabel
-            control={<Switch checked={storage.autoMuteTabs} onChange={handleAutoMuteTabsToggle} />}
+            control={<Switch checked={storage.autoMuteTabs} onChange={e => setStorage({ autoMuteTabs: e.target.checked })} />}
             label={<FormLabel>Tabs are muted</FormLabel>}
             labelPlacement="start"
           />
         </div>
         <div className={classes.switchesContainer}>
           <FormControlLabel
-            control={<Switch checked={storage.showPreviewOnHover} onChange={handleShowPreviewOnHoverEnabledToggle} />}
+            control={<Switch checked={storage.showPreviewOnHover} onChange={e => setStorage({ showPreviewOnHover: e.target.checked })} />}
             label={<FormLabel>Show preview on hover</FormLabel>}
             labelPlacement="start"
           />
           <FormControlLabel
-            control={<Switch checked={storage.notifications} onChange={handleNotificationsToggle} />}
+            control={<Switch checked={storage.notifications} onChange={e => setStorage({ notifications: e.target.checked })} />}
             label={<FormLabel>Browser notifications</FormLabel>}
             labelPlacement="start"
           />
@@ -84,7 +76,7 @@ export default function Preferences() {
               className={classes.input}
               type="number"
               value={storage.pollDelay}
-              onChange={handlePollDelayChange}
+              onChange={e => setStorage({ pollDelay: e.target.value })}
               inputProps={{
                 min: 1,
               }}
@@ -96,7 +88,7 @@ export default function Preferences() {
               className={classes.input}
               type="number"
               value={storage.maxStreams}
-              onChange={handleMaxStreamsChange}
+              onChange={e => setStorage({ maxStreams: e.target.value })}
               inputProps={{
                 min: 0,
                 max: 5,

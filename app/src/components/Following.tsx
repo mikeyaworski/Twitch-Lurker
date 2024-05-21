@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { makeStyles } from '@material-ui/core/styles';
 import { MenuItem, TextField, List, InputAdornment, IconButton } from '@material-ui/core';
@@ -7,7 +7,7 @@ import StarRoundedIcon from '@material-ui/icons/StarRounded';
 import StarBorderRoundedIcon from '@material-ui/icons/StarBorderRounded';
 import ClearIcon from '@material-ui/icons/Clear';
 import { Channel, ChannelType } from 'types';
-import StorageContext from 'contexts/Storage';
+import { useStorage } from 'stores/Storage';
 import { FilteredChannelsAtom } from 'atoms/Channels';
 import { getFavoriteValue, getFavoritesIncludesChannel, getFormattedFavorites, getId, sortChannels } from 'utils';
 import ChannelItem, { ChannelItemSkeleton } from './ChannelItem';
@@ -33,7 +33,9 @@ const useStyles = makeStyles({
 export default function FollowingComponent() {
   const classes = useStyles();
   const [filter, setFilter] = useState('');
-  const { storage, loading, setStorage } = useContext(StorageContext);
+  const loading = useStorage(store => store.loading);
+  const storage = useStorage(store => store.storage);
+  const setStorage = useStorage(store => store.setStorage);
   const channels = useAtomValue(FilteredChannelsAtom);
 
   const handleRemoveFavorite = useCallback((channel: Channel) => {

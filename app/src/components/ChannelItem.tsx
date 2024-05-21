@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import browser from 'webextension-polyfill';
 import { makeStyles } from '@material-ui/core/styles';
 import { ListItem, ListItemIcon, ListItemText, Link } from '@material-ui/core';
@@ -6,7 +6,7 @@ import Skeleton from '@material-ui/lab/Skeleton';
 import StarRoundedIcon from '@material-ui/icons/StarRounded';
 
 import { ChannelType, Channel } from 'types';
-import StorageContext from 'contexts/Storage';
+import { useStorage } from 'stores/Storage';
 import Hoverable from 'components/Hoverable';
 import LiveCount from 'components/LiveCount';
 import { getChannelUrl, getIsLoggedInWithMultipleAccounts } from 'utils';
@@ -91,7 +91,7 @@ export default function ChannelItem({
   hidePlatformIcon = false,
 }: ChannelItemProps) {
   const classes = useStyles();
-  const { storage } = useContext(StorageContext);
+  const storage = useStorage(store => store.storage);
   const [avatarLoaded, setAvatarLoaded] = useState(false);
 
   const handleOpenLink: React.MouseEventHandler<HTMLAnchorElement> = useCallback(e => {

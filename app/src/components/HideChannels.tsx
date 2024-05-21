@@ -1,17 +1,19 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { useAtomValue } from 'jotai';
 import uniq from 'lodash.uniq';
 import { Typography } from '@material-ui/core';
 
 import { ChannelType, Channel, TwitchChannel } from 'types';
 import { getHiddenChannelsKey } from 'utils';
-import StorageContext from 'contexts/Storage';
+import { useStorage } from 'stores/Storage';
 import BackWrapper from 'components/Router/BackWrapper';
 import { ChannelsAtom } from 'atoms/Channels';
 import VirtualizedChannelsAutocomplete from './VirtualizedChannelsAutocomplete';
 
 export default function HideChannels() {
-  const { storage, setStorage, loading } = useContext(StorageContext);
+  const loading = useStorage(store => store.loading);
+  const storage = useStorage(store => store.storage);
+  const setStorage = useStorage(store => store.setStorage);
   const channels = useAtomValue(ChannelsAtom);
 
   const options = loading

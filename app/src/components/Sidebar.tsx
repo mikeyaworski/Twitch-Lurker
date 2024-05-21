@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
 import {
@@ -23,7 +23,7 @@ import AddCircleIcon from '@material-ui/icons/AddCircle';
 import GetAppIcon from '@material-ui/icons/GetApp';
 import AccountCircleIcon from '@material-ui/icons/AccountCircle';
 
-import StorageContext from 'contexts/Storage';
+import { useStorage } from 'stores/Storage';
 import { TITLE, MessageType } from 'app-constants';
 import { VoidFn } from 'types';
 import { useAuth } from 'hooks';
@@ -109,7 +109,9 @@ function SidebarLink({ route, label, Icon, onClick, disabled }: SidebarLinkProps
 function Sidebar() {
   const classes = useStyles();
   const { loading, loggedIn } = useAuth();
-  const { loading: storageLoading, storage, handleExtensionEnabledToggle } = useContext(StorageContext);
+  const storage = useStorage(store => store.storage);
+  const storageLoading = useStorage(store => store.loading);
+  const setStorage = useStorage(store => store.setStorage);
 
   const actionsDisabled = loading || !loggedIn;
 
@@ -134,7 +136,7 @@ function Sidebar() {
             control={(
               <Switch
                 checked={storage.enabled}
-                onChange={handleExtensionEnabledToggle}
+                onChange={e => setStorage({ enabled: e.target.checked })}
                 disabled={actionsDisabled}
               />
             )}

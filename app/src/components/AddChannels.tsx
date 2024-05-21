@@ -1,14 +1,15 @@
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import browser from 'webextension-polyfill';
 import { useAtomValue } from 'jotai';
 import uniq from 'lodash.uniq';
+import { useShallow } from 'zustand/react/shallow';
 import { Typography, FormControlLabel, RadioGroup, InputAdornment, IconButton, Tooltip } from '@material-ui/core';
 import RefreshIcon from '@material-ui/icons/Refresh';
 
 import { AccountType, Channel, ChannelType, StorageSync, MessageType } from 'types';
 import { getAddedChannelsKey, getYouTubeLogin, shouldConvertKeyToLowerCase } from 'utils';
 import { useTemporaryToggle } from 'hooks';
-import StorageContext from 'contexts/Storage';
+import { useStorage } from 'stores/Storage';
 import BackWrapper from 'components/Router/BackWrapper';
 import { ChannelsAtom } from 'atoms/Channels';
 import SmallRadio from 'widgets/SmallRadio';
@@ -21,7 +22,12 @@ function fetchYouTubeSubscriptions() {
 type AccountKey = keyof StorageSync['addedChannels'];
 
 export default function AddChannels() {
-  const { storage, storageLocal, setStorage, loading } = useContext(StorageContext);
+  const { storage, storageLocal, setStorage, loading } = useStorage(useShallow(store => ({
+    storage: store.storage,
+    storageLocal: store.storageLocal,
+    setStorage: store.setStorage,
+    loading: store.loading,
+  })));
   const channels = useAtomValue(ChannelsAtom);
 
   const [fetchYouTubeSubscriptionsDisabled, setFetchYouTubeSubscriptionsDisabled] = useState(false);

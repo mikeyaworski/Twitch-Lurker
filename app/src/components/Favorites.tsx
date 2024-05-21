@@ -1,4 +1,4 @@
-import React, { useCallback, useContext } from 'react';
+import React, { useCallback } from 'react';
 import { useAtomValue } from 'jotai';
 import type { SortEndHandler } from 'react-sortable-hoc';
 import { SortableContainer, SortableElement, arrayMove } from 'react-sortable-hoc';
@@ -7,7 +7,7 @@ import { List, Typography } from '@material-ui/core';
 import StarRoundedIcon from '@material-ui/icons/StarRounded';
 
 import type { Channel, Favorite } from 'types';
-import StorageContext from 'contexts/Storage';
+import { useStorage } from 'stores/Storage';
 import BackWrapper from 'components/Router/BackWrapper';
 import ChannelItem from 'components/ChannelItem';
 import { ChannelsAtom } from 'atoms/Channels';
@@ -66,7 +66,8 @@ const FavoritesList = SortableContainer(({ favorites, channels, onRemoveFavorite
 
 export default function Favorites() {
   const classes = useStyles();
-  const { storage, setStorage } = useContext(StorageContext);
+  const storage = useStorage(store => store.storage);
+  const setStorage = useStorage(store => store.setStorage);
   const channels = useAtomValue(ChannelsAtom);
 
   const handleRemoveFavorite = useCallback((channel: Channel) => {

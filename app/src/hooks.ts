@@ -1,6 +1,6 @@
-import { useContext, useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import browser from 'webextension-polyfill';
-import StorageContext from 'contexts/Storage';
+import { useStorage } from 'stores/Storage';
 import { getIsLoggedInWithAnyAccount } from 'utils';
 
 export function useOpen(initial = false) {
@@ -48,7 +48,8 @@ export function useTemporaryToggle({
  * Returns boolean representing whether the UI should be rendered (they are logged in).
  */
 export function useAuth(): { loading: boolean, loggedIn?: boolean } {
-  const { loading, storage } = useContext(StorageContext);
+  const loading = useStorage(store => store.loading);
+  const storage = useStorage(store => store.storage);
   if (loading) return { loading };
   if (!getIsLoggedInWithAnyAccount(storage.logins)) return { loading, loggedIn: false };
   return { loading, loggedIn: true };

@@ -1,4 +1,4 @@
-import React, { useContext, useCallback, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import copy from 'copy-to-clipboard';
 import {
   Box,
@@ -10,13 +10,13 @@ import {
 import Alert from '@material-ui/lab/Alert';
 
 import { getStorage } from 'chrome-utils';
-import StorageContext from 'contexts/Storage';
+import { useStorage } from 'stores/Storage';
 import { useTemporaryToggle, useToggleState } from 'hooks';
 import { PREFERENCE_STORAGE_VALUES, PreferencesKey } from 'types';
 import BackWrapper from './Router/BackWrapper';
 
 export default function ImportExportSettings() {
-  const { setStorage } = useContext(StorageContext);
+  const setStorage = useStorage(store => store.setStorage);
 
   const [importValue, setImportValue] = useState('');
   const { value: exported, setValue: setExported } = useToggleState(false);
