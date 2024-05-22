@@ -8,8 +8,8 @@ settings:
   import/resolver:
     node:
       moduleDirectory:
-      - node_modules
-      - src
+        - node_modules
+        - .
       extensions:
         - '.js'
         - '.jsx'
@@ -17,6 +17,7 @@ settings:
         - '.tsx'
 extends:
   - airbnb
+  - 'plugin:react/jsx-runtime'
   - 'plugin:@typescript-eslint/recommended'
 parserOptions:
   ecmaFeatures:
@@ -40,6 +41,12 @@ rules:
   no-use-before-define: off
   '@typescript-eslint/no-use-before-define':
     - error
+
+  import/no-extraneous-dependencies:
+    - error
+    - devDependencies:
+      - '**/*.test.ts'
+      - vite.config.ts
 
   react/require-default-props: off
   react/jsx-props-no-spreading: off

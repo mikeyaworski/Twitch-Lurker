@@ -1,3 +1,4 @@
+import { expect, describe, beforeAll, beforeEach, afterAll, it, vi } from 'vitest';
 import { getStreamLength } from '../utils';
 
 describe('getStreamLength', () => {
@@ -6,7 +7,7 @@ describe('getStreamLength', () => {
     realDateNow = global.Date.now;
   });
   beforeEach(() => {
-    global.Date.now = jest.fn().mockReturnValue(1624594066282);
+    global.Date.now = vi.fn().mockReturnValue(1624594066282);
   });
   afterAll(() => {
     global.Date.now = realDateNow;

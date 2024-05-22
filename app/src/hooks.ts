@@ -1,7 +1,7 @@
 import { useCallback, useState, useEffect } from 'react';
 import browser from 'webextension-polyfill';
-import { useStorage } from 'stores/Storage';
-import { getIsLoggedInWithAnyAccount } from 'utils';
+import { useStorage } from 'src/popup/stores/Storage';
+import { getIsLoggedInWithAnyAccount } from 'src/utils';
 
 export function useOpen(initial = false) {
   const [open, setOpen] = useState<boolean>(initial);

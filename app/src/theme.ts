@@ -1,6 +1,6 @@
 import Color from 'color';
 import { createMuiTheme } from '@material-ui/core/styles';
-import { THEME_COLOR } from 'app-constants';
+import { THEME_COLOR } from 'src/app-constants';
 
 const HOVER_THEME_COLOR = Color(THEME_COLOR).darken(0.1).hex();
 const ACTIVE_THEME_COLOR = Color(THEME_COLOR).darken(0.15).hex();

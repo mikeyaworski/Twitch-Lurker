@@ -1,34 +1,16 @@
 {
-  "name": "twitch-lurk-pro",
+  "name": "twitch-lurker",
   "description": "Always support your favorite streamer by automatically pulling up their stream when they go live.",
   "version": "1.0.0",
   "private": true,
   "scripts": {
     "lint": "npx eslint .",
-    "test": "npm run lint && jest",
-    "build:prod": "env-path -p .env.production react-app-rewired build && rollup -c && rm -r build/service-worker build/content-scripts",
-    "build:scripts": "rollup -c && cp public/manifest.json build",
-    "s": "npm run build:scripts",
-    "build:popup": "env-path -p .env.development react-app-rewired build",
-    "p": "npm run build:popup",
-    "build:all": "npm run build:popup && npm run build:scripts",
-    "watch:popup": "cra-build-watch --disable-chunks",
-    "wp": "npm run watch:popup",
-    "watch:scripts": "rollup -c -w",
-    "ws": "npm run watch:scripts"
+    "test": "npm run lint && vitest run",
+    "test:watch": "vitest",
+    "build": "vite build",
+    "watch": "nodemon"
   },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
+  "type": "module",
   "dependencies": {
     "@material-ui/core": "^4.11.4",
     "@material-ui/icons": "^4.11.2",
@@ -53,14 +35,10 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
-    "@rollup/plugin-alias": "^3.0.1",
-    "@rollup/plugin-commonjs": "^13.0.0",
-    "@rollup/plugin-node-resolve": "^7.1.3",
-    "@rollup/plugin-typescript": "^6.1.0",
+    "@crxjs/vite-plugin": "^1.0.14",
     "@types/arrive": "^2.4.0",
     "@types/chrome": "0.0.126",
     "@types/color": "^3.0.1",
-    "@types/jest": "^26.0.19",
     "@types/lodash.chunk": "^4.2.6",
     "@types/lodash.debounce": "^4.0.6",
     "@types/lodash.get": "^4.4.7",
@@ -74,25 +52,16 @@
     "@types/webextension-polyfill": "^0.10.7",
     "@typescript-eslint/eslint-plugin": "^4.6.1",
     "@typescript-eslint/parser": "^4.6.1",
-    "browserify": "^17.0.0",
-    "cra-build-watch": "^3.4.0",
-    "env-path": "^1.0.7",
+    "@vitejs/plugin-react": "^4.2.1",
     "eslint": "^7.28.0",
     "eslint-config-airbnb": "^18.0.1",
-    "eslint-import-resolver-alias": "^1.1.2",
     "eslint-plugin-import": "^2.20.1",
     "eslint-plugin-jsx-a11y": "^6.2.3",
     "eslint-plugin-react": "^7.18.0",
     "eslint-plugin-react-hooks": "^4.6.0",
-    "jest": "^26.6.0",
-    "react-app-rewired": "^2.1.8",
-    "react-scripts": "^4.0.3",
-    "rollup": "^2.52.0",
-    "rollup-plugin-node-polyfills": "^0.2.1",
-    "rollup-plugin-terser": "^7.0.2",
-    "ts-jest": "^26.4.4",
-    "ts-node": "^10.0.0",
-    "tslib": "^2.0.3",
-    "typescript": "^4.3.2"
+    "nodemon": "^3.1.0",
+    "typescript": "^4.3.2",
+    "vite": "^5.2.11",
+    "vitest": "^1.6.0"
   }
 }
