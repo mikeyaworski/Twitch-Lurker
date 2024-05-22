@@ -81,7 +81,7 @@ async function notify(channelsBefore: Channel[], channelsAfter: Channel[]): Prom
 
 async function refreshBadgeData(): Promise<void> {
   const { favorites, hiddenChannels } = storage;
-  const { mostRecentChannels } = storageLocal;
+  const { mostRecentChannels } = await waitFullStorage(StorageType.LOCAL);
   const channels = mostRecentChannels?.channels || [];
   const filteredChannels = channels.filter(channel => {
     const isHiddenTwitch = channel.type === ChannelType.TWITCH
@@ -298,5 +298,6 @@ function listen() {
 export default function initPolling() {
   listen();
   initHooks();
+  refreshBadgeData();
   debouncedPoll();
 }
