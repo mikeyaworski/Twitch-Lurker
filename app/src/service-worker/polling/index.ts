@@ -1,6 +1,6 @@
 import browser from 'webextension-polyfill';
 import debounce from 'lodash.debounce';
-import { hookStorage } from 'src/chrome-utils';
+import { hookStorage, setStorage } from 'src/chrome-utils';
 import {
   MessageType,
   BADGE_PURPLE_BACKGROUND_COLOR,
@@ -8,7 +8,7 @@ import {
   POLL_ALARM_NAME,
 } from 'src/app-constants';
 import { getFullStorage, waitFullStorage } from 'src/storage';
-import { AccountType, Channel, ChannelType, LiveChannel, TwitchLogin, YouTubeApiKey, KickLogin } from 'src/types';
+import { AccountType, Channel, ChannelType, LiveChannel, TwitchLogin, YouTubeApiKey, KickLogin, StorageType } from 'src/types';
 import { error, log } from 'src/logging';
 import {
   getChannelUrl,
@@ -30,9 +30,8 @@ import {
   handleError as handleYouTubeError,
 } from './youtube';
 
-const storage = getFullStorage();
-
-let globalChannels: Channel[] = [];
+const storage = getFullStorage(StorageType.SYNCED);
+const storageLocal = getFullStorage(StorageType.LOCAL);
 
 function getSortedLiveChannels(channels: Channel[]): LiveChannel[] {
   const { hiddenChannels, favorites } = storage;
@@ -43,8 +42,9 @@ function getSortedLiveChannels(channels: Channel[]): LiveChannel[] {
     .sort((a, b) => sortChannels(a, b, favorites));
 }
 
-browser.notifications.onClicked.addListener((favoriteId: string) => {
-  const clickedChannel = globalChannels.find(channel => favoriteId === getFavoriteKey(channel));
+browser.notifications.onClicked.addListener(async (favoriteId: string) => {
+  const { mostRecentChannels } = await waitFullStorage(StorageType.LOCAL);
+  const clickedChannel = mostRecentChannels?.channels.find(channel => favoriteId === getFavoriteKey(channel));
   if (clickedChannel) {
     browser.tabs.create({
       url: getChannelUrl(clickedChannel),
@@ -62,8 +62,8 @@ async function isStreamOpen(channel: LiveChannel): Promise<boolean> {
 async function notify(channelsBefore: Channel[], channelsAfter: Channel[]): Promise<void> {
   const { notifications } = storage;
   if (notifications) {
-    const oldLiveChannels = await getSortedLiveChannels(channelsBefore);
-    const newLiveChannels = await getSortedLiveChannels(channelsAfter);
+    const oldLiveChannels = getSortedLiveChannels(channelsBefore);
+    const newLiveChannels = getSortedLiveChannels(channelsAfter);
     const topChannel = newLiveChannels[0];
     if (topChannel && (!oldLiveChannels[0] || getFavoriteKey(topChannel) !== getFavoriteKey(oldLiveChannels[0]))) {
       const streamIsOpen = await isStreamOpen(topChannel);
@@ -81,7 +81,9 @@ async function notify(channelsBefore: Channel[], channelsAfter: Channel[]): Prom
 
 async function refreshBadgeData(): Promise<void> {
   const { favorites, hiddenChannels } = storage;
-  const filteredChannels = globalChannels.filter(channel => {
+  const { mostRecentChannels } = storageLocal;
+  const channels = mostRecentChannels?.channels || [];
+  const filteredChannels = channels.filter(channel => {
     const isHiddenTwitch = channel.type === ChannelType.TWITCH
       && hiddenChannels?.twitch.map(c => c.toLowerCase()).includes(channel.username.toLowerCase());
     const isHiddenYouTube = channel.type === ChannelType.YOUTUBE
@@ -99,12 +101,18 @@ async function refreshBadgeData(): Promise<void> {
   });
 }
 
-function setChannels(channels: Channel[]) {
-  notify(globalChannels, channels);
-  globalChannels = channels;
+async function setChannels(channels: Channel[]) {
+  const { mostRecentChannels } = await waitFullStorage(StorageType.LOCAL);
+  notify(mostRecentChannels?.channels || [], channels);
+  await setStorage({
+    mostRecentChannels: {
+      fetchTime: Date.now() / 1000,
+      channels,
+    },
+  }, StorageType.LOCAL);
   browser.runtime.sendMessage({
     type: MessageType.SEND_CHANNELS,
-    data: globalChannels,
+    data: channels,
   }).catch(err => {
     // This is an expected error since there may not be a context to receive the message
     log(err);
@@ -113,6 +121,7 @@ function setChannels(channels: Channel[]) {
 }
 
 async function fetchData() {
+  log('Fetching data', new Date().toISOString());
   const { logins, addedChannels, autoOpenTabs } = storage;
   const twitchLogin = logins?.find((l): l is TwitchLogin => l.type === AccountType.TWITCH);
   const youtubeApiKey = logins?.find((l): l is YouTubeApiKey => l.type === AccountType.YOUTUBE_API_KEY);
@@ -179,7 +188,7 @@ async function fetchData() {
       handleYouTubeError(err);
     }
   }
-  setChannels(newChannels);
+  await setChannels(newChannels);
   youtubeLogin = getYouTubeLogin(storage); // get the login again because the accessToken and expiry may have been updated
   if (youtubeLogin) tryPollYouTubeSubscriptions(youtubeLogin)?.catch(error);
   if (autoOpenTabs) openTwitchTabs(newChannels);
@@ -188,14 +197,15 @@ async function fetchData() {
 async function poll() {
   await waitFullStorage();
   const { logins, enabled, pollDelay } = storage;
+  const alreadyHadPollAlarm = Boolean(await browser.alarms.get(POLL_ALARM_NAME));
   await browser.alarms.clear(POLL_ALARM_NAME);
   if (enabled && logins && getIsLoggedInWithAnyAccount(logins)) {
-    fetchData();
+    if (!alreadyHadPollAlarm) fetchData();
     await browser.alarms.create(POLL_ALARM_NAME, {
       delayInMinutes: Number(pollDelay),
     });
   } else {
-    setChannels([]);
+    await setChannels([]);
   }
 }
 const debouncedPoll = debounce(poll, 3000);
@@ -238,25 +248,35 @@ function initHooks() {
       cb: refreshBadgeData,
     },
   ]);
+  hookStorage([
+    {
+      key: 'mostRecentChannels',
+      cb: refreshBadgeData,
+    },
+  ]);
 }
 
 function listen() {
   browser.alarms.onAlarm.addListener(alarm => {
     switch (alarm.name) {
       case POLL_ALARM_NAME: {
-        log('Polling...');
-        poll();
+        debouncedPoll();
         break;
       }
       default: break;
     }
   });
-  browser.runtime.onMessage.addListener(msg => {
+  browser.runtime.onMessage.addListener(async msg => {
     switch (msg.type) {
-      case MessageType.FETCH_CHANNELS: {
+      case MessageType.FORCE_FETCH_CHANNELS: {
+        fetchData();
+        break;
+      }
+      case MessageType.GET_CHANNELS: {
+        const { mostRecentChannels } = await waitFullStorage(StorageType.LOCAL);
         browser.runtime.sendMessage({
           type: MessageType.SEND_CHANNELS,
-          data: globalChannels,
+          data: mostRecentChannels?.channels || [],
         }).catch(err => {
           // This is an expected error since there may not be a context to receive the message
           log(err);
@@ -278,5 +298,5 @@ function listen() {
 export default function initPolling() {
   listen();
   initHooks();
-  poll();
+  debouncedPoll();
 }

@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import browser from 'webextension-polyfill';
 import { useAtomValue } from 'jotai';
 import { makeStyles } from '@material-ui/core/styles';
 import { MenuItem, TextField, List, InputAdornment, IconButton } from '@material-ui/core';
@@ -6,9 +7,11 @@ import SearchIcon from '@material-ui/icons/Search';
 import StarRoundedIcon from '@material-ui/icons/StarRounded';
 import StarBorderRoundedIcon from '@material-ui/icons/StarBorderRounded';
 import ClearIcon from '@material-ui/icons/Clear';
-import { Channel, ChannelType } from 'src/types';
+import RefreshIcon from '@material-ui/icons/Refresh';
+import { Channel, ChannelType, MessageType } from 'src/types';
 import { useStorage } from 'src/popup/stores/Storage';
 import { FilteredChannelsAtom } from 'src/popup/atoms/Channels';
+import { useTemporaryToggle } from 'src/hooks';
 import { getFavoriteValue, getFavoritesIncludesChannel, getFormattedFavorites, getId, sortChannels } from 'src/utils';
 import ChannelItem, { ChannelItemSkeleton } from './ChannelItem';
 
@@ -23,6 +26,7 @@ const useStyles = makeStyles({
   searchContainer: {
     display: 'flex',
     justifyContent: 'center',
+    alignItems: 'center',
     padding: 20,
     '& > *:not(:last-child)': {
       marginRight: 8,
@@ -58,6 +62,14 @@ export default function FollowingComponent() {
       sortLow: Boolean(e.target.value),
     });
   }, [setStorage]);
+
+  const [refetchDataButtonDisabled, setRefetchDataButtonDisabled] = useState(false);
+  useTemporaryToggle({ value: refetchDataButtonDisabled, setValue: setRefetchDataButtonDisabled, timeoutMs: 5000 });
+
+  const handleRefresh = useCallback(() => {
+    browser.runtime.sendMessage({ type: MessageType.FORCE_FETCH_CHANNELS });
+    setRefetchDataButtonDisabled(true);
+  }, []);
 
   function filterFn(channel: Channel) {
     const hasUsername = 'username' in channel
@@ -102,6 +114,14 @@ export default function FollowingComponent() {
         <MenuItem value={1}>Lowest</MenuItem>
         <MenuItem value={0}>Highest</MenuItem>
       </TextField>
+      <IconButton
+        onClick={handleRefresh}
+        disabled={refetchDataButtonDisabled}
+        title="Force refresh channels"
+        size="small"
+      >
+        <RefreshIcon />
+      </IconButton>
     </div>
   );
 

@@ -12,10 +12,6 @@ export const FilteredChannelsAtom = atom<Channel[] | null>(null);
 
 const storage = getFullStorage();
 
-function fetchChannels() {
-  browser.runtime.sendMessage({ type: MessageType.FETCH_CHANNELS });
-}
-
 function isHiddenChannel(channel: Channel, hiddenChannels: StorageSync['hiddenChannels']): boolean {
   return channel.type === ChannelType.TWITCH
     && hiddenChannels.twitch.includes(channel.username.toLowerCase());
@@ -33,7 +29,7 @@ export function useChannelAtomsInitialization() {
         setFilteredChannels(channelsMsg.filter(channel => !isHiddenChannel(channel, storage.hiddenChannels)));
       }
     });
-    fetchChannels();
+    browser.runtime.sendMessage({ type: MessageType.GET_CHANNELS });
   }, [setChannels, setFilteredChannels]);
 
   useEffect(() => {

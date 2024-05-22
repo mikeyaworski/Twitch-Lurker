@@ -1,4 +1,4 @@
-import type { ChannelType, DeepMutable, Login, YouTubeSubscription } from './types';
+import type { ChannelType, DeepMutable, Login, YouTubeSubscription, Channel } from './types';
 
 export const POLL_ALARM_NAME = 'POLL';
 export const BADGE_TEXT_COLOR = '#FFFFFF';
@@ -67,6 +67,10 @@ const DEFAULT_STORAGE_LOCAL_VALUES = {
     fetchTime: number | null, // epoch in seconds
     subscriptions: YouTubeSubscription[],
   },
+  mostRecentChannels: null as null | {
+    fetchTime: number | null, // epoch in seconds
+    channels: Channel[],
+  },
 };
 
 export const DEFAULT_STORAGE_LOCAL = Object.freeze(DEFAULT_STORAGE_LOCAL_VALUES);
@@ -76,7 +80,8 @@ export enum MessageType {
   LOGIN_YOUTUBE,
   LOGIN_KICK,
   LOGOUT,
-  FETCH_CHANNELS,
+  GET_CHANNELS,
+  FORCE_FETCH_CHANNELS,
   SEND_CHANNELS,
   MUTE_PLAYER,
   FETCH_YOUTUBE_SUBSCRIPTIONS,
