@@ -210,11 +210,16 @@ async function poll() {
 }
 const debouncedPoll = debounce(poll, 3000);
 
+async function restartPolling() {
+  await browser.alarms.clear(POLL_ALARM_NAME);
+  debouncedPoll();
+}
+
 function initHooks() {
   hookStorage([
     {
       key: 'logins',
-      cb: debouncedPoll,
+      cb: restartPolling,
     },
     {
       key: 'pollDelay',
@@ -222,7 +227,7 @@ function initHooks() {
     },
     {
       key: 'addedChannels',
-      cb: debouncedPoll,
+      cb: restartPolling,
     },
   ]);
 
