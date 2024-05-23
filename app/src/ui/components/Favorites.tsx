@@ -6,10 +6,10 @@ import { List, Typography } from '@mui/material';
 import StarRoundedIcon from '@mui/icons-material/StarRounded';
 
 import type { Channel, Favorite } from 'src/types';
-import { useStorage } from 'src/popup/stores/Storage';
-import BackWrapper from 'src/popup/components/Router/BackWrapper';
-import ChannelItem from 'src/popup/components/ChannelItem';
-import { ChannelsAtom } from 'src/popup/atoms/Channels';
+import { useStorage } from 'src/ui/stores/Storage';
+import BackWrapper from 'src/ui/components/Router/BackWrapper';
+import ChannelItem from 'src/ui/components/ChannelItem';
+import { ChannelsAtom } from 'src/ui/atoms/Channels';
 import { getFavoriteKey, getFavoriteValue, getFormattedFavorites } from 'src/utils';
 
 const FavoritesItem = SortableElement(ChannelItem);
@@ -25,7 +25,6 @@ const FavoritesList = SortableContainer(({ favorites, channels, onRemoveFavorite
     <List
       sx={{
         overflowY: 'scroll',
-        height: 400,
         width: '100%',
         flexGrow: 1,
         mx: 'auto',

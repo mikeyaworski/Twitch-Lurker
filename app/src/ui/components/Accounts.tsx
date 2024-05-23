@@ -11,8 +11,8 @@ import {
   YOUTUBE_API_KEY_DOCUMENTATION,
   YOUTUBE_OAUTH_CREDENTIALS_DOCUMENTATION,
 } from 'src/app-constants';
-import { useHandleOpenLink } from 'src/hooks';
-import { useStorage } from 'src/popup/stores/Storage';
+import { useHandleOpenLink } from 'src/ui/hooks';
+import { useStorage } from 'src/ui/stores/Storage';
 import BackWrapper from './Router/BackWrapper';
 
 function logout(accountType: AccountType) {

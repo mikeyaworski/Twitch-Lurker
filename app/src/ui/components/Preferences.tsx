@@ -1,6 +1,6 @@
 import { Box, Typography, FormLabel, FormControlLabel, Switch, TextField } from '@mui/material';
-import { useStorage } from 'src/popup/stores/Storage';
-import BackWrapper from 'src/popup/components/Router/BackWrapper';
+import { useStorage } from 'src/ui/stores/Storage';
+import BackWrapper from 'src/ui/components/Router/BackWrapper';
 
 const rowStyles = {
   display: 'flex',

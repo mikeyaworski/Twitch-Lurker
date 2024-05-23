@@ -8,11 +8,11 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 
 import { AccountType, Channel, ChannelType, StorageSync, MessageType } from 'src/types';
 import { getAddedChannelsKey, getYouTubeLogin, shouldConvertKeyToLowerCase } from 'src/utils';
-import { useTemporaryToggle } from 'src/hooks';
-import { useStorage } from 'src/popup/stores/Storage';
-import BackWrapper from 'src/popup/components/Router/BackWrapper';
-import { ChannelsAtom } from 'src/popup/atoms/Channels';
-import SmallRadio from 'src/popup/widgets/SmallRadio';
+import { useTemporaryToggle } from 'src/ui/hooks';
+import { useStorage } from 'src/ui/stores/Storage';
+import BackWrapper from 'src/ui/components/Router/BackWrapper';
+import { ChannelsAtom } from 'src/ui/atoms/Channels';
+import SmallRadio from 'src/ui/widgets/SmallRadio';
 import VirtualizedChannelsAutocomplete from './VirtualizedChannelsAutocomplete';
 
 function fetchYouTubeSubscriptions() {

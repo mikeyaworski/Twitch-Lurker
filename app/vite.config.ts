@@ -31,5 +31,10 @@ export default defineConfig({
     outDir,
     sourcemap: isDev,
     emptyOutDir: !isDev,
+    rollupOptions: {
+      input: {
+        fullscreen: 'src/ui/pages/fullscreen.html',
+      },
+    },
   },
 });

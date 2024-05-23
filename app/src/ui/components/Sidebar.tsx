@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import {
   Box,
   List,
-  ListItem,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
   Typography,
@@ -11,6 +11,7 @@ import {
   Divider,
   Skeleton,
 } from '@mui/material';
+import { useAtomValue } from 'jotai';
 
 // https://v4.mui.com/components/material-icons/
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
@@ -21,10 +22,11 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import GetAppIcon from '@mui/icons-material/GetApp';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
-import { useStorage } from 'src/popup/stores/Storage';
+import { IsFullscreenAtom } from 'src/ui/atoms/IsFullscreen';
+import { useStorage } from 'src/ui/stores/Storage';
 import { TITLE } from 'src/app-constants';
 import { VoidFn } from 'src/types';
-import { useAuth } from 'src/hooks';
+import { useAuth } from 'src/ui/hooks';
 
 interface SidebarLinkProps {
   route?: string;
@@ -36,7 +38,7 @@ interface SidebarLinkProps {
 
 function SidebarLink({ route, label, Icon, onClick, disabled }: SidebarLinkProps) {
   const item = (
-    <ListItem button onClick={onClick} disabled={disabled}>
+    <ListItemButton onClick={onClick} disabled={disabled}>
       <ListItemIcon>
         <Icon />
       </ListItemIcon>
@@ -44,7 +46,7 @@ function SidebarLink({ route, label, Icon, onClick, disabled }: SidebarLinkProps
       <ListItemIcon>
         <ArrowRightIcon sx={{ marginLeft: 'auto' }} />
       </ListItemIcon>
-    </ListItem>
+    </ListItemButton>
   );
   return (route && !disabled) ? (
     <Box
@@ -61,6 +63,7 @@ function SidebarLink({ route, label, Icon, onClick, disabled }: SidebarLinkProps
 }
 
 function Sidebar() {
+  const isFullscreen = useAtomValue(IsFullscreenAtom);
   const { loading, loggedIn } = useAuth();
   const storage = useStorage(store => store.storage);
   const storageLoading = useStorage(store => store.loading);
@@ -114,7 +117,14 @@ function Sidebar() {
         </List>
       </Box>
       <Divider />
-      <Box display="flex" flexGrow={1} alignItems="flex-end" justifyContent="center" pb={2.5}>
+      <Box
+        display="flex"
+        flexGrow={isFullscreen ? 'unset' : 1}
+        mt={isFullscreen ? 2 : 'unset'}
+        alignItems="flex-end"
+        justifyContent="center"
+        pb={2.5}
+      >
         <a
           href="https://www.buymeacoffee.com/ErianasVow"
           target="_blank"

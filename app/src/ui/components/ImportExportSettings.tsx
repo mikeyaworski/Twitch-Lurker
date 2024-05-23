@@ -10,8 +10,8 @@ import {
 } from '@mui/material';
 
 import { getStorage } from 'src/chrome-utils';
-import { useStorage } from 'src/popup/stores/Storage';
-import { useTemporaryToggle, useToggleState } from 'src/hooks';
+import { useStorage } from 'src/ui/stores/Storage';
+import { useTemporaryToggle, useToggleState } from 'src/ui/hooks';
 import { PREFERENCE_STORAGE_VALUES, PreferencesKey } from 'src/types';
 import BackWrapper from './Router/BackWrapper';
 

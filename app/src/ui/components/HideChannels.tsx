@@ -4,9 +4,9 @@ import { Typography } from '@mui/material';
 
 import { ChannelType, Channel, TwitchChannel } from 'src/types';
 import { getHiddenChannelsKey } from 'src/utils';
-import { useStorage } from 'src/popup/stores/Storage';
-import BackWrapper from 'src/popup/components/Router/BackWrapper';
-import { ChannelsAtom } from 'src/popup/atoms/Channels';
+import { useStorage } from 'src/ui/stores/Storage';
+import BackWrapper from 'src/ui/components/Router/BackWrapper';
+import { ChannelsAtom } from 'src/ui/atoms/Channels';
 import VirtualizedChannelsAutocomplete from './VirtualizedChannelsAutocomplete';
 
 export default function HideChannels() {

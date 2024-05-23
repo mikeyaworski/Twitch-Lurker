@@ -19,7 +19,7 @@ import InfoIcon from '@mui/icons-material/Info';
 
 import type { Channel } from 'src/types';
 import { getId, sortByName } from 'src/utils';
-import ChannelItem, { ChannelItemProps } from 'src/popup/components/ChannelItem';
+import ChannelItem, { ChannelItemProps } from 'src/ui/components/ChannelItem';
 
 const LISTBOX_PADDING = 8; // px
 

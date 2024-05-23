@@ -1,28 +1,34 @@
 import { useCallback, useState } from 'react';
 import browser from 'webextension-polyfill';
 import { useAtomValue } from 'jotai';
-import { Box, MenuItem, Select, TextField, List, InputAdornment, IconButton, SelectChangeEvent } from '@mui/material';
+import { Box, MenuItem, TextField, List, InputAdornment, IconButton } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import StarRoundedIcon from '@mui/icons-material/StarRounded';
 import StarBorderRoundedIcon from '@mui/icons-material/StarBorderRounded';
 import ClearIcon from '@mui/icons-material/Clear';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { Channel, ChannelType, MessageType } from 'src/types';
-import { useStorage } from 'src/popup/stores/Storage';
-import { FilteredChannelsAtom } from 'src/popup/atoms/Channels';
-import { useTemporaryToggle } from 'src/hooks';
+import { useStorage } from 'src/ui/stores/Storage';
+import { FilteredChannelsAtom } from 'src/ui/atoms/Channels';
+import { IsFullscreenAtom } from 'src/ui/atoms/IsFullscreen';
+import { useTemporaryToggle } from 'src/ui/hooks';
 import { getFavoriteValue, getFavoritesIncludesChannel, getFormattedFavorites, getId, sortChannels } from 'src/utils';
 import ChannelItem, { ChannelItemSkeleton } from './ChannelItem';
 
-const listContainerStyles = {
-  overflowY: 'scroll',
-  height: 400,
-  width: 400,
-  flexGrow: 1,
-  margin: '0 auto',
-};
+// This was manually observed
+const SEARCH_CONTAINER_HEIGHT = 80;
 
 export default function FollowingComponent() {
+  const isFullscreen = useAtomValue(IsFullscreenAtom);
+  const listContainerStyles = {
+    overflowY: 'scroll',
+    // 30px for padding
+    height: `calc(100% - ${SEARCH_CONTAINER_HEIGHT}px - 30px)`,
+    width: isFullscreen ? 450 : 400,
+    flexGrow: 1,
+    margin: '0 auto',
+  };
+
   const [filter, setFilter] = useState('');
   const loading = useStorage(store => store.loading);
   const storage = useStorage(store => store.storage);

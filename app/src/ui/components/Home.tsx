@@ -1,26 +1,37 @@
 import browser from 'webextension-polyfill';
+import { useAtomValue } from 'jotai';
 import { Route, useHistory } from 'react-router-dom';
 import { Box, Button, Typography, Theme, useTheme } from '@mui/material';
 
-import Following from 'src/popup/components/Following';
-import Sidebar from 'src/popup/components/Sidebar';
-import Accounts from 'src/popup/components/Accounts';
-import Preferences from 'src/popup/components/Preferences';
-import Favorites from 'src/popup/components/Favorites';
-import AddChannels from 'src/popup/components/AddChannels';
-import HideChannels from 'src/popup/components/HideChannels';
-import ImportExportSettings from 'src/popup/components/ImportExportSettings';
-import PlatformButtonIcon from 'src/popup/widgets/PlatformButtonIcon';
+import { IsFullscreenAtom } from 'src/ui/atoms/IsFullscreen';
+import Following from 'src/ui/components/Following';
+import Sidebar from 'src/ui/components/Sidebar';
+import Accounts from 'src/ui/components/Accounts';
+import Preferences from 'src/ui/components/Preferences';
+import Favorites from 'src/ui/components/Favorites';
+import AddChannels from 'src/ui/components/AddChannels';
+import HideChannels from 'src/ui/components/HideChannels';
+import ImportExportSettings from 'src/ui/components/ImportExportSettings';
+import PlatformButtonIcon from 'src/ui/widgets/PlatformButtonIcon';
 import { MessageType } from 'src/app-constants';
-import { useAuth } from 'src/hooks';
+import { useAuth } from 'src/ui/hooks';
 import { AccountType } from 'src/types';
+import { POPUP_HEIGHT } from 'src/ui/components/App';
 
 const MAX_POPUP_WIDTH = 800;
-export const SIDEBAR_WIDTH = 303;
+const FULL_SCREEN_WIDTH = 950;
+const POPUP_SIDEBAR_WIDTH = 303;
+const FULLSCREEN_SIDEBAR_WIDTH = 303;
 
 function Home() {
-  const history = useHistory();
+  const isFullscreen = useAtomValue(IsFullscreenAtom);
+  const sidebarWidth = isFullscreen ? FULLSCREEN_SIDEBAR_WIDTH : POPUP_SIDEBAR_WIDTH;
+  const pageWidth = isFullscreen ? FULL_SCREEN_WIDTH : MAX_POPUP_WIDTH;
+
   const theme = useTheme();
+  const border = `1px solid ${theme.palette.divider}`;
+
+  const history = useHistory();
   const { loading, loggedIn } = useAuth();
 
   function login(type: MessageType) {
@@ -29,25 +40,35 @@ function Home() {
 
   return (
     <Box
-      width={MAX_POPUP_WIDTH}
+      width={pageWidth}
       height="100%"
       overflow="hidden"
       sx={{ backgroundColor: theme.palette.background.paper }}
+      borderLeft={isFullscreen ? border : undefined}
+      borderRight={isFullscreen ? border : undefined}
     >
       <Box
         height="100%"
         display="flex"
         sx={{
           '&> *:not(:last-child)': {
-            borderRight: `1px solid ${theme.palette.divider}`,
+            borderRight: border,
           },
         }}
       >
-        <Box width={MAX_POPUP_WIDTH - SIDEBAR_WIDTH} height="100%">
+        <Box width={pageWidth - sidebarWidth} height="100%">
           {loggedIn || loading ? (
             <Following />
           ) : (
-            <Box height="100%" display="flex" alignItems="center" justifyContent="center" flexDirection="column" gap="10px">
+            <Box
+              maxHeight={isFullscreen && !loggedIn ? POPUP_HEIGHT : undefined}
+              height="100%"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              flexDirection="column"
+              gap="10px"
+            >
               <Button
                 color="primary"
                 startIcon={<PlatformButtonIcon type={AccountType.TWITCH} />}
@@ -69,7 +90,7 @@ function Home() {
             </Box>
           )}
         </Box>
-        <Box width={SIDEBAR_WIDTH} height="100%">
+        <Box width={sidebarWidth} height="100%">
           <Route exact path="/" component={Sidebar} />
           <Route exact path="/accounts" component={Accounts} />
           <Route exact path="/preferences" component={Preferences} />

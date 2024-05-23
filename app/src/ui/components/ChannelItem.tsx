@@ -5,9 +5,9 @@ import { listItemTextClasses } from '@mui/material/ListItemText';
 import StarRoundedIcon from '@mui/icons-material/StarRounded';
 
 import { ChannelType, Channel } from 'src/types';
-import { useStorage } from 'src/popup/stores/Storage';
-import Hoverable from 'src/popup/components/Hoverable';
-import LiveCount from 'src/popup/components/LiveCount';
+import { useStorage } from 'src/ui/stores/Storage';
+import Hoverable from 'src/ui/components/Hoverable';
+import LiveCount from 'src/ui/components/LiveCount';
 import { getChannelUrl, getIsLoggedInWithMultipleAccounts } from 'src/utils';
 
 const AVATAR_SIZE = 22;
