@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import { makeStyles } from '@material-ui/core/styles';
 import {
+  Box,
   List,
   ListItem,
   ListItemIcon,
@@ -9,73 +9,22 @@ import {
   Switch,
   FormControlLabel,
   Divider,
-} from '@material-ui/core';
-import Skeleton from '@material-ui/lab/Skeleton';
+  Skeleton,
+} from '@mui/material';
 
 // https://v4.mui.com/components/material-icons/
-import ArrowRightIcon from '@material-ui/icons/ArrowRight';
-import TuneIcon from '@material-ui/icons/Tune';
-import StarRoundedIcon from '@material-ui/icons/StarRounded';
-import ExitToAppIcon from '@material-ui/icons/ExitToApp';
-import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
-import AddCircleIcon from '@material-ui/icons/AddCircle';
-import GetAppIcon from '@material-ui/icons/GetApp';
-import AccountCircleIcon from '@material-ui/icons/AccountCircle';
+import ArrowRightIcon from '@mui/icons-material/ArrowRight';
+import TuneIcon from '@mui/icons-material/Tune';
+import StarRoundedIcon from '@mui/icons-material/StarRounded';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
+import GetAppIcon from '@mui/icons-material/GetApp';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 import { useStorage } from 'src/popup/stores/Storage';
-import { TITLE, MessageType } from 'src/app-constants';
+import { TITLE } from 'src/app-constants';
 import { VoidFn } from 'src/types';
 import { useAuth } from 'src/hooks';
-
-const useStyles = makeStyles({
-  container: {
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  linksContainer: {
-    width: '100%',
-  },
-  rightArrows: {
-    marginLeft: 'auto',
-  },
-  links: {
-    color: 'inherit',
-    textDecoration: 'inherit',
-  },
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '24px 0',
-  },
-  logo: {
-    width: 32,
-    height: 32,
-  },
-  title: {
-    marginLeft: 10,
-  },
-  enableContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-    margin: '8px 0',
-  },
-  switchSkeleton: {
-    padding: '9px 12px',
-  },
-  donationContainer: {
-    display: 'flex',
-    flexGrow: 1,
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-    paddingBottom: 20,
-  },
-  donationImage: {
-    width: '217px !important',
-    height: '60px !important',
-  },
-});
 
 interface SidebarLinkProps {
   route?: string;
@@ -86,7 +35,6 @@ interface SidebarLinkProps {
 }
 
 function SidebarLink({ route, label, Icon, onClick, disabled }: SidebarLinkProps) {
-  const classes = useStyles();
   const item = (
     <ListItem button onClick={onClick} disabled={disabled}>
       <ListItemIcon>
@@ -94,19 +42,25 @@ function SidebarLink({ route, label, Icon, onClick, disabled }: SidebarLinkProps
       </ListItemIcon>
       <ListItemText primary={label} />
       <ListItemIcon>
-        <ArrowRightIcon className={classes.rightArrows} />
+        <ArrowRightIcon sx={{ marginLeft: 'auto' }} />
       </ListItemIcon>
     </ListItem>
   );
   return (route && !disabled) ? (
-    <Link to={route} className={classes.links}>
+    <Box
+      component={Link}
+      to={route}
+      sx={{
+        color: 'inherit',
+        textDecoration: 'inherit',
+      }}
+    >
       {item}
-    </Link>
+    </Box>
   ) : item;
 }
 
 function Sidebar() {
-  const classes = useStyles();
   const { loading, loggedIn } = useAuth();
   const storage = useStorage(store => store.storage);
   const storageLoading = useStorage(store => store.loading);
@@ -115,18 +69,23 @@ function Sidebar() {
   const actionsDisabled = loading || !loggedIn;
 
   return (
-    <div className={classes.container}>
-      <div className={classes.header}>
-        <img src="/icons/icon128.png" alt="" className={classes.logo} />
-        <Typography variant="h5" className={classes.title}>{TITLE}</Typography>
-      </div>
-      <div className={classes.enableContainer}>
+    <Box height="100%" display="flex" flexDirection="column">
+      <Box display="flex" alignItems="center" justifyContent="center" py={3}>
+        <img
+          src="/icons/icon128.png"
+          alt=""
+          width={32}
+          height={32}
+        />
+        <Typography variant="h5" ml={1}>{TITLE}</Typography>
+      </Box>
+      <Box display="flex" justifyContent="center" my={1}>
         {storageLoading ? (
           <FormControlLabel
             control={(
-              <div className={classes.switchSkeleton}>
-                <Skeleton variant="rect" width={34} height={20} style={{ borderRadius: 40 }} />
-              </div>
+              <Box py="9px" px="12px">
+                <Skeleton variant="rectangular" width={34} height={20} style={{ borderRadius: 40 }} />
+              </Box>
             )}
             label="Enable"
           />
@@ -142,9 +101,9 @@ function Sidebar() {
             label="Enable"
           />
         )}
-      </div>
+      </Box>
       <Divider />
-      <div className={classes.linksContainer}>
+      <Box width="100%">
         <List component="nav">
           <SidebarLink route="/preferences" label="Preferences" Icon={TuneIcon} disabled={actionsDisabled} />
           <SidebarLink route="/favorites" label="Favorites" Icon={StarRoundedIcon} disabled={actionsDisabled} />
@@ -153,9 +112,9 @@ function Sidebar() {
           <SidebarLink route="/import-export-settings" label="Import Settings" Icon={GetAppIcon} disabled={actionsDisabled} />
           <SidebarLink route="/accounts" label="Accounts" Icon={AccountCircleIcon} disabled={loading} />
         </List>
-      </div>
+      </Box>
       <Divider />
-      <div className={classes.donationContainer}>
+      <Box display="flex" flexGrow={1} alignItems="flex-end" justifyContent="center" pb={2.5}>
         <a
           href="https://www.buymeacoffee.com/ErianasVow"
           target="_blank"
@@ -164,11 +123,12 @@ function Sidebar() {
           <img
             src="https://cdn.buymeacoffee.com/buttons/v2/default-violet.png"
             alt="Buy Me A Coffee"
-            className={classes.donationImage}
+            width={217}
+            height={60}
           />
         </a>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }
 

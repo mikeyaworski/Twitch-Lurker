@@ -1,6 +1,6 @@
 import { useAtomValue } from 'jotai';
 import uniq from 'lodash.uniq';
-import { Typography } from '@material-ui/core';
+import { Typography } from '@mui/material';
 
 import { ChannelType, Channel, TwitchChannel } from 'src/types';
 import { getHiddenChannelsKey } from 'src/utils';

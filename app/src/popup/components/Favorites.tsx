@@ -2,9 +2,8 @@ import { useCallback } from 'react';
 import { useAtomValue } from 'jotai';
 import type { SortEndHandler } from 'react-sortable-hoc';
 import { SortableContainer, SortableElement, arrayMove } from 'react-sortable-hoc';
-import { makeStyles } from '@material-ui/core/styles';
-import { List, Typography } from '@material-ui/core';
-import StarRoundedIcon from '@material-ui/icons/StarRounded';
+import { List, Typography } from '@mui/material';
+import StarRoundedIcon from '@mui/icons-material/StarRounded';
 
 import type { Channel, Favorite } from 'src/types';
 import { useStorage } from 'src/popup/stores/Storage';
@@ -12,23 +11,6 @@ import BackWrapper from 'src/popup/components/Router/BackWrapper';
 import ChannelItem from 'src/popup/components/ChannelItem';
 import { ChannelsAtom } from 'src/popup/atoms/Channels';
 import { getFavoriteKey, getFavoriteValue, getFormattedFavorites } from 'src/utils';
-
-const useStyles = makeStyles({
-  helperClass: {
-    // @ts-ignore Incorrect type error
-    pointerEvents: 'auto !important',
-  },
-  scrollZone: {
-    overflowY: 'scroll',
-    height: 400,
-    width: '100%',
-    flexGrow: 1,
-    margin: '16px auto',
-  },
-  item: {
-    cursor: 'move',
-  },
-});
 
 const FavoritesItem = SortableElement(ChannelItem);
 
@@ -39,10 +21,16 @@ interface FavoritesListProps {
 }
 
 const FavoritesList = SortableContainer(({ favorites, channels, onRemoveFavorite }: FavoritesListProps) => {
-  const classes = useStyles();
   return (
     <List
-      className={classes.scrollZone}
+      sx={{
+        overflowY: 'scroll',
+        height: 400,
+        width: '100%',
+        flexGrow: 1,
+        mx: 'auto',
+        my: 2,
+      }}
       dense
     >
       {favorites.map((fav, index) => {
@@ -53,7 +41,10 @@ const FavoritesList = SortableContainer(({ favorites, channels, onRemoveFavorite
           <FavoritesItem
             key={favKey}
             index={index}
-            className={classes.item}
+            sx={{
+              cursor: 'move',
+              pointerEvents: 'auto !important',
+            }}
             channel={channel}
             onIconClick={onRemoveFavorite}
             Icon={StarRoundedIcon}
@@ -65,7 +56,6 @@ const FavoritesList = SortableContainer(({ favorites, channels, onRemoveFavorite
 });
 
 export default function Favorites() {
-  const classes = useStyles();
   const storage = useStorage(store => store.storage);
   const setStorage = useStorage(store => store.setStorage);
   const channels = useAtomValue(ChannelsAtom);
@@ -84,7 +74,7 @@ export default function Favorites() {
     <BackWrapper>
       <Typography variant="h5" align="center">Favorites</Typography>
       <FavoritesList
-        helperClass={classes.helperClass}
+        // helperClass={classes.helperClass}
         distance={1}
         channels={channels || []}
         favorites={getFormattedFavorites(storage.favorites)}

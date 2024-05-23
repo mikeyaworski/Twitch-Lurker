@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import browser from 'webextension-polyfill';
-import { Box, Button, Card, CardActions, CardContent, TextField, Typography, Link, makeStyles } from '@material-ui/core';
-import { Skeleton } from '@material-ui/lab';
-
+import { Box, Button, Card, CardActions, CardContent, TextField, Typography, Link, Skeleton } from '@mui/material';
 import {
   AccountType,
   Login,
@@ -16,15 +14,6 @@ import {
 import { useHandleOpenLink } from 'src/hooks';
 import { useStorage } from 'src/popup/stores/Storage';
 import BackWrapper from './Router/BackWrapper';
-
-const useStyles = makeStyles({
-  actionsSpacing: {
-    gridGap: 6,
-    '& > :not(:first-child)': {
-      marginLeft: 0,
-    },
-  },
-});
 
 function logout(accountType: AccountType) {
   browser.runtime.sendMessage({ type: MessageType.LOGOUT, accountType });
@@ -79,7 +68,7 @@ function CardInput({ inputs, onSubmit, onCancel }: CardInputProps) {
         onCancel();
       }}
     >
-      <Box display="flex" flexDirection="column" gridGap={8} style={{ marginTop: 8 }}>
+      <Box display="flex" flexDirection="column" gap={1} mt={1}>
         {inputs.map(input => (
           <TextField
             key={input.name}
@@ -92,13 +81,12 @@ function CardInput({ inputs, onSubmit, onCancel }: CardInputProps) {
           />
         ))}
       </Box>
-      <Box display="flex" gridGap={6} mt={1}>
+      <Box display="flex" gap={0.75} mt={1}>
         <Button type="submit" variant="contained" color="primary" size="small">
           Save
         </Button>
         <Button
           variant="contained"
-          color="default"
           size="small"
           onClick={onCancel}
         >
@@ -114,7 +102,6 @@ interface CardProps {
 }
 
 function AccountCard({ accountType }: CardProps) {
-  const classes = useStyles();
   const loading = useStorage(store => store.loading);
   const storage = useStorage(store => store.storage);
   const setStorage = useStorage(store => store.setStorage);
@@ -363,7 +350,13 @@ function AccountCard({ accountType }: CardProps) {
           />
         )}
       </CardContent>
-      <CardActions classes={{ spacing: classes.actionsSpacing }}>
+      <CardActions sx={{
+        gap: '6px',
+        '& > :not(:first-child)': {
+          marginLeft: 0,
+        },
+      }}
+      >
         {buttons}
       </CardActions>
     </Card>
@@ -374,7 +367,7 @@ export default function Accounts() {
   return (
     <BackWrapper>
       <Typography variant="h5" align="center" gutterBottom>Accounts</Typography>
-      <Box display="flex" flexDirection="column" gridGap="10px">
+      <Box display="flex" flexDirection="column" gap="10px">
         <AccountCard accountType={AccountType.TWITCH} />
         <AccountCard accountType={AccountType.YOUTUBE_API_KEY} />
         <AccountCard accountType={AccountType.YOUTUBE} />

@@ -1,13 +1,12 @@
 import { useCallback, useState } from 'react';
 import browser from 'webextension-polyfill';
 import { useAtomValue } from 'jotai';
-import { makeStyles } from '@material-ui/core/styles';
-import { MenuItem, TextField, List, InputAdornment, IconButton } from '@material-ui/core';
-import SearchIcon from '@material-ui/icons/Search';
-import StarRoundedIcon from '@material-ui/icons/StarRounded';
-import StarBorderRoundedIcon from '@material-ui/icons/StarBorderRounded';
-import ClearIcon from '@material-ui/icons/Clear';
-import RefreshIcon from '@material-ui/icons/Refresh';
+import { Box, MenuItem, Select, TextField, List, InputAdornment, IconButton, SelectChangeEvent } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import StarRoundedIcon from '@mui/icons-material/StarRounded';
+import StarBorderRoundedIcon from '@mui/icons-material/StarBorderRounded';
+import ClearIcon from '@mui/icons-material/Clear';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import { Channel, ChannelType, MessageType } from 'src/types';
 import { useStorage } from 'src/popup/stores/Storage';
 import { FilteredChannelsAtom } from 'src/popup/atoms/Channels';
@@ -15,27 +14,15 @@ import { useTemporaryToggle } from 'src/hooks';
 import { getFavoriteValue, getFavoritesIncludesChannel, getFormattedFavorites, getId, sortChannels } from 'src/utils';
 import ChannelItem, { ChannelItemSkeleton } from './ChannelItem';
 
-const useStyles = makeStyles({
-  listContainer: {
-    overflowY: 'scroll',
-    height: 400,
-    width: 400,
-    flexGrow: 1,
-    margin: '16px auto',
-  },
-  searchContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    '& > *:not(:last-child)': {
-      marginRight: 8,
-    },
-  },
-});
+const listContainerStyles = {
+  overflowY: 'scroll',
+  height: 400,
+  width: 400,
+  flexGrow: 1,
+  margin: '0 auto',
+};
 
 export default function FollowingComponent() {
-  const classes = useStyles();
   const [filter, setFilter] = useState('');
   const loading = useStorage(store => store.loading);
   const storage = useStorage(store => store.storage);
@@ -81,13 +68,24 @@ export default function FollowingComponent() {
   }
 
   const searchContainer = (
-    <div className={classes.searchContainer}>
+    <Box
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
+      p={2.5}
+      sx={{
+        '& > *:not(:last-child)': {
+          mr: 1,
+        },
+      }}
+    >
       <TextField
         placeholder="Search..."
         variant="outlined"
         size="small"
         value={filter}
         onChange={e => setFilter(e.target.value)}
+        sx={{ width: 250 }}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
@@ -108,11 +106,12 @@ export default function FollowingComponent() {
         variant="outlined"
         label="Sort by"
         size="small"
+        color="primary"
         select
         onChange={handleSortChange}
       >
-        <MenuItem value={1}>Lowest</MenuItem>
-        <MenuItem value={0}>Highest</MenuItem>
+        <MenuItem color="info" value={1}>Lowest</MenuItem>
+        <MenuItem color="info" value={0}>Highest</MenuItem>
       </TextField>
       <IconButton
         onClick={handleRefresh}
@@ -122,14 +121,14 @@ export default function FollowingComponent() {
       >
         <RefreshIcon />
       </IconButton>
-    </div>
+    </Box>
   );
 
   if (loading || !channels) {
     return (
       <>
         {searchContainer}
-        <List dense className={classes.listContainer}>
+        <List dense sx={listContainerStyles}>
           {new Array(10).fill(0).map((_, idx) => (
             // eslint-disable-next-line react/no-array-index-key
             <ChannelItemSkeleton key={idx} showLiveCount />
@@ -142,7 +141,7 @@ export default function FollowingComponent() {
   return (
     <>
       {searchContainer}
-      <List dense className={classes.listContainer}>
+      <List dense sx={listContainerStyles}>
         {channels
           .filter(filterFn)
           .sort((a, b) => sortChannels(a, b, storage.favorites, storage.sortLow))

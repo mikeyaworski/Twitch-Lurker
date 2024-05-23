@@ -1,45 +1,38 @@
-import { makeStyles } from '@material-ui/core/styles';
-import { Typography, FormLabel, FormControlLabel, Switch, TextField } from '@material-ui/core';
+import { Box, Typography, FormLabel, FormControlLabel, Switch, TextField } from '@mui/material';
 import { useStorage } from 'src/popup/stores/Storage';
 import BackWrapper from 'src/popup/components/Router/BackWrapper';
 
-const useStyles = makeStyles({
-  container: {
-    display: 'flex',
-    alignItems: 'center',
-    flexDirection: 'column',
-  },
-  row: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-  },
-  input: {
-    width: 60,
-    marginLeft: 8,
-  },
-  switchesContainer: {
-    marginBottom: 24,
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'flex-end',
-  },
-});
+const rowStyles = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+};
+
+const inputStyles = {
+  width: 60,
+  marginLeft: 1,
+};
+
+const switchesContainerStyles = {
+  marginBottom: 3,
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'flex-end',
+};
 
 export default function Preferences() {
-  const classes = useStyles();
   const storage = useStorage(store => store.storage);
   const setStorage = useStorage(store => store.setStorage);
   return (
     <BackWrapper>
-      <div className={classes.container}>
+      <Box display="flex" alignItems="center" flexDirection="column">
         <Typography variant="h5" align="center">
           Preferences
         </Typography>
-        <Typography variant="body1" style={{ marginTop: 24, textDecoration: 'underline' }}>
+        <Typography variant="body1" mt={3} sx={{ textDecoration: 'underline' }}>
           For opening favorites:
         </Typography>
-        <div className={classes.switchesContainer}>
+        <Box sx={switchesContainerStyles}>
           <FormControlLabel
             control={<Switch checked={storage.autoOpenTabs} onChange={e => setStorage({ autoOpenTabs: e.target.checked })} />}
             label={<FormLabel>Automatically open tabs</FormLabel>}
@@ -55,8 +48,8 @@ export default function Preferences() {
             label={<FormLabel>Tabs are muted</FormLabel>}
             labelPlacement="start"
           />
-        </div>
-        <div className={classes.switchesContainer}>
+        </Box>
+        <Box sx={switchesContainerStyles}>
           <FormControlLabel
             control={<Switch checked={storage.showPreviewOnHover} onChange={e => setStorage({ showPreviewOnHover: e.target.checked })} />}
             label={<FormLabel>Show preview on hover</FormLabel>}
@@ -67,25 +60,27 @@ export default function Preferences() {
             label={<FormLabel>Browser notifications</FormLabel>}
             labelPlacement="start"
           />
-        </div>
-        <div>
-          <div className={classes.row}>
+        </Box>
+        <Box>
+          <Box sx={rowStyles}>
             <FormLabel>Poll interval (m):</FormLabel>
             <TextField
-              className={classes.input}
+              sx={inputStyles}
               type="number"
+              variant="standard"
               value={storage.pollDelay}
               onChange={e => setStorage({ pollDelay: e.target.value })}
               inputProps={{
                 min: 1,
               }}
             />
-          </div>
-          <div className={classes.row}>
+          </Box>
+          <Box sx={rowStyles}>
             <FormLabel>Max streams at once:</FormLabel>
             <TextField
-              className={classes.input}
+              sx={inputStyles}
               type="number"
+              variant="standard"
               value={storage.maxStreams}
               onChange={e => setStorage({ maxStreams: e.target.value })}
               inputProps={{
@@ -93,9 +88,9 @@ export default function Preferences() {
                 max: 5,
               }}
             />
-          </div>
-        </div>
-      </div>
+          </Box>
+        </Box>
+      </Box>
     </BackWrapper>
   );
 }

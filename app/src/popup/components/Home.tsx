@@ -1,7 +1,6 @@
 import browser from 'webextension-polyfill';
 import { Route, useHistory } from 'react-router-dom';
-import { makeStyles } from '@material-ui/core/styles';
-import { Box, Button, Typography } from '@material-ui/core';
+import { Box, Button, Typography, Theme, useTheme } from '@mui/material';
 
 import Following from 'src/popup/components/Following';
 import Sidebar from 'src/popup/components/Sidebar';
@@ -19,33 +18,9 @@ import { AccountType } from 'src/types';
 const MAX_POPUP_WIDTH = 800;
 export const SIDEBAR_WIDTH = 303;
 
-const useStyles = makeStyles(theme => ({
-  root: {
-    width: MAX_POPUP_WIDTH,
-    height: '100%',
-    backgroundColor: theme.palette.background.paper,
-    overflow: 'hidden',
-  },
-  sidebarContainer: {
-    width: SIDEBAR_WIDTH,
-    height: '100%',
-  },
-  row: {
-    height: '100%',
-    display: 'flex',
-    '&> *:not(:last-child)': {
-      borderRight: `1px solid ${theme.palette.divider}`,
-    },
-  },
-  followingContainer: {
-    width: MAX_POPUP_WIDTH - SIDEBAR_WIDTH,
-    height: '100%',
-  },
-}));
-
 function Home() {
-  const classes = useStyles();
   const history = useHistory();
+  const theme = useTheme();
   const { loading, loggedIn } = useAuth();
 
   function login(type: MessageType) {
@@ -53,13 +28,26 @@ function Home() {
   }
 
   return (
-    <div className={classes.root}>
-      <div className={classes.row}>
-        <div className={classes.followingContainer}>
+    <Box
+      width={MAX_POPUP_WIDTH}
+      height="100%"
+      overflow="hidden"
+      sx={{ backgroundColor: theme.palette.background.paper }}
+    >
+      <Box
+        height="100%"
+        display="flex"
+        sx={{
+          '&> *:not(:last-child)': {
+            borderRight: `1px solid ${theme.palette.divider}`,
+          },
+        }}
+      >
+        <Box width={MAX_POPUP_WIDTH - SIDEBAR_WIDTH} height="100%">
           {loggedIn || loading ? (
             <Following />
           ) : (
-            <Box height="100%" display="flex" alignItems="center" justifyContent="center" flexDirection="column" gridGap="10px">
+            <Box height="100%" display="flex" alignItems="center" justifyContent="center" flexDirection="column" gap="10px">
               <Button
                 color="primary"
                 startIcon={<PlatformButtonIcon type={AccountType.TWITCH} />}
@@ -80,8 +68,8 @@ function Home() {
               </Button>
             </Box>
           )}
-        </div>
-        <div className={classes.sidebarContainer}>
+        </Box>
+        <Box width={SIDEBAR_WIDTH} height="100%">
           <Route exact path="/" component={Sidebar} />
           <Route exact path="/accounts" component={Accounts} />
           <Route exact path="/preferences" component={Preferences} />
@@ -89,9 +77,9 @@ function Home() {
           <Route exact path="/add-channels" component={AddChannels} />
           <Route exact path="/hide-channels" component={HideChannels} />
           <Route exact path="/import-export-settings" component={ImportExportSettings} />
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 }
 

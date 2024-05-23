@@ -1,11 +1,5 @@
-import {
-  withStyles,
-  Theme,
-} from '@material-ui/core/styles';
-import Radio from '@material-ui/core/Radio';
+import { Radio, styled } from '@mui/material';
 
-export default withStyles((theme: Theme) => ({
-  root: {
-    padding: 7,
-  },
-}))(Radio);
+export default styled(Radio)({
+  padding: '7px',
+});

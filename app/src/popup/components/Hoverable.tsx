@@ -1,26 +1,11 @@
 import React, { useState } from 'react';
-import { Popover, Typography } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import { Skeleton } from '@material-ui/lab';
+import { Popover, Typography, Skeleton, useTheme, Box } from '@mui/material';
+import { popoverClasses } from '@mui/material/Popover';
 import { ChannelType, Channel } from 'src/types';
 import { getStreamLength } from 'src/utils';
 
 const THUMBNAIL_WIDTH = 300;
 const THUMBNAIL_HEIGHT = 169;
-
-const useStyles = makeStyles({
-  popover: {
-    pointerEvents: 'none',
-  },
-  paper: {
-    padding: 8,
-  },
-  row: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
 
 type Props = {
   children: React.ReactElement;
@@ -32,7 +17,7 @@ function getThumbnailUrl(thumbnailTemplate: string) {
 }
 
 const Hoverable = ({ children, channel }: Props) => {
-  const classes = useStyles();
+  const theme = useTheme();
   const [imgLoaded, setImgLoaded] = useState(false);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
@@ -86,9 +71,13 @@ const Hoverable = ({ children, channel }: Props) => {
         onMouseLeave: handlePopoverClose,
       })}
       <Popover
-        className={classes.popover}
-        classes={{
-          paper: classes.paper,
+        sx={{
+          pointerEvents: 'none',
+          [`& .${popoverClasses.paper}`]: {
+            padding: 1,
+            backgroundColor: theme.palette.background.paper,
+            backgroundImage: 'unset',
+          },
         }}
         open={open}
         anchorEl={anchorEl}
@@ -107,16 +96,15 @@ const Hoverable = ({ children, channel }: Props) => {
           {title} - {channel.viewerCount} viewers ({getStreamLength(startUtcTimestamp)})
         </Typography>
         {!imgLoaded && (
-          <Skeleton variant="rect" width={THUMBNAIL_WIDTH} height={THUMBNAIL_HEIGHT} />
+          <Skeleton variant="rectangular" width={THUMBNAIL_WIDTH} height={THUMBNAIL_HEIGHT} />
         )}
-        <img
+        <Box
+          component="img"
           src={getThumbnailUrl(channel.thumbnail)}
           alt="Thumbnail"
           onLoad={handleImageLoaded}
-          style={{
-            display: imgLoaded ? 'block' : 'none',
-            maxWidth: THUMBNAIL_WIDTH,
-          }}
+          display={imgLoaded ? 'block' : 'none'}
+          maxWidth={THUMBNAIL_WIDTH}
         />
       </Popover>
     </>

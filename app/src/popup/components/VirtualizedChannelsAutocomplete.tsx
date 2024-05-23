@@ -1,11 +1,21 @@
 import React from 'react';
-import TextField from '@material-ui/core/TextField';
-import Autocomplete, { createFilterOptions } from '@material-ui/lab/Autocomplete';
-import DeleteIcon from '@material-ui/icons/Delete';
-import { makeStyles } from '@material-ui/core/styles';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { VariableSizeList, ListChildComponentProps } from 'react-window';
-import { Typography, List, Tooltip, Box } from '@material-ui/core';
-import InfoIcon from '@material-ui/icons/Info';
+import {
+  Typography,
+  List,
+  Tooltip,
+  Box,
+  TextField,
+  Popper,
+  Autocomplete,
+  createFilterOptions,
+  useTheme,
+  useMediaQuery,
+  styled,
+} from '@mui/material';
+import { autocompleteClasses } from '@mui/material/Autocomplete';
+import InfoIcon from '@mui/icons-material/Info';
 
 import type { Channel } from 'src/types';
 import { getId, sortByName } from 'src/utils';
@@ -13,14 +23,25 @@ import ChannelItem, { ChannelItemProps } from 'src/popup/components/ChannelItem'
 
 const LISTBOX_PADDING = 8; // px
 
+type RowProps = [
+  React.HTMLAttributes<HTMLLIElement>,
+  Channel,
+  number,
+];
+
 function renderRow(props: ListChildComponentProps) {
   const { data, index, style } = props;
-  return React.cloneElement(data[index], {
-    style: {
-      ...style,
-      top: (style.top as number) + LISTBOX_PADDING,
-    },
-  });
+  const dataSet = data[index] as RowProps;
+  const inlineStyle = {
+    ...style,
+    top: (style.top as number) + LISTBOX_PADDING,
+  };
+
+  return (
+    <Typography component="li" {...dataSet[0]} noWrap style={inlineStyle}>
+      {dataSet[1].displayName}
+    </Typography>
+  );
 }
 
 const OuterElementContext = React.createContext({});
@@ -41,15 +62,35 @@ function useResetCache(data: unknown) {
 }
 
 // Adapter for react-window
-const ListboxComponent = React.forwardRef<HTMLDivElement>((props, ref) => {
+const ListboxComponent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLElement>
+>((props, ref) => {
   const { children, ...other } = props;
-  const itemData = React.Children.toArray(children);
+  const itemData: React.ReactElement[] = [];
+  (children as React.ReactElement[]).forEach(
+    (item: React.ReactElement & { children?: React.ReactElement[] }) => {
+      itemData.push(item);
+      itemData.push(...(item.children || []));
+    },
+  );
+
+  const theme = useTheme();
+  const smUp = useMediaQuery(theme.breakpoints.up('sm'), {
+    noSsr: true,
+  });
   const itemCount = itemData.length;
-  const itemSize = 36;
+  const itemSize = smUp ? 36 : 48;
+
+  const getChildSize = (child: React.ReactElement) => {
+    return itemSize;
+  };
 
   const getHeight = () => {
-    const heightCount = Math.min(8, itemCount);
-    return heightCount * itemSize;
+    if (itemCount > 8) {
+      return 8 * itemSize;
+    }
+    return itemData.map(getChildSize).reduce((a, b) => a + b, 0);
   };
 
   const gridRef = useResetCache(itemCount);
@@ -64,7 +105,7 @@ const ListboxComponent = React.forwardRef<HTMLDivElement>((props, ref) => {
           ref={gridRef}
           outerElementType={OuterElementType}
           innerElementType="ul"
-          itemSize={_ => itemSize}
+          itemSize={index => getChildSize(itemData[index])}
           overscanCount={5}
           itemCount={itemCount}
         >
@@ -75,19 +116,13 @@ const ListboxComponent = React.forwardRef<HTMLDivElement>((props, ref) => {
   );
 });
 
-const useStyles = makeStyles({
-  listbox: {
+const StyledPopper = styled(Popper)({
+  [`& .${autocompleteClasses.listbox}`]: {
     boxSizing: 'border-box',
     '& ul': {
       padding: 0,
       margin: 0,
     },
-  },
-  scrollZone: {
-    overflowY: 'auto',
-    overflowX: 'hidden',
-    width: '100%',
-    margin: '16px auto',
   },
 });
 
@@ -116,7 +151,6 @@ export default function VirtualizedChannelsAutocomplete({
   tooltip = null,
   endAdornment,
 }: Props) {
-  const classes = useStyles();
   const [value, setValue] = React.useState('');
 
   function onSubmit(newValue: string | null) {
@@ -126,21 +160,14 @@ export default function VirtualizedChannelsAutocomplete({
 
   const autocomplete = (
     <Autocomplete
-      style={{ width: '100%' }}
+      sx={{ width: '100%' }}
       freeSolo
       disableClearable={Boolean(endAdornment)}
       disabled={disabled}
       disableListWrap
-      classes={{
-        listbox: classes.listbox,
-      }}
-      ListboxComponent={ListboxComponent as React.ComponentType<React.HTMLAttributes<HTMLElement>>}
+      PopperComponent={StyledPopper}
+      ListboxComponent={ListboxComponent}
       options={options}
-      // This getOptionLabel shouldn't be necessary, but it gets called for some reason and causes console errors if not implemented like this.
-      getOptionLabel={channelOrInput => {
-        if (typeof channelOrInput === 'string') return channelOrInput;
-        return channelOrInput.displayName;
-      }}
       filterOptions={(o, _) => createFilterOptions<Channel>()(o, {
         inputValue: value,
         getOptionLabel: channel => channel.displayName,
@@ -157,7 +184,7 @@ export default function VirtualizedChannelsAutocomplete({
           }}
         />
       )}
-      renderOption={option => <Typography noWrap>{option.displayName}</Typography>}
+      renderOption={(props, option, state) => [props, option, state.index] as React.ReactNode}
       onInputChange={(_, newValue, reason) => {
         if (reason === 'input' || reason === 'clear') setValue(newValue);
       }}
@@ -181,16 +208,21 @@ export default function VirtualizedChannelsAutocomplete({
       }}
       >
         {tooltip ? (
-          <Box display="flex" gridGap={6} alignItems="center">
+          <Box display="flex" gap={0.75} alignItems="center">
             {autocomplete}
-            <Tooltip arrow title={tooltip} style={{ cursor: 'pointer' }}>
+            <Tooltip arrow title={tooltip} sx={{ cursor: 'pointer' }}>
               <InfoIcon />
             </Tooltip>
           </Box>
         ) : autocomplete}
       </form>
       <List
-        className={classes.scrollZone}
+        sx={{
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          width: '100%',
+          margin: '16px auto',
+        }}
         dense
       >
         {channels.sort(sortByName).map(channel => (

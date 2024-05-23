@@ -3,8 +3,8 @@ import browser from 'webextension-polyfill';
 import { useAtomValue } from 'jotai';
 import uniq from 'lodash.uniq';
 import { useShallow } from 'zustand/react/shallow';
-import { Typography, FormControlLabel, RadioGroup, InputAdornment, IconButton, Tooltip } from '@material-ui/core';
-import RefreshIcon from '@material-ui/icons/Refresh';
+import { Typography, FormControlLabel, RadioGroup, InputAdornment, IconButton, Tooltip } from '@mui/material';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 import { AccountType, Channel, ChannelType, StorageSync, MessageType } from 'src/types';
 import { getAddedChannelsKey, getYouTubeLogin, shouldConvertKeyToLowerCase } from 'src/utils';
@@ -113,7 +113,7 @@ export default function AddChannels() {
       <Typography variant="h5" align="center" gutterBottom>Add Channels</Typography>
       {(hasYouTubeAccount || hasKickAccount) && (
         <RadioGroup
-          style={{ flexDirection: 'row', marginBottom: 4 }}
+          sx={{ flexDirection: 'row', marginBottom: 0.5 }}
           name="account"
           value={selectedAccount}
           onChange={e => setSelectedAccount(e.target.value as AccountKey)}

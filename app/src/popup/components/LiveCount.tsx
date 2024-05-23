@@ -1,19 +1,17 @@
-import { makeStyles } from '@material-ui/core/styles';
-import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
-import Skeleton from '@material-ui/lab/Skeleton';
+import { Box, Skeleton } from '@mui/material';
+import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 
-const useStyles = makeStyles({
-  liveIcon: {
-    color: 'red',
-    minWidth: 0,
-    marginRight: 4,
-  },
-  liveCount: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-  },
-});
+const liveIconStyles = {
+  color: 'red',
+  minWidth: 0,
+  marginRight: 0.5,
+};
+
+const liveCountStyles = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+};
 
 function getViewerCountText(viewerCount: number) {
   if (viewerCount < 1000) return viewerCount.toString();
@@ -29,21 +27,19 @@ type Props = {
 };
 
 export default function FollowingComponent({ viewerCount, loading = false }: Props) {
-  const classes = useStyles();
-
   if (loading) {
     return (
-      <div className={classes.liveCount}>
-        <Skeleton variant="circle" width={20} height={20} className={classes.liveIcon} />
-        <Skeleton variant="rect" width={30} height={18} />
-      </div>
+      <Box sx={liveCountStyles}>
+        <Skeleton variant="rounded" width={20} height={20} sx={liveIconStyles} />
+        <Skeleton variant="rectangular" width={30} height={18} />
+      </Box>
     );
   }
 
   return (
-    <div className={classes.liveCount}>
-      <FiberManualRecordIcon className={classes.liveIcon} />
+    <Box sx={liveCountStyles}>
+      <FiberManualRecordIcon sx={liveIconStyles} />
       {getViewerCountText(viewerCount!)}
-    </div>
+    </Box>
   );
 }

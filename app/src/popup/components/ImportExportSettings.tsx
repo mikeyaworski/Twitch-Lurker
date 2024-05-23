@@ -6,8 +6,8 @@ import {
   Collapse,
   Button,
   TextField,
-} from '@material-ui/core';
-import Alert from '@material-ui/lab/Alert';
+  Alert,
+} from '@mui/material';
 
 import { getStorage } from 'src/chrome-utils';
 import { useStorage } from 'src/popup/stores/Storage';
@@ -52,7 +52,7 @@ export default function ImportExportSettings() {
       <Typography variant="h5" align="center" gutterBottom>Import/Export Settings</Typography>
       <Box width="100%">
         <TextField
-          style={{ marginBottom: 10 }}
+          sx={{ mb: 1 }}
           fullWidth
           label="Settings JSON"
           variant="outlined"
@@ -61,7 +61,7 @@ export default function ImportExportSettings() {
           multiline
           rows={5}
         />
-        <Box display="flex" alignItems="center" gridGap="5px">
+        <Box display="flex" alignItems="center" gap="5px">
           <Button size="small" color="primary" variant="contained" onClick={handleImportMapping}>
             Import
           </Button>
@@ -73,9 +73,7 @@ export default function ImportExportSettings() {
           <Alert
             severity="success"
             variant="filled"
-            style={{
-              marginTop: 10,
-            }}
+            sx={{ mt: 1 }}
           >
             Copied to clipboard!
           </Alert>
@@ -84,9 +82,7 @@ export default function ImportExportSettings() {
           <Alert
             severity="success"
             variant="filled"
-            style={{
-              marginTop: 10,
-            }}
+            sx={{ mt: 1 }}
           >
             Imported!
           </Alert>

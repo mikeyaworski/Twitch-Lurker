@@ -1,9 +1,8 @@
 import { useCallback, useState } from 'react';
 import browser from 'webextension-polyfill';
-import { makeStyles } from '@material-ui/core/styles';
-import { ListItem, ListItemIcon, ListItemText, Link } from '@material-ui/core';
-import Skeleton from '@material-ui/lab/Skeleton';
-import StarRoundedIcon from '@material-ui/icons/StarRounded';
+import { ListItem, ListItemIcon, ListItemText, Link, Skeleton, SxProps, Theme, Box } from '@mui/material';
+import { listItemTextClasses } from '@mui/material/ListItemText';
+import StarRoundedIcon from '@mui/icons-material/StarRounded';
 
 import { ChannelType, Channel } from 'src/types';
 import { useStorage } from 'src/popup/stores/Storage';
@@ -13,43 +12,24 @@ import { getChannelUrl, getIsLoggedInWithMultipleAccounts } from 'src/utils';
 
 const AVATAR_SIZE = 22;
 
-const useStyles = makeStyles({
-  icon: {
-    marginLeft: 'auto',
-    cursor: 'pointer',
-  },
-  profilePic: {
-    width: AVATAR_SIZE,
-    height: AVATAR_SIZE,
-    minWidth: AVATAR_SIZE,
-    marginRight: 8,
-  },
-  itemText: {
-    overflow: 'hidden',
-  },
-  itemTextSpan: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-  twitchIcon: {
-    height: 16,
-    width: 16,
-    marginLeft: 4,
-  },
-  youtubeIcon: {
-    height: 12,
-    width: 17,
-    marginLeft: 6,
-  },
-  kickIcon: {
-    height: 14,
-    width: 14,
-    marginLeft: 4,
-  },
-});
+const profilePicStyle = {
+  width: AVATAR_SIZE,
+  height: AVATAR_SIZE,
+  minWidth: AVATAR_SIZE,
+  marginRight: 1,
+};
+
+const iconStyle = {
+  marginLeft: 'auto',
+  cursor: 'pointer',
+};
+
+const itemTextStyle = {
+  overflow: 'hidden',
+};
 
 export interface ChannelItemProps {
-  className?: string,
+  sx?: SxProps<Theme>,
   channel: Channel;
   onIconClick: (channel: Channel) => void;
   Icon: typeof StarRoundedIcon,
@@ -61,26 +41,25 @@ export interface ChannelItemProps {
 }
 
 export function ChannelItemSkeleton({
-  className,
+  sx,
   showLiveCount = false,
-}: Pick<ChannelItemProps, 'className' | 'showLiveCount'>) {
-  const classes = useStyles();
+}: Pick<ChannelItemProps, 'sx' | 'showLiveCount'>) {
   return (
-    <ListItem dense divider className={className}>
-      <Skeleton variant="rect" width={20} height={20} className={classes.profilePic} />
-      <ListItemText className={classes.itemText}>
-        <Skeleton variant="rect" width={60} height={20} />
+    <ListItem dense divider sx={sx}>
+      <Skeleton variant="rectangular" width={20} height={20} sx={profilePicStyle} />
+      <ListItemText sx={itemTextStyle}>
+        <Skeleton variant="rectangular" width={60} height={20} />
       </ListItemText>
       {showLiveCount && <LiveCount loading />}
       <ListItemIcon>
-        <Skeleton variant="circle" className={classes.icon} width={20} height={20} />
+        <Skeleton variant="rounded" sx={iconStyle} width={20} height={20} />
       </ListItemIcon>
     </ListItem>
   );
 }
 
 export default function ChannelItem({
-  className,
+  sx,
   onIconClick,
   channel,
   Icon,
@@ -90,7 +69,6 @@ export default function ChannelItem({
   showLiveCount = false,
   hidePlatformIcon = false,
 }: ChannelItemProps) {
-  const classes = useStyles();
   const storage = useStorage(store => store.storage);
   const [avatarLoaded, setAvatarLoaded] = useState(false);
 
@@ -113,16 +91,15 @@ export default function ChannelItem({
   const avatar = (
     <>
       {!avatarLoaded && (
-        <Skeleton variant="rect" className={classes.profilePic} />
+        <Skeleton variant="rectangular" sx={profilePicStyle} />
       )}
-      <img
+      <Box
+        component="img"
         src={channel.profilePic}
         alt="avatar"
-        className={classes.profilePic}
         onLoad={handleAvatarLoaded}
-        style={{
-          display: avatarLoaded ? 'block' : 'none',
-        }}
+        sx={profilePicStyle}
+        display={avatarLoaded ? 'block' : 'none'}
       />
     </>
   );
@@ -133,6 +110,7 @@ export default function ChannelItem({
       color="textPrimary"
       data-href={href}
       onClick={handleOpenLink}
+      underline="hover"
     >
       {channel.displayName}
     </Link>
@@ -144,15 +122,45 @@ export default function ChannelItem({
   if (getIsLoggedInWithMultipleAccounts(storage.logins) && !hidePlatformIcon) {
     switch (channel.type) {
       case ChannelType.TWITCH: {
-        platformIcon = <img src="/twitch-icon.svg" alt="" className={classes.twitchIcon} />;
+        platformIcon = (
+          <img
+            src="/twitch-icon.svg"
+            alt=""
+            style={{
+              height: 16,
+              width: 16,
+              marginLeft: 4,
+            }}
+          />
+        );
         break;
       }
       case ChannelType.YOUTUBE: {
-        platformIcon = <img src="/youtube-icon.svg" alt="" className={classes.youtubeIcon} />;
+        platformIcon = (
+          <img
+            src="/youtube-icon.svg"
+            alt=""
+            style={{
+              height: 12,
+              width: 17,
+              marginLeft: 6,
+            }}
+          />
+        );
         break;
       }
       case ChannelType.KICK: {
-        platformIcon = <img src="/kick-icon.png" alt="" className={classes.kickIcon} />;
+        platformIcon = (
+          <img
+            src="/kick-icon.png"
+            alt=""
+            style={{
+              height: 14,
+              width: 14,
+              marginLeft: 4,
+            }}
+          />
+        );
         break;
       }
       default: {
@@ -165,7 +173,7 @@ export default function ChannelItem({
     <ListItem
       dense
       divider
-      className={className}
+      sx={sx}
     >
       {channel.profilePic && (
         storage.showPreviewOnHover && hoverable ? (
@@ -176,9 +184,12 @@ export default function ChannelItem({
           avatar
         )
       )}
-      <ListItemText classes={{
-        root: classes.itemText,
-        primary: classes.itemTextSpan,
+      <ListItemText sx={{
+        ...itemTextStyle,
+        [`& .${listItemTextClasses.primary}`]: {
+          display: 'flex',
+          alignItems: 'center',
+        },
       }}
       >
         {storage.showPreviewOnHover && hoverable ? (
@@ -195,7 +206,7 @@ export default function ChannelItem({
       )}
       <ListItemIcon>
         <Icon
-          className={classes.icon}
+          sx={iconStyle}
           color={iconColor}
           onClick={handleIconClick}
         />
