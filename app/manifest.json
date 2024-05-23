@@ -13,6 +13,12 @@
     "default_popup": "src/ui/pages/popup.html"
   },
 
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "twitch-lurker@mikeyaworski.com"
+    }
+  }, 
+
   "permissions": [
     "identity",
     "alarms",
