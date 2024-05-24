@@ -8,7 +8,15 @@
     "test": "npm run lint && vitest run",
     "test:watch": "vitest",
     "build": "vite build",
-    "watch": "nodemon"
+    "build:firefox": "cross-env TARGET=FIREFOX vite build",
+    "bf": "npm run build:firefox",
+    "build:chrome": "cross-env TARGET=CHROME vite build",
+    "bc": "npm run build:chrome",
+    "watch": "nodemon",
+    "watch:firefox": "cross-env TARGET=FIREFOX nodemon",
+    "wf": "npm run watch:firefox",
+    "watch:chrome": "cross-env TARGET=CHROME nodemon",
+    "wc": "npm run watch:chrome"
   },
   "type": "module",
   "dependencies": {
@@ -53,6 +61,7 @@
     "@typescript-eslint/eslint-plugin": "^4.6.1",
     "@typescript-eslint/parser": "^4.6.1",
     "@vitejs/plugin-react": "^4.2.1",
+    "cross-env": "^7.0.3",
     "eslint": "^7.28.0",
     "eslint-config-airbnb": "^18.0.1",
     "eslint-plugin-import": "^2.20.1",

@@ -1,6 +1,6 @@
 {
   "env": {
-    "ENVIRONMENT": "development"
+    "ENVIRONMENT": "DEVELOPMENT"
   },
   "watch": [
     "src",

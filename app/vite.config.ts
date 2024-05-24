@@ -5,7 +5,7 @@ import { crx, ManifestV3Export } from '@crxjs/vite-plugin';
 
 import manifest from './manifest.json';
 
-const isDev = process.env.ENVIRONMENT === 'development';
+const isDev = process.env.ENVIRONMENT === 'DEVELOPMENT';
 
 const root = resolve(__dirname, 'src');
 const outDir = resolve(__dirname, 'build');
