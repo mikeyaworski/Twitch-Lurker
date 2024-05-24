@@ -80,7 +80,7 @@ async function notify(channelsBefore: Channel[], channelsAfter: Channel[]): Prom
 }
 
 async function refreshBadgeData(): Promise<void> {
-  const { favorites, hiddenChannels } = storage;
+  const { favorites, hiddenChannels } = await waitFullStorage();
   const { mostRecentChannels } = await waitFullStorage(StorageType.LOCAL);
   const channels = mostRecentChannels?.channels || [];
   const filteredChannels = channels.filter(channel => {
@@ -195,8 +195,7 @@ async function fetchData() {
 }
 
 async function poll() {
-  await waitFullStorage();
-  const { logins, enabled, pollDelay } = storage;
+  const { logins, enabled, pollDelay } = await waitFullStorage();
   const alreadyHadPollAlarm = Boolean(await browser.alarms.get(POLL_ALARM_NAME));
   await browser.alarms.clear(POLL_ALARM_NAME);
   if (enabled && logins && getIsLoggedInWithAnyAccount(logins)) {
