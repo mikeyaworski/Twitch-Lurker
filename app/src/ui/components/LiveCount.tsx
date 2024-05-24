@@ -1,4 +1,4 @@
-import { Box, Skeleton } from '@mui/material';
+import { Box, Skeleton, Typography } from '@mui/material';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 
 const liveIconStyles = {
@@ -39,7 +39,9 @@ export default function FollowingComponent({ viewerCount, loading = false }: Pro
   return (
     <Box sx={liveCountStyles}>
       <FiberManualRecordIcon sx={liveIconStyles} />
-      {getViewerCountText(viewerCount!)}
+      <Typography variant="body2">
+        {getViewerCountText(viewerCount!)}
+      </Typography>
     </Box>
   );
 }
