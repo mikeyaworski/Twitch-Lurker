@@ -5,8 +5,7 @@
   "manifest_version": 3,
 
   "background": {
-    "service_worker": "src/service-worker/main.ts",
-    "type": "module"
+    "service_worker": "src/service-worker/main.ts"
   },
 
   "action": {
