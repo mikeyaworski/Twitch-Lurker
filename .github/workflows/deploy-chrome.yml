@@ -14,16 +14,16 @@ jobs:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@v2
       with:
-        node-version: 14.x
+        node-version: 18.x
     - run: npm ci
     - run: npm test
-    - run: npm run build:prod
-    - run: zip -r package.zip . -x "background-scripts/*" -x "content-scripts/*"
-      working-directory: app/build
+    - run: npm run build:chrome
+    - run: zip -r package.zip .
+      working-directory: app/build/chrome
     - uses: mikeyaworski/chrome-addon@master
       with:
         extension: ${{ env.CHROME_APP_ID }}
-        zip: app/build/package.zip
+        zip: app/build/chrome/package.zip
         client-id: ${{ secrets.CHROME_CLIENT_ID }}
         client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}
         refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}
