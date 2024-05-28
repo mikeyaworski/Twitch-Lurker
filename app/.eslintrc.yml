@@ -46,6 +46,7 @@ rules:
     - error
     - devDependencies:
       - '**/*.test.ts'
+      - vite-plugins/*.ts
       - vite.config.ts
 
   react/require-default-props: off

@@ -24,6 +24,7 @@
   },
   "include": [
     "src",
+    "vite-plugins",
     "vite.config.ts"
   ]
 }
