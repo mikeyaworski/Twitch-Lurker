@@ -1,5 +1,5 @@
-import { create } from 'zustand';
 import { useEffect } from 'react';
+import { create } from 'zustand';
 import merge from 'lodash.merge';
 import { StorageSync, StorageLocal, StorageSyncKeys, StorageLocalKeys, IntentionalAny, StorageType } from 'src/types';
 import type { MutableStorageSync } from 'src/types';
