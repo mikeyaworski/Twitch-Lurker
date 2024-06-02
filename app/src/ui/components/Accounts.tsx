@@ -29,14 +29,13 @@ function login(accountType: AccountType.TWITCH | AccountType.YOUTUBE | AccountTy
   };
   // TODO: When auto opening tabs works for YouTube and Kick, enable the permission requests here as well
   if (accountType === AccountType.TWITCH) {
+    // Due to a bug in Firefox where the permissions request is hidden behind the extension popup,
+    // do not wait for the permission request to be completed before attempting to log in.
     browser.permissions.request({
       origins: [ORIGINS[OriginType.TWITCH]],
-    }).then(() => {
-      browser.runtime.sendMessage({ type: messageTypeMap[accountType] });
     });
-  } else {
-    browser.runtime.sendMessage({ type: messageTypeMap[accountType] });
   }
+  browser.runtime.sendMessage({ type: messageTypeMap[accountType] });
 }
 
 interface CardSkeletonProps {
