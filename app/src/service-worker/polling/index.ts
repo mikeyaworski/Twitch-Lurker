@@ -31,7 +31,6 @@ import {
 } from './youtube';
 
 const storage = getFullStorage(StorageType.SYNCED);
-const storageLocal = getFullStorage(StorageType.LOCAL);
 
 function getSortedLiveChannels(channels: Channel[]): LiveChannel[] {
   const { hiddenChannels, favorites } = storage;
