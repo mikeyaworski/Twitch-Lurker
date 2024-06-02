@@ -41,7 +41,7 @@ There are three major components to this:
 - Content script
 - UI pages (built with React)
 
-The library used for the build process is Vite. To package the build properly for browser extensions, we use the Vite plugin `@crxjs/vite-plugin`. We have a custom plugin to transform the manifest to a Firefox-compatible one, since `@crxjs/vite-plugin` only supports Chrome. The manifest V3 divergence between Chrome and Firefox may become a bigger issue later on in the ecosystem.
+The library used for the build process is Vite. To package the build properly for browser extensions, we use the Vite plugin `@crxjs/vite-plugin`. The application code is effectively the same between Chrome and Firefox, but the manifest differs, so the build process creates a different build output for Firefox.
 
 - All of the application code is located in `app/src`.
 - The UI pages (React code) is located in `app/src/ui`. This is the code that creates our popup window and full page viewer.
