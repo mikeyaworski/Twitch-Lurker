@@ -21,7 +21,7 @@ interface StorageStore {
 
 export const useStorage = create<StorageStore>()((set, get) => ({
   loading: true,
-  setLoading: (loading: boolean) => set({ loading }),
+  setLoading: loading => set({ loading }),
   storage: {
     ...DEFAULT_STORAGE_SYNC,
   },
