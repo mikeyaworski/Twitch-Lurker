@@ -31,7 +31,6 @@ browser.runtime.onInstalled.addListener(() => {
 browser.contextMenus.onClicked.addListener(async info => {
   switch (info.menuItemId) {
     case 'Browser Action': {
-      // TODO: Update this to use a separate document once the project is migrated from CRA to Vite
       const url = browser.runtime.getURL('/src/ui/pages/fullscreen.html');
       await browser.tabs.create({
         url,
