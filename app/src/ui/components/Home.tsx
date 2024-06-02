@@ -1,7 +1,7 @@
 import browser from 'webextension-polyfill';
 import { useAtomValue } from 'jotai';
 import { Route, useHistory } from 'react-router-dom';
-import { Box, Button, Typography, Theme, useTheme } from '@mui/material';
+import { Box, Button, Typography, useTheme } from '@mui/material';
 
 import { IsFullscreenAtom } from 'src/ui/atoms/IsFullscreen';
 import Following from 'src/ui/components/Following';
