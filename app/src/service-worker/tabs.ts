@@ -1,8 +1,10 @@
 import browser, { Tabs } from 'webextension-polyfill';
-import { Channel, ChannelType, LiveTwitchChannel, TwitchChannel } from 'src/types';
+import { ORIGINS } from 'src/app-constants';
+import { Channel, ChannelType, LiveTwitchChannel, OriginType, TwitchChannel } from 'src/types';
 import { getStorage } from 'src/chrome-utils';
 import { getFavoritesIncludesChannel, sortChannels } from 'src/utils';
-import { getTwitchUsernameFromUrl, isUrlTwitchChannel, isLockedTwitchPage } from './utils';
+import { error } from 'src/logging';
+import { getTwitchUsernameFromUrl, isUrlTwitchChannel, isLockedTwitchPage, getHasTwitchHostPermission } from './utils';
 
 // This is a hack to import the content script and have the script be included in the build process
 // https://github.com/crxjs/chrome-extension-tools/issues/687
@@ -13,7 +15,9 @@ import { getTwitchUsernameFromUrl, isUrlTwitchChannel, isLockedTwitchPage } from
 import contentScriptPath from 'src/content-scripts/main?script';
 
 async function getTwitchChannelTabs() {
-  const tabs = await browser.tabs.query({});
+  const tabs = await browser.tabs.query({
+    url: ORIGINS[OriginType.TWITCH],
+  });
   return tabs.filter(tab => {
     if (!tab.url) return false;
     return isUrlTwitchChannel(tab.url);
@@ -91,6 +95,12 @@ async function updateTwitchTab(liveChannel: LiveTwitchChannel, candidateTwitchTa
 
 // TODO: Write unit tests for this
 export async function openTwitchTabs(channels: Channel[]) {
+  const hasTwitchHostPermission = await getHasTwitchHostPermission();
+  if (!hasTwitchHostPermission) {
+    error('Tried to open Twitch tabs but did not have host permission for Twitch');
+    return;
+  }
+
   const { favorites, maxStreams, autoMuteTabs, hiddenChannels } = await getStorage(['favorites', 'maxStreams', 'autoMuteTabs', 'hiddenChannels']);
   if (!maxStreams || !favorites) return;
   const liveFavorites = channels

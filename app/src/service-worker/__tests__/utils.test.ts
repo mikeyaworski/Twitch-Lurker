@@ -1,9 +1,11 @@
-import { expect, describe, it } from 'vitest';
+import { expect, describe, it, vi } from 'vitest';
 import {
   getTwitchUsernameFromUrl,
   isUrlTwitchChannel,
   isLockedTwitchPage,
 } from '../utils';
+
+vi.mock('webextension-polyfill', () => ({ default: null }));
 
 describe('service-worker/utils', () => {
   describe('getTwitchUsernameFromUrl', () => {

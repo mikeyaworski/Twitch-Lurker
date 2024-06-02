@@ -1,6 +1,9 @@
 import { expect, describe, beforeAll, beforeEach, afterAll, it, vi } from 'vitest';
 import { getStreamLength } from '../utils';
 
+vi.mock('webextension-polyfill', () => ({ default: null }));
+vi.mock('src/storage', () => ({ getFullStorage: () => null }));
+
 describe('getStreamLength', () => {
   let realDateNow: () => number;
   beforeAll(() => {

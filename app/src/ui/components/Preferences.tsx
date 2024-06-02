@@ -1,6 +1,9 @@
-import { Box, Typography, FormLabel, FormControlLabel, Switch, TextField } from '@mui/material';
+import { Box, Typography, FormLabel, FormControlLabel, Switch, TextField, IconButton, Tooltip } from '@mui/material';
 import { useStorage } from 'src/ui/stores/Storage';
 import BackWrapper from 'src/ui/components/Router/BackWrapper';
+import ErrorIcon from '@mui/icons-material/Error';
+import { requestNecessaryHostPermissions } from 'src/utils';
+import { usePermissionIssues } from 'src/ui/hooks';
 
 const rowStyles = {
   display: 'flex',
@@ -23,6 +26,15 @@ const switchesContainerStyles = {
 export default function Preferences() {
   const storage = useStorage(store => store.storage);
   const setStorage = useStorage(store => store.setStorage);
+
+  const permissionIssues = usePermissionIssues();
+  const hasPermissionIssues = Object.values(permissionIssues).includes(true);
+
+  function onAutoOpenTabsChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setStorage({ autoOpenTabs: e.target.checked });
+    if (e.target.checked) requestNecessaryHostPermissions(true);
+  }
+
   return (
     <BackWrapper>
       <Box display="flex" alignItems="center" flexDirection="column">
@@ -33,11 +45,21 @@ export default function Preferences() {
           For opening favorites:
         </Typography>
         <Box sx={switchesContainerStyles}>
-          <FormControlLabel
-            control={<Switch checked={storage.autoOpenTabs} onChange={e => setStorage({ autoOpenTabs: e.target.checked })} />}
-            label={<FormLabel>Automatically open tabs</FormLabel>}
-            labelPlacement="start"
-          />
+          <Box display="flex" justifyContent="flex-end" alignItems="center">
+            <Tooltip
+              arrow
+              title="You need to allow permissions for tabs to automatically open. Click the yellow icon to allow permissions."
+            >
+              <IconButton sx={{ p: 0, visibility: hasPermissionIssues ? 'visible' : 'hidden' }} onClick={() => requestNecessaryHostPermissions()}>
+                <ErrorIcon color="warning" />
+              </IconButton>
+            </Tooltip>
+            <FormControlLabel
+              control={<Switch checked={storage.autoOpenTabs} onChange={onAutoOpenTabsChange} />}
+              label={<FormLabel>Automatically open tabs</FormLabel>}
+              labelPlacement="start"
+            />
+          </Box>
           <FormControlLabel
             control={<Switch checked={storage.openTabsInBackground} onChange={e => setStorage({ openTabsInBackground: e.target.checked })} />}
             label={<FormLabel>Tabs open in background</FormLabel>}

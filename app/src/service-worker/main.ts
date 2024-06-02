@@ -1,6 +1,7 @@
 import browser from 'webextension-polyfill';
 import { BADGE_TEXT_COLOR, BADGE_DEFAULT_BACKGROUND_COLOR } from 'src/app-constants';
 import { error } from 'src/logging';
+import { requestNecessaryHostPermissions } from 'src/utils';
 import initAuth from './auth';
 import initPolling from './polling';
 
@@ -26,6 +27,15 @@ browser.runtime.onInstalled.addListener(() => {
       error(browser.runtime.lastError);
     }
   });
+  browser.contextMenus.create({
+    id: 'Request Host Permissions',
+    title: 'Request Host Permissions',
+    contexts: ['action'],
+  }, () => {
+    if (browser.runtime.lastError) {
+      error(browser.runtime.lastError);
+    }
+  });
 });
 
 browser.contextMenus.onClicked.addListener(async info => {
@@ -36,6 +46,10 @@ browser.contextMenus.onClicked.addListener(async info => {
         url,
         active: true,
       });
+      break;
+    }
+    case 'Request Host Permissions': {
+      await requestNecessaryHostPermissions();
       break;
     }
     default: break;

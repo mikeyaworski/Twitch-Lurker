@@ -21,6 +21,17 @@ export const UNMUTE_INTERVAL_LENGTH = 3 * 1000; // 3 seconds
 export const REFRESH_TOKEN_EXPIRY_THRESHOLD_SECONDS = 10 * 60; // 10 minutes
 export const YOUTUBE_SUBSCRIPTIONS_POLL_DELAY_SECONDS = 60 * 60 * 48; // 2 days
 
+export enum OriginType {
+  TWITCH = 'TWITCH',
+  YOUTUBE = 'YOUTUBE',
+  KICK = 'KICK',
+}
+export const ORIGINS = Object.freeze({
+  [OriginType.TWITCH]: 'https://*.twitch.tv/*',
+  [OriginType.KICK]: 'https://*.kick.com/*',
+  [OriginType.YOUTUBE]: 'https://*.youtube.com/*',
+});
+
 export interface Favorite {
   type: ChannelType,
   value: string,

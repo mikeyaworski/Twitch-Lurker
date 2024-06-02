@@ -5,11 +5,13 @@ import {
   AccountType,
   Login,
   MessageType,
+  OriginType,
   YouTubeOAuthCredentials,
 } from 'src/types';
 import {
   YOUTUBE_API_KEY_DOCUMENTATION,
   YOUTUBE_OAUTH_CREDENTIALS_DOCUMENTATION,
+  ORIGINS,
 } from 'src/app-constants';
 import { useHandleOpenLink } from 'src/ui/hooks';
 import { useStorage } from 'src/ui/stores/Storage';
@@ -25,7 +27,16 @@ function login(accountType: AccountType.TWITCH | AccountType.YOUTUBE | AccountTy
     [AccountType.YOUTUBE]: MessageType.LOGIN_YOUTUBE,
     [AccountType.KICK]: MessageType.LOGIN_KICK,
   };
-  browser.runtime.sendMessage({ type: messageTypeMap[accountType] });
+  // TODO: When auto opening tabs works for YouTube and Kick, enable the permission requests here as well
+  if (accountType === AccountType.TWITCH) {
+    browser.permissions.request({
+      origins: [ORIGINS[OriginType.TWITCH]],
+    }).then(() => {
+      browser.runtime.sendMessage({ type: messageTypeMap[accountType] });
+    });
+  } else {
+    browser.runtime.sendMessage({ type: messageTypeMap[accountType] });
+  }
 }
 
 interface CardSkeletonProps {

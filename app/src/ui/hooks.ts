@@ -1,7 +1,9 @@
 import { useCallback, useState, useEffect } from 'react';
 import browser from 'webextension-polyfill';
 import { useStorage } from 'src/ui/stores/Storage';
+import { usePermissions } from 'src/ui/stores/Permissions';
 import { getIsLoggedInWithAnyAccount } from 'src/utils';
+import { AccountType, OriginType } from 'src/types';
 
 export function useOpen(initial = false) {
   const [open, setOpen] = useState<boolean>(initial);
@@ -64,4 +66,32 @@ export function useHandleOpenLink(url: string, active = false): React.MouseEvent
     });
   }, [url, active]);
   return handleOpenLink;
+}
+
+type PermissionIssues = {
+  [key in OriginType]: boolean
+};
+export function usePermissionIssues(): PermissionIssues {
+  const permissionsLoading = usePermissions(store => store.loading);
+  const origins = usePermissions(store => store.origins);
+  const storage = useStorage(store => store.storage);
+  const storageLoading = useStorage(store => store.loading);
+
+  if (permissionsLoading || storageLoading) {
+    return {
+      [OriginType.TWITCH]: false,
+      [OriginType.YOUTUBE]: false,
+      [OriginType.KICK]: false,
+    };
+  }
+  const hasTwitchAccount = storage.logins.some(login => login.type === AccountType.TWITCH);
+  const hasYouTubeAccount = storage.logins.some(login => login.type === AccountType.YOUTUBE_API_KEY
+    || login.type === AccountType.YOUTUBE);
+  const hasKickAccount = storage.logins.some(login => login.type === AccountType.KICK);
+  return {
+    [OriginType.TWITCH]: storage.autoOpenTabs && hasTwitchAccount && !origins[OriginType.TWITCH],
+    // TODO: When these support auto opening tabs, enable these error states
+    [OriginType.YOUTUBE]: false && hasYouTubeAccount && !origins[OriginType.YOUTUBE],
+    [OriginType.KICK]: false && hasKickAccount && !origins[OriginType.KICK],
+  };
 }

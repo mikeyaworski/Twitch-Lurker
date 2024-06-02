@@ -8,14 +8,15 @@ import Following from 'src/ui/components/Following';
 import Sidebar from 'src/ui/components/Sidebar';
 import Accounts from 'src/ui/components/Accounts';
 import Preferences from 'src/ui/components/Preferences';
+import Permissions from 'src/ui/components/Permissions';
 import Favorites from 'src/ui/components/Favorites';
 import AddChannels from 'src/ui/components/AddChannels';
 import HideChannels from 'src/ui/components/HideChannels';
 import ImportExportSettings from 'src/ui/components/ImportExportSettings';
 import PlatformButtonIcon from 'src/ui/widgets/PlatformButtonIcon';
-import { MessageType } from 'src/app-constants';
+import { MessageType, AccountType, OriginType } from 'src/types';
+import { ORIGINS } from 'src/app-constants';
 import { useAuth } from 'src/ui/hooks';
-import { AccountType } from 'src/types';
 import { POPUP_HEIGHT } from 'src/ui/components/App';
 
 const MAX_POPUP_WIDTH = 800;
@@ -35,7 +36,11 @@ function Home() {
   const { loading, loggedIn } = useAuth();
 
   function login(type: MessageType) {
-    browser.runtime.sendMessage({ type });
+    browser.permissions.request({
+      origins: [ORIGINS[OriginType.TWITCH]],
+    }).then(() => {
+      browser.runtime.sendMessage({ type });
+    });
   }
 
   return (
@@ -94,6 +99,7 @@ function Home() {
           <Route exact path="/" component={Sidebar} />
           <Route exact path="/accounts" component={Accounts} />
           <Route exact path="/preferences" component={Preferences} />
+          <Route exact path="/permissions" component={Permissions} />
           <Route exact path="/favorites" component={Favorites} />
           <Route exact path="/add-channels" component={AddChannels} />
           <Route exact path="/hide-channels" component={HideChannels} />

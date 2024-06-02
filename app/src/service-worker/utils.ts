@@ -1,5 +1,7 @@
 import jwtDecode from 'jwt-decode';
-import { IntentionalAny } from 'src/types';
+import browser from 'webextension-polyfill';
+import { ORIGINS } from 'src/app-constants';
+import { IntentionalAny, OriginType } from 'src/types';
 
 const TWITCH_HOSTNAME_REGEX = /^(www.|m.)?twitch.tv$/i;
 const TWITCH_CHANNEL_PATH_REGEX = /^\/(?!(videos\/\d+|[^/]+\/clip\/.+|settings|popout|subscriptions|wallet|inventory|drops|directory))/i;
@@ -37,4 +39,10 @@ export function isLockedTwitchPage(url: string): boolean {
   const { hostname, pathname } = new URL(url);
   return TWITCH_HOSTNAME_REGEX.test(hostname)
     && TWITCH_LOCKED_TAB_REGEX.test(pathname);
+}
+
+export async function getHasTwitchHostPermission(): Promise<boolean> {
+  return browser.permissions.contains({
+    origins: [ORIGINS[OriginType.TWITCH]],
+  });
 }

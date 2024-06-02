@@ -3,6 +3,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline, GlobalStyles, Box } from '@mui/material';
 import Router from 'src/ui/components/Router';
 import { useStorageInitialization } from 'src/ui/stores/Storage';
+import { usePermissionsInitialization } from 'src/ui/stores/Permissions';
 import { useChannelAtomsInitialization } from 'src/ui/atoms/Channels';
 import { IsFullscreenAtom } from 'src/ui/atoms/IsFullscreen';
 import theme, { globalStyles } from 'src/ui/theme';
@@ -14,6 +15,7 @@ const App: React.FC = () => {
 
   useStorageInitialization();
   useChannelAtomsInitialization();
+  usePermissionsInitialization();
 
   return (
     <ThemeProvider theme={theme}>
