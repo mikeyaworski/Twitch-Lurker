@@ -28,7 +28,6 @@
     "unlimitedStorage"
   ],
   "host_permissions": [
-    "https://*.googleapis.com/*",
     "https://*.twitch.tv/*",
     "https://*.kick.com/*",
     "https://*.youtube.com/*"
