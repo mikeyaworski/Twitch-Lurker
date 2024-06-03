@@ -96,7 +96,7 @@ export function usePermissionIssues(): PermissionIssues {
     // E.g. we don't need the youtube.com host permission if we are not auto opening tabs for YouTube.
     // But to make it simpler for the users, we won't create so many granular permission requests.
     [OriginType.YOUTUBE]: hasYouTubeAccount && !origins[OriginType.YOUTUBE],
-    // TODO: When this support auto opening tabs, enable these error states
+    // TODO: When this supports auto opening tabs, enable this error states
     [OriginType.KICK]: false && hasKickAccount && !origins[OriginType.KICK],
   };
 }
