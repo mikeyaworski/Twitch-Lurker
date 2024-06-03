@@ -1,4 +1,8 @@
+import { expect, describe, beforeAll, beforeEach, afterAll, it, vi } from 'vitest';
 import { getStreamLength } from '../utils';
+
+vi.mock('webextension-polyfill', () => ({ default: null }));
+vi.mock('src/storage', () => ({ getFullStorage: () => null }));
 
 describe('getStreamLength', () => {
   let realDateNow: () => number;
@@ -6,7 +10,7 @@ describe('getStreamLength', () => {
     realDateNow = global.Date.now;
   });
   beforeEach(() => {
-    global.Date.now = jest.fn().mockReturnValue(1624594066282);
+    global.Date.now = vi.fn().mockReturnValue(1624594066282);
   });
   afterAll(() => {
     global.Date.now = realDateNow;

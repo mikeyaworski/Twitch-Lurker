@@ -1,0 +1,6 @@
+body {
+  margin: 0;
+  /* Firefox quirks */
+  background-color: #424242;
+  overflow: hidden;
+}

@@ -1,4 +1,4 @@
-import { TITLE } from 'app-constants';
+import { TITLE } from 'src/app-constants';
 
 /* eslint-disable no-console, @typescript-eslint/no-explicit-any */
 export function log(...args: any[]) {

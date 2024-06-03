@@ -15,67 +15,42 @@ This project was sponsored and conceptualized by ErianasVow.
 ## Local Development
 
 1. `git clone ...`
-1. `cd app` and `npm run build:all`
-1. The source folder for the extension/addon is in `app/build`.
-1. You can build the background/content scripts separately from the popup.
-    - `npm run build:all` builds both.
-    - `npm run build:popup` builds just the popup (longest wait time).
-    - `npm run build:scripts` builds just the background/content scripts (shortest wait time).
+1. `cd app` and `npm run build:chrome` (or `npm run build:firefox`)
+1. The source folder for the extension/addon is in `app/build/chrome` (or `app/build/firefox`)
 
-    If you are making changes to background/content scripts, then you need to refresh the extension at `chrome://extensions`.
+If you are making changes to the service worker, content script or manifest, then you need to refresh the extension at `chrome://extensions`. If you are making changes to one of the UI pages, you do not need to refresh the chrome extension (just re-open the page/popup).
 
-    If you are making changes to the popup window, you do not need to refresh the chrome extension (just re-open the popup).
+We have the script `npm run watch:chrome` (or `npm run watch:firefox`), which continuously builds the app as you make changes.
 
-We have the script `npm run watch:scripts`, which continuously builds the background/content scripts as you make changes, but you still have to refresh the extension to see the changes. We also have the command `npm run watch:popup` which updates the popup as you make changes. You will need to close/reopen the popup to see the changes, but no need to refresh the extension.
+There are a number of shorthand scripts for convenience:
+
+| Script | Shorthand Script |
+| --- | --- |
+| `npm run build:chrome` | `npm run bc`, `npm run build` |
+| `npm run build:firefox` | `npm run bf` |
+| `npm run watch:chrome` | `npm run wc`, `npm run watch` |
+| `npm run watch:firefox` | `npm run wf` |
 
 ## Project Structure
 
 ### General Overview
 
-There are two major components to this:
+There are three major components to this:
 
-- Background scripts
-- Content scripts
-- React components
+- Service worker
+- Content script
+- UI pages (built with React)
 
-Depsite all the files you see, the resulting package uploading to Chrome/Firefox is simply `manifest.json`, our background/content scripts, and a popup (`index.html`) that is rendered when you click the extension/addon icon.
+The library used for the build process is Vite. To package the build properly for browser extensions, we use the Vite plugin `@crxjs/vite-plugin`. The application code is effectively the same between Chrome and Firefox, but the manifest differs, so the build process creates a different build output for Firefox.
 
-Our React components are bundled to create our popup. Our `app/public/background-scripts/main.ts` is bundled to create our background script. Our `app/public/content-scripts/main.ts` is bundled to create our content script. All extension/addon files (icons, manifest, background scripts and content scripts) must be placed inside `app/public`. They will be copied over to `app/build`.
-
-`npm run build:prod` does two things (in this order):
-
-1. `rollup` is used to bundle all background scripts into one file called `background-script-bundle.js` and all content scripts into `content-script-bundle.js`.
-  
-    This allows us to use the latest ECMAScript and have great organization of our scripts. `manifest.json` lists only `background-script-bundle.js` as a background script and `content-script-bundle.js` as a content script, so `rollup` is expected to be run before packaging the extension (it builds those files).
-
-    `app/public/background-scripts/main.ts` is the entry point for bundling our background scripts (similar for content scripts). So `main.ts` will import other files, like `app-constants.ts`.
-
-2. This project uses `create-react-app` to bootstrap the React app (all of the `app` directory). `react-scripts build` is run, which bundles everything from `app/src` and `app/public` to `app/build`.
-
-    All of the React componentes are bundled together and rendered on the DOM via the entry point `app/src/index.tsx`. The bundled JS and CSS files are injected into `app/public/index.html` and then the bundled `index.html` is put into `app/build`.
-  
-    Note that all of of our `app/public` will be copied into `app/build`, so that includes our `manifest.json`, `background-script-bundle.js`, `content-script-bundle.js`, and other extension/addon files. Therefore, our `manifest.json` uses all of those files which are bundled into the `app/build` directory with it (`index.html` and `background-script-bundle.js`). Our `app/build` directory can now be zipped and used as a packaged submission to Chrome/Firefox.
-
-### tsconfig.json
-
-There are three `tsconfig` files:
-- `tsconfig.json`
-    
-    For our React code and linter.
-- `tsconfig.background-scripts.json`
-    
-    For just our background scripts (manually specified in our Rollup config).
-- `tsconfig.content-scripts.json`
-    
-    For just our content scripts (manually specified in our Rollup config).
-
-`baseUrl: './src'` in `tsconfig.json` is used so that imports within any of our React components can use a path relative to `app/src`. E.g. a React file deeply nested in directories can use `import constants from 'app-constants'` since `app-constants` is in `app/src`, rather than something like `import constants from '../../../app-constants`.
-
-Note that background/content scripts cannot take advantage of this. This would be something nice to implement in the future.
+- All of the application code is located in `app/src`.
+- The UI pages (React code) is located in `app/src/ui`. This is the code that creates our popup window and full page viewer.
+- The `app/public` folder contains assets used for the manifest definition and for the UI pages. These assets are copied directly to the build output directory, so they will be at the root of the build.
+- The manifest is located at `app/manifest.json`. The manifest is altered before being put in the build, so references to pre-transpiled files (e.g. TypeScript files) are used because those get transpiled and the manifest gets altered as part of the build process.
 
 ## Automated Deployment
 
-This project uses GitHub actions to run checks and automatic deployments. All PRs created will run a "test" workflow, which simply runs `npm run test` and `npm run build:prod`. If this fails, it means there is either a lint error, a TypeScript error, or the project did not build for some other reason. This workflow is required to pass before any PR can be merged into master.
+This project uses GitHub actions to run checks and automatic deployments. All PRs created will run a "test" workflow, which simply runs `npm run test`, `npm run build:chrome` and `npm run build:firefox`. If this fails, it means there is either a lint error, a TypeScript error, or the project did not build for some other reason. This workflow is required to pass before any PR can be merged into master.
 
 Once a commit is made to master (e.g. a PR is merged), two "deploy" workflows will run (one for Firefox and one for Chrome). These workflows build the extension, packages it and deploys it. If the manifest version number is *not* bumped, then Chrome/Firefox won't accept the package and the workflow will fail, which is fine.
 

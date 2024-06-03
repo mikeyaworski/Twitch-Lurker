@@ -1,5 +1,6 @@
-import type { ChannelType, DeepMutable, Login, YouTubeSubscription } from './types';
+import type { ChannelType, DeepMutable, Login, YouTubeSubscription, Channel } from './types';
 
+export const POLL_ALARM_NAME = 'POLL';
 export const BADGE_TEXT_COLOR = '#FFFFFF';
 export const BADGE_DEFAULT_BACKGROUND_COLOR = '#777777';
 export const BADGE_PURPLE_BACKGROUND_COLOR = '#8561c5';
@@ -19,6 +20,17 @@ export const YOUTUBE_PAGINATION_LIMIT = 50;
 export const UNMUTE_INTERVAL_LENGTH = 3 * 1000; // 3 seconds
 export const REFRESH_TOKEN_EXPIRY_THRESHOLD_SECONDS = 10 * 60; // 10 minutes
 export const YOUTUBE_SUBSCRIPTIONS_POLL_DELAY_SECONDS = 60 * 60 * 48; // 2 days
+
+export enum OriginType {
+  TWITCH = 'TWITCH',
+  YOUTUBE = 'YOUTUBE',
+  KICK = 'KICK',
+}
+export const ORIGINS = Object.freeze({
+  [OriginType.TWITCH]: ['https://*.twitch.tv/*'],
+  [OriginType.YOUTUBE]: ['https://*.youtube.com/*', 'https://*.googleapis.com/*'],
+  [OriginType.KICK]: ['https://*.kick.com/*'],
+});
 
 export interface Favorite {
   type: ChannelType,
@@ -66,6 +78,10 @@ const DEFAULT_STORAGE_LOCAL_VALUES = {
     fetchTime: number | null, // epoch in seconds
     subscriptions: YouTubeSubscription[],
   },
+  mostRecentChannels: null as null | {
+    fetchTime: number | null, // epoch in seconds
+    channels: Channel[],
+  },
 };
 
 export const DEFAULT_STORAGE_LOCAL = Object.freeze(DEFAULT_STORAGE_LOCAL_VALUES);
@@ -75,7 +91,8 @@ export enum MessageType {
   LOGIN_YOUTUBE,
   LOGIN_KICK,
   LOGOUT,
-  FETCH_CHANNELS,
+  GET_CHANNELS,
+  FORCE_FETCH_CHANNELS,
   SEND_CHANNELS,
   MUTE_PLAYER,
   FETCH_YOUTUBE_SUBSCRIPTIONS,

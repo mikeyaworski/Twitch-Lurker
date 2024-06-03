@@ -1,4 +1,4 @@
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import merge from 'lodash.merge';
 import { error } from './logging';
 import { DEFAULT_STORAGE_LOCAL, DEFAULT_STORAGE_SYNC } from './app-constants';

@@ -10,8 +10,7 @@
 
 # production
 /build
-/public/content-script-bundle.js
-/public/background-script-bundle.js
+/dist
 
 # misc
 .DS_Store
