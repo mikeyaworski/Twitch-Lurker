@@ -90,8 +90,13 @@ export function usePermissionIssues(): PermissionIssues {
   const hasKickAccount = storage.logins.some(login => login.type === AccountType.KICK);
   return {
     [OriginType.TWITCH]: storage.autoOpenTabs && hasTwitchAccount && !origins[OriginType.TWITCH],
-    // TODO: When these support auto opening tabs, enable these error states
-    [OriginType.YOUTUBE]: false && hasYouTubeAccount && !origins[OriginType.YOUTUBE],
+    // The tradeoff for YouTube permissions being too granular is user experience vs being technically correct.
+    // Technically, we don't all of the YouTube host permissions when they have a YouTube account.
+    // E.g. we don't need the googleapis.com host permission if they only have an API key and are not logged in with a YouTube account.
+    // E.g. we don't need the youtube.com host permission if we are not auto opening tabs for YouTube.
+    // But to make it simpler for the users, we won't create so many granular permission requests.
+    [OriginType.YOUTUBE]: hasYouTubeAccount && !origins[OriginType.YOUTUBE],
+    // TODO: When this support auto opening tabs, enable these error states
     [OriginType.KICK]: false && hasKickAccount && !origins[OriginType.KICK],
   };
 }

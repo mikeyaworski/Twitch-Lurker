@@ -27,9 +27,9 @@ export enum OriginType {
   KICK = 'KICK',
 }
 export const ORIGINS = Object.freeze({
-  [OriginType.TWITCH]: 'https://*.twitch.tv/*',
-  [OriginType.KICK]: 'https://*.kick.com/*',
-  [OriginType.YOUTUBE]: 'https://*.youtube.com/*',
+  [OriginType.TWITCH]: ['https://*.twitch.tv/*'],
+  [OriginType.YOUTUBE]: ['https://*.youtube.com/*', 'https://*.googleapis.com/*'],
+  [OriginType.KICK]: ['https://*.kick.com/*'],
 });
 
 export interface Favorite {

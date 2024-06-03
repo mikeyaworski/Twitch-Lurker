@@ -37,7 +37,7 @@ function Home() {
 
   function login(type: MessageType) {
     browser.permissions.request({
-      origins: [ORIGINS[OriginType.TWITCH]],
+      origins: ORIGINS[OriginType.TWITCH],
     });
     // Due to a bug in Firefox where the permissions request is hidden behind the extension popup,
     // do not wait for the permission request to be completed before attempting to log in.

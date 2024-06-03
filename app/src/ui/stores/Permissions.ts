@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { create } from 'zustand';
 import browser from 'webextension-polyfill';
 import { ORIGINS } from 'src/app-constants';
@@ -45,46 +45,33 @@ export function usePermissionsInitialization() {
   const setOrigins = usePermissions(store => store.setOrigins);
   const setLoading = usePermissions(store => store.setLoading);
 
-  useEffect(() => {
+  const fetchPermissions = useCallback(() => {
     browser.permissions.getAll().then(permissions => {
+      const hasTwitchPermissions = ORIGINS[OriginType.TWITCH].every(origin => permissions.origins?.includes(origin));
+      const hasYouTubePermissions = ORIGINS[OriginType.YOUTUBE].every(origin => permissions.origins?.includes(origin));
+      const hasKickPermissions = ORIGINS[OriginType.KICK].every(origin => permissions.origins?.includes(origin));
       setOrigins({
-        [OriginType.TWITCH]: Boolean(permissions.origins?.includes(ORIGINS[OriginType.TWITCH])),
-        [OriginType.KICK]: Boolean(permissions.origins?.includes(ORIGINS[OriginType.KICK])),
-        [OriginType.YOUTUBE]: Boolean(permissions.origins?.includes(ORIGINS[OriginType.YOUTUBE])),
+        [OriginType.TWITCH]: hasTwitchPermissions,
+        [OriginType.YOUTUBE]: hasYouTubePermissions,
+        [OriginType.KICK]: hasKickPermissions,
       });
       setLoading(false);
     });
   }, [setOrigins, setLoading]);
 
   useEffect(() => {
-    const onChangedListener = (newValue: boolean) => (permissions: browser.Permissions.Permissions) => {
-      const newPermissions: Partial<OriginsPermissions> = {};
-      permissions.origins?.forEach(origin => {
-        switch (origin) {
-          case ORIGINS[OriginType.TWITCH]: {
-            newPermissions[OriginType.TWITCH] = newValue;
-            break;
-          }
-          case ORIGINS[OriginType.YOUTUBE]: {
-            newPermissions[OriginType.YOUTUBE] = newValue;
-            break;
-          }
-          case ORIGINS[OriginType.KICK]: {
-            newPermissions[OriginType.KICK] = newValue;
-            break;
-          }
-          default: break;
-        }
-      });
-      setOrigins(newPermissions);
+    fetchPermissions();
+  }, [fetchPermissions]);
+
+  useEffect(() => {
+    const onChangedListener = (permissions: browser.Permissions.Permissions) => {
+      fetchPermissions();
     };
-    const onAddedListener = onChangedListener(true);
-    const onRemovedListener = onChangedListener(false);
-    browser.permissions.onAdded.addListener(onAddedListener);
-    browser.permissions.onRemoved.addListener(onRemovedListener);
+    browser.permissions.onAdded.addListener(onChangedListener);
+    browser.permissions.onRemoved.addListener(onChangedListener);
     return () => {
-      browser.permissions.onAdded.removeListener(onAddedListener);
-      browser.permissions.onRemoved.removeListener(onRemovedListener);
+      browser.permissions.onAdded.removeListener(onChangedListener);
+      browser.permissions.onRemoved.removeListener(onChangedListener);
     };
-  }, [setOrigins]);
+  }, [fetchPermissions]);
 }

@@ -6,7 +6,8 @@ import { useShallow } from 'zustand/react/shallow';
 import { Typography, FormControlLabel, RadioGroup, InputAdornment, IconButton, Tooltip } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 
-import { AccountType, Channel, ChannelType, StorageSync, MessageType } from 'src/types';
+import { ORIGINS } from 'src/app-constants';
+import { AccountType, Channel, ChannelType, StorageSync, MessageType, OriginType } from 'src/types';
 import { getAddedChannelsKey, getYouTubeLogin, shouldConvertKeyToLowerCase } from 'src/utils';
 import { useTemporaryToggle } from 'src/ui/hooks';
 import { useStorage } from 'src/ui/stores/Storage';
@@ -16,7 +17,11 @@ import SmallRadio from 'src/ui/widgets/SmallRadio';
 import VirtualizedChannelsAutocomplete from './VirtualizedChannelsAutocomplete';
 
 function fetchYouTubeSubscriptions() {
-  browser.runtime.sendMessage({ type: MessageType.FETCH_YOUTUBE_SUBSCRIPTIONS });
+  browser.permissions.request({
+    origins: ORIGINS[OriginType.YOUTUBE],
+  }).then(granted => {
+    if (granted) browser.runtime.sendMessage({ type: MessageType.FETCH_YOUTUBE_SUBSCRIPTIONS });
+  });
 }
 
 type AccountKey = keyof StorageSync['addedChannels'];

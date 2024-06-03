@@ -18,32 +18,34 @@ function OriginCard({ type }: OriginCardProps) {
   const enabled = hostPermissions[type];
   const hasIssue = permissionIssues[type];
 
-  const title = (() => {
-    switch (type) {
-      case OriginType.TWITCH: {
-        return 'Twitch';
-      }
-      case OriginType.KICK: {
-        return 'Kick';
-      }
-      case OriginType.YOUTUBE: {
-        return 'YouTube';
-      }
-      default: {
-        return '';
-      }
+  let title = '';
+  let issueTooltip = 'This permission is required to automatically open tabs';
+  switch (type) {
+    case OriginType.TWITCH: {
+      title = 'Twitch';
+      break;
     }
-  })();
+    case OriginType.YOUTUBE: {
+      title = 'YouTube';
+      issueTooltip = 'These permissions are required to automatically open tabs and fetch subscriptions';
+      break;
+    }
+    case OriginType.KICK: {
+      title = 'Kick';
+      break;
+    }
+    default: break;
+  }
 
   function request() {
     browser.permissions.request({
-      origins: [ORIGINS[type]],
+      origins: ORIGINS[type],
     });
   }
 
   function remove() {
     browser.permissions.remove({
-      origins: [ORIGINS[type]],
+      origins: ORIGINS[type],
     });
   }
 
@@ -56,16 +58,18 @@ function OriginCard({ type }: OriginCardProps) {
           </Typography>
         )}
         action={hasIssue && (
-          <Tooltip arrow title="This permission is required to automatically open tabs">
+          <Tooltip arrow title={issueTooltip}>
             <ErrorIcon color="warning" sx={{ cursor: 'pointer' }} />
           </Tooltip>
         )}
         sx={{ pt: 1.5, pb: 0 }}
       />
       <CardContent sx={{ pt: 0, pb: 0.5 }}>
-        <Typography variant="body2" color="lightgray">
-          {ORIGINS[type]}
-        </Typography>
+        {ORIGINS[type].map(origin => (
+          <Typography key={origin} variant="body2" color="lightgray">
+            {origin}
+          </Typography>
+        ))}
       </CardContent>
       <CardActions>
         <Button variant="contained" size="small" color="primary" onClick={request} disabled={enabled}>

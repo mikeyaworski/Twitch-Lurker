@@ -32,7 +32,7 @@ export default function Preferences() {
 
   function onAutoOpenTabsChange(e: React.ChangeEvent<HTMLInputElement>) {
     setStorage({ autoOpenTabs: e.target.checked });
-    if (e.target.checked) requestNecessaryHostPermissions(true);
+    if (e.target.checked) requestNecessaryHostPermissions();
   }
 
   return (

@@ -201,23 +201,18 @@ export function getYouTubeLogin(storage: StorageSync): YouTubeLogin | undefined 
   return storage.logins.find((login): login is YouTubeLogin => login.type === AccountType.YOUTUBE);
 }
 
-export function getHostPermissionRequests(): browser.Permissions.Permissions {
+function getHostPermissionRequests(): browser.Permissions.Permissions {
   const permissions: browser.Permissions.Permissions = {
     origins: [],
   };
   const hasTwitchAccount = storage.logins.some(login => login.type === AccountType.TWITCH);
   const hasYouTubeAccount = storage.logins.some(login => login.type === AccountType.YOUTUBE_API_KEY
     || login.type === AccountType.YOUTUBE);
-  const hasKickAccount = storage.logins.some(login => login.type === AccountType.KICK);
-  if (hasTwitchAccount) permissions.origins?.push(ORIGINS[OriginType.TWITCH]);
-  if (hasYouTubeAccount) permissions.origins?.push(ORIGINS[OriginType.YOUTUBE]);
-  if (hasKickAccount) permissions.origins?.push(ORIGINS[OriginType.KICK]);
+  if (hasTwitchAccount) permissions.origins?.push(...ORIGINS[OriginType.TWITCH]);
+  if (hasYouTubeAccount) permissions.origins?.push(...ORIGINS[OriginType.YOUTUBE]);
   return permissions;
 }
 
-export async function requestNecessaryHostPermissions(force = false): Promise<boolean> {
-  if (force || storage.autoOpenTabs) {
-    return browser.permissions.request(getHostPermissionRequests());
-  }
-  return false;
+export function requestNecessaryHostPermissions(): Promise<boolean> | boolean {
+  return browser.permissions.request(getHostPermissionRequests());
 }

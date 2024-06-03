@@ -27,13 +27,23 @@ function login(accountType: AccountType.TWITCH | AccountType.YOUTUBE | AccountTy
     [AccountType.YOUTUBE]: MessageType.LOGIN_YOUTUBE,
     [AccountType.KICK]: MessageType.LOGIN_KICK,
   };
-  // TODO: When auto opening tabs works for YouTube and Kick, enable the permission requests here as well
-  if (accountType === AccountType.TWITCH) {
-    // Due to a bug in Firefox where the permissions request is hidden behind the extension popup,
-    // do not wait for the permission request to be completed before attempting to log in.
-    browser.permissions.request({
-      origins: [ORIGINS[OriginType.TWITCH]],
-    });
+  // TODO: When auto opening tabs works for Kick, enable the permission request here as well
+  switch (accountType) {
+    case AccountType.TWITCH: {
+      // Due to a bug in Firefox where the permissions request is hidden behind the extension popup,
+      // do not wait for the permission request to be completed before attempting to log in.
+      browser.permissions.request({
+        origins: ORIGINS[OriginType.TWITCH],
+      });
+      break;
+    }
+    case AccountType.YOUTUBE: {
+      browser.permissions.request({
+        origins: ORIGINS[OriginType.YOUTUBE],
+      });
+      break;
+    }
+    default: break;
   }
   browser.runtime.sendMessage({ type: messageTypeMap[accountType] });
 }

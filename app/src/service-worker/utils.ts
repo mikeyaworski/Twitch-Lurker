@@ -43,6 +43,6 @@ export function isLockedTwitchPage(url: string): boolean {
 
 export async function getHasTwitchHostPermission(): Promise<boolean> {
   return browser.permissions.contains({
-    origins: [ORIGINS[OriginType.TWITCH]],
+    origins: ORIGINS[OriginType.TWITCH],
   });
 }
