@@ -88,7 +88,7 @@ export default function ChannelItem({
   }, []);
 
   const avatar = (
-    <Box position="relative" mr={1}>
+    <Box display="flex" position="relative" mr={1}>
       {!avatarLoaded && (
         <Skeleton
           variant="rectangular"
