@@ -16,6 +16,8 @@ const publicDir = resolve(__dirname, 'public');
 function getManifest(): ManifestV3Export {
   return {
     ...rawManifest,
+    // @ts-expect-error
+    browser_specific_settings: isFirefox ? rawManifest.browser_specific_settings : undefined,
     background: isFirefox ? {
       scripts: [rawManifest.background.service_worker],
       type: 'module',
