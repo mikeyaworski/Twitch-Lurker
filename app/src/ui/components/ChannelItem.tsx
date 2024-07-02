@@ -107,6 +107,7 @@ export default function ChannelItem({
         loading="lazy"
         onLoad={handleAvatarLoaded}
         onError={handleAvatarLoaded}
+        visibility={avatarLoaded ? 'visible' : 'hidden'}
         sx={profilePicSizingStyle}
       />
     </Box>
