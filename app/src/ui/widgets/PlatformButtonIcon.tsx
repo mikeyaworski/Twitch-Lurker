@@ -14,7 +14,7 @@ export default function PlatformButtonIcon({ type }: Props) {
     }
     case AccountType.TWITCH: {
       return (
-        <img src="/twitch-icon-white.svg" alt="" width={20} height={20} />
+        <img src="/twitch-icon-white.svg" alt="" loading="lazy" width={20} height={20} />
       );
     }
     default: {

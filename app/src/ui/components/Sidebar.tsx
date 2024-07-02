@@ -90,6 +90,7 @@ function Sidebar() {
         <img
           src="/icons/icon128.png"
           alt=""
+          loading="lazy"
           width={32}
           height={32}
         />
@@ -147,6 +148,7 @@ function Sidebar() {
           <img
             src="https://cdn.buymeacoffee.com/buttons/v2/default-violet.png"
             alt="Buy Me A Coffee"
+            loading="lazy"
             width={217}
             height={60}
           />

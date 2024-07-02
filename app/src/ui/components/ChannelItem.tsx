@@ -12,11 +12,10 @@ import { getChannelUrl, getIsLoggedInWithMultipleAccounts } from 'src/utils';
 
 const AVATAR_SIZE = 22;
 
-const profilePicStyle = {
+const profilePicSizingStyle = {
   width: AVATAR_SIZE,
   height: AVATAR_SIZE,
   minWidth: AVATAR_SIZE,
-  marginRight: 1,
 };
 
 const iconStyle = {
@@ -46,7 +45,7 @@ export function ChannelItemSkeleton({
 }: Pick<ChannelItemProps, 'sx' | 'showLiveCount'>) {
   return (
     <ListItem dense divider sx={sx}>
-      <Skeleton variant="rectangular" width={20} height={20} sx={profilePicStyle} />
+      <Skeleton variant="rectangular" width={20} height={20} sx={{ ...profilePicSizingStyle, mr: 1 }} />
       <ListItemText sx={itemTextStyle}>
         <Skeleton variant="rectangular" width={60} height={20} />
       </ListItemText>
@@ -89,19 +88,28 @@ export default function ChannelItem({
   }, []);
 
   const avatar = (
-    <>
+    <Box position="relative" mr={1}>
       {!avatarLoaded && (
-        <Skeleton variant="rectangular" sx={profilePicStyle} />
+        <Skeleton
+          variant="rectangular"
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            ...profilePicSizingStyle,
+          }}
+        />
       )}
       <Box
         component="img"
         src={channel.profilePic}
-        alt="avatar"
+        alt=""
+        loading="lazy"
         onLoad={handleAvatarLoaded}
-        sx={profilePicStyle}
-        display={avatarLoaded ? 'block' : 'none'}
+        onError={handleAvatarLoaded}
+        sx={profilePicSizingStyle}
       />
-    </>
+    </Box>
   );
   const href = getChannelUrl(channel);
   const displayName = linked ? (
@@ -126,6 +134,7 @@ export default function ChannelItem({
           <img
             src="/twitch-icon.svg"
             alt=""
+            loading="lazy"
             style={{
               height: 16,
               width: 16,
@@ -140,6 +149,7 @@ export default function ChannelItem({
           <img
             src="/youtube-icon.svg"
             alt=""
+            loading="lazy"
             style={{
               height: 12,
               width: 17,
@@ -154,6 +164,7 @@ export default function ChannelItem({
           <img
             src="/kick-icon.png"
             alt=""
+            loading="lazy"
             style={{
               height: 14,
               width: 14,
