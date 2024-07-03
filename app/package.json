@@ -2,7 +2,11 @@
   "name": "twitch-lurker",
   "description": "Always support your favorite streamer by automatically pulling up their stream when they go live.",
   "version": "1.0.0",
+  "type": "module",
   "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "lint": "npx eslint .",
     "test": "npm run lint && vitest run",
@@ -18,7 +22,6 @@
     "watch:chrome": "cross-env TARGET=CHROME nodemon",
     "wc": "npm run watch:chrome"
   },
-  "type": "module",
   "dependencies": {
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
