@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import browser from 'webextension-polyfill';
 import { ListItem, ListItemIcon, ListItemText, Link, Skeleton, SxProps, Theme, Box } from '@mui/material';
 import { listItemTextClasses } from '@mui/material/ListItemText';
@@ -9,6 +9,9 @@ import { useStorage } from 'src/ui/stores/Storage';
 import Hoverable from 'src/ui/components/Hoverable';
 import LiveCount from 'src/ui/components/LiveCount';
 import { getChannelUrl, getIsLoggedInWithMultipleAccounts } from 'src/utils';
+
+// Manually observed value for virtualization purposes
+export const ITEM_SIZE = 37;
 
 const AVATAR_SIZE = 22;
 
@@ -37,6 +40,9 @@ export interface ChannelItemProps {
   linked?: boolean,
   showLiveCount?: boolean,
   hidePlatformIcon?: boolean,
+
+  // For virtualization
+  style?: React.CSSProperties,
 }
 
 export function ChannelItemSkeleton({
@@ -59,6 +65,7 @@ export function ChannelItemSkeleton({
 
 export default function ChannelItem({
   sx,
+  style,
   onIconClick,
   channel,
   Icon,
@@ -186,6 +193,7 @@ export default function ChannelItem({
       dense
       divider
       sx={sx}
+      style={style}
     >
       {channel.profilePic && (
         storage.showPreviewOnHover && hoverable ? (

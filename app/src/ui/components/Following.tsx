@@ -1,7 +1,9 @@
 import { useCallback, useState } from 'react';
 import browser from 'webextension-polyfill';
 import { useAtomValue } from 'jotai';
-import { Box, MenuItem, TextField, List, InputAdornment, IconButton } from '@mui/material';
+import AutoSizer from 'react-virtualized-auto-sizer';
+import { FixedSizeList, ListChildComponentProps } from 'react-window';
+import { Box, MenuItem, TextField, InputAdornment, IconButton } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import StarRoundedIcon from '@mui/icons-material/StarRounded';
 import StarBorderRoundedIcon from '@mui/icons-material/StarBorderRounded';
@@ -13,27 +15,15 @@ import { FilteredChannelsAtom } from 'src/ui/atoms/Channels';
 import { IsFullscreenAtom } from 'src/ui/atoms/IsFullscreen';
 import { useTemporaryToggle } from 'src/ui/hooks';
 import { getFavoriteValue, getFavoritesIncludesChannel, getFormattedFavorites, getId, sortChannels } from 'src/utils';
-import ChannelItem, { ChannelItemSkeleton } from './ChannelItem';
+import ChannelItem, { ChannelItemSkeleton, ITEM_SIZE as CHANNEL_ITEM_SIZE } from './ChannelItem';
 
 // This was manually observed
 const SEARCH_CONTAINER_HEIGHT = 80;
 
-export default function FollowingComponent() {
-  const isFullscreen = useAtomValue(IsFullscreenAtom);
-  const listContainerStyles = {
-    overflowY: 'scroll',
-    // 30px for padding
-    height: `calc(100% - ${SEARCH_CONTAINER_HEIGHT}px - 30px)`,
-    width: isFullscreen ? 450 : 400,
-    flexGrow: 1,
-    margin: '0 auto',
-  };
-
-  const [filter, setFilter] = useState('');
-  const loading = useStorage(store => store.loading);
+function ListItem({ data, style, index }: ListChildComponentProps<(Channel | undefined)[]>) {
   const storage = useStorage(store => store.storage);
+  const loading = useStorage(store => store.loading);
   const setStorage = useStorage(store => store.setStorage);
-  const channels = useAtomValue(FilteredChannelsAtom);
 
   const handleRemoveFavorite = useCallback((channel: Channel) => {
     setStorage({
@@ -49,6 +39,34 @@ export default function FollowingComponent() {
       }),
     });
   }, [setStorage, storage.favorites]);
+
+  const channel = data[index];
+  if (loading || !channel) {
+    return <ChannelItemSkeleton key={index} showLiveCount />;
+  }
+
+  const isFavorite = getFavoritesIncludesChannel(storage.favorites, channel);
+  return (
+    <ChannelItem
+      key={getId(channel)}
+      hoverable
+      linked
+      showLiveCount
+      channel={channel}
+      onIconClick={isFavorite ? handleRemoveFavorite : handleAddFavorite}
+      Icon={isFavorite ? StarRoundedIcon : StarBorderRoundedIcon}
+      style={style}
+    />
+  );
+}
+
+export default function FollowingComponent() {
+  const isFullscreen = useAtomValue(IsFullscreenAtom);
+
+  const [filter, setFilter] = useState('');
+  const storage = useStorage(store => store.storage);
+  const setStorage = useStorage(store => store.setStorage);
+  const channels = useAtomValue(FilteredChannelsAtom);
 
   const handleSortChange: React.ChangeEventHandler<HTMLInputElement> = useCallback(e => {
     setStorage({
@@ -73,99 +91,93 @@ export default function FollowingComponent() {
     return hasUsername || hasDisplayName || hasCustomUrl;
   }
 
-  const searchContainer = (
-    <Box
-      display="flex"
-      justifyContent="center"
-      alignItems="center"
-      p={2.5}
-      sx={{
-        '& > *:not(:last-child)': {
-          mr: 1,
-        },
-      }}
-    >
-      <TextField
-        placeholder="Search..."
-        variant="outlined"
-        size="small"
-        value={filter}
-        onChange={e => setFilter(e.target.value)}
-        sx={{ width: 250 }}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon />
-            </InputAdornment>
-          ),
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton size="small" onClick={() => setFilter('')}>
-                <ClearIcon fontSize="small" />
-              </IconButton>
-            </InputAdornment>
-          ),
-        }}
-      />
-      <TextField
-        value={storage.sortLow ? 1 : 0}
-        variant="outlined"
-        label="Sort by"
-        size="small"
-        color="primary"
-        select
-        onChange={handleSortChange}
-      >
-        <MenuItem color="info" value={1}>Lowest</MenuItem>
-        <MenuItem color="info" value={0}>Highest</MenuItem>
-      </TextField>
-      <IconButton
-        onClick={handleRefresh}
-        disabled={refetchDataButtonDisabled}
-        title="Force refresh channels"
-        size="small"
-      >
-        <RefreshIcon />
-      </IconButton>
-    </Box>
-  );
-
-  if (loading || !channels) {
-    return (
-      <>
-        {searchContainer}
-        <List dense sx={listContainerStyles}>
-          {new Array(10).fill(0).map((_, idx) => (
-            // eslint-disable-next-line react/no-array-index-key
-            <ChannelItemSkeleton key={idx} showLiveCount />
-          ))}
-        </List>
-      </>
-    );
-  }
+  const filteredChannels = channels
+    ?.filter(filterFn)
+    .sort((a, b) => sortChannels(a, b, storage.favorites, storage.sortLow));
 
   return (
     <>
-      {searchContainer}
-      <List dense sx={listContainerStyles}>
-        {channels
-          .filter(filterFn)
-          .sort((a, b) => sortChannels(a, b, storage.favorites, storage.sortLow))
-          .map(channel => {
-            const isFavorite = getFavoritesIncludesChannel(storage.favorites, channel);
-            return (
-              <ChannelItem
-                key={getId(channel)}
-                hoverable
-                linked
-                showLiveCount
-                channel={channel}
-                onIconClick={isFavorite ? handleRemoveFavorite : handleAddFavorite}
-                Icon={isFavorite ? StarRoundedIcon : StarBorderRoundedIcon}
-              />
-            );
-          })}
-      </List>
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        p={2.5}
+        sx={{
+          '& > *:not(:last-child)': {
+            mr: 1,
+          },
+        }}
+      >
+        <TextField
+          placeholder="Search..."
+          variant="outlined"
+          size="small"
+          value={filter}
+          onChange={e => setFilter(e.target.value)}
+          sx={{ width: 250 }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton size="small" onClick={() => setFilter('')}>
+                  <ClearIcon fontSize="small" />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+        <TextField
+          value={storage.sortLow ? 1 : 0}
+          variant="outlined"
+          label="Sort by"
+          size="small"
+          color="primary"
+          select
+          onChange={handleSortChange}
+        >
+          <MenuItem color="info" value={1}>Lowest</MenuItem>
+          <MenuItem color="info" value={0}>Highest</MenuItem>
+        </TextField>
+        <IconButton
+          onClick={handleRefresh}
+          disabled={refetchDataButtonDisabled}
+          title="Force refresh channels"
+          size="small"
+        >
+          <RefreshIcon />
+        </IconButton>
+      </Box>
+      <Box sx={{
+        // 20px for padding
+        height: `calc(100% - ${SEARCH_CONTAINER_HEIGHT}px - 20px)`,
+        width: isFullscreen ? 450 : 400,
+        margin: '0 auto',
+        '& ul': {
+          margin: 0,
+          padding: 0,
+        },
+      }}
+      >
+        <AutoSizer>
+          {({ height, width }) => (
+            <FixedSizeList
+              itemData={filteredChannels ?? []}
+              itemCount={filteredChannels ? filteredChannels.length : 10}
+              itemSize={CHANNEL_ITEM_SIZE}
+              height={height}
+              width={width}
+              overscanCount={5}
+              outerElementType="ul"
+            >
+              {ListItem}
+            </FixedSizeList>
+          )}
+        </AutoSizer>
+      </Box>
     </>
   );
 }
