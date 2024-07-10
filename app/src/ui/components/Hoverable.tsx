@@ -21,6 +21,8 @@ const Hoverable = ({ children, channel }: Props) => {
   const [imgLoaded, setImgLoaded] = useState(false);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
+  const open = Boolean(anchorEl);
+
   const handlePopoverOpen = (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -33,8 +35,6 @@ const Hoverable = ({ children, channel }: Props) => {
   const handleImageLoaded = () => {
     setImgLoaded(true);
   };
-
-  const open = Boolean(anchorEl);
 
   let title: string | undefined;
   let category: string | undefined;
@@ -119,17 +119,19 @@ const Hoverable = ({ children, channel }: Props) => {
               }}
             />
           )}
-          <Box
-            component="img"
-            display="block"
-            src={getThumbnailUrl(channel.thumbnail)}
-            alt=""
-            loading="lazy"
-            onLoad={handleImageLoaded}
-            onError={handleImageLoaded}
-            visibility={imgLoaded ? 'visible' : 'hidden'}
-            maxWidth={THUMBNAIL_WIDTH}
-          />
+          {open && (
+            <Box
+              component="img"
+              display="block"
+              src={getThumbnailUrl(channel.thumbnail)}
+              alt=""
+              loading="lazy"
+              onLoad={handleImageLoaded}
+              onError={handleImageLoaded}
+              visibility={imgLoaded ? 'visible' : 'hidden'}
+              maxWidth={THUMBNAIL_WIDTH}
+            />
+          )}
         </Box>
       </Popover>
     </>
