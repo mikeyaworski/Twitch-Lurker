@@ -113,6 +113,7 @@ export async function fetchTwitchData(accessToken: string, userId: string, added
       channel.displayName = stream.user_name;
       channel.viewerCount = stream.viewer_count;
       channel.game = stream.game_name;
+      channel.title = stream.title;
       channel.thumbnail = stream.thumbnail_url;
       channel.start = stream.started_at;
     }

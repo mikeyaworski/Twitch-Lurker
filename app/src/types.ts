@@ -41,6 +41,7 @@ export interface TwitchChannel extends BaseChannel {
   username: string,
   thumbnail?: string,
   game?: string,
+  title?: string,
 }
 
 export interface YouTubeChannel extends BaseChannel {
@@ -67,6 +68,7 @@ export type Channel = TwitchChannel | YouTubeChannel | KickChannel;
 export type LiveTwitchChannel = TwitchChannel & {
   viewerCount: number,
   thumbnail: string,
+  title: string,
   game: string,
   start: string,
 };
