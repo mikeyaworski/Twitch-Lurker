@@ -19,7 +19,7 @@ import {
   getYouTubeLogin,
   sortChannels,
 } from 'src/utils';
-import { openTwitchTabs } from '../tabs';
+import { openTwitchTabs, openYoutubeTabs } from '../tabs';
 import { fetchTwitchData, handleError as handleTwitchError } from './twitch';
 import { fetchData as fetchKickData } from './kick';
 import {
@@ -151,6 +151,7 @@ async function fetchData() {
   }
   // TODO: Support auto opening tabs with YouTube
   if (youtubeApiKey || youtubeLogin) {
+    log("trying youtube");
     try {
       // Only use the accessToken to fetch data if it comes from a custom app
       const options: FetchYouTubeDataOptions | null = youtubeLogin?.clientId && youtubeLogin?.clientSecret ? {
@@ -190,7 +191,10 @@ async function fetchData() {
   await setChannels(newChannels);
   youtubeLogin = getYouTubeLogin(storage); // get the login again because the accessToken and expiry may have been updated
   if (youtubeLogin) tryPollYouTubeSubscriptions(youtubeLogin)?.catch(error);
-  if (autoOpenTabs) openTwitchTabs(newChannels);
+  if (autoOpenTabs) {
+    openTwitchTabs(newChannels);
+    openYoutubeTabs(newChannels);
+  }
 }
 
 async function poll() {
