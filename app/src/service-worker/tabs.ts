@@ -199,6 +199,7 @@ export async function openYoutubeTabs(channels: Channel[]) {
     .filter((c): c is LiveYouTubeChannel => Boolean(c.viewerCount) && getFavoritesIncludesChannel(favorites, c))
     .sort((a, b) => sortChannels(a, b, favorites));
 
+  // for youtube this would also include various other yt videos as it is the same structure, so really "maxStreams" becomes "maxYoutubeVideosOrStreams" pretty much
   const tabs = await getYoutubeVideoTabs();
   const openVideoIds = tabs.map(tab => {
       if(tab.url) {
