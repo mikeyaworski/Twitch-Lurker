@@ -4,7 +4,7 @@ import { ORIGINS } from 'src/app-constants';
 import { IntentionalAny, OriginType } from 'src/types';
 
 const TWITCH_HOSTNAME_REGEX = /^(www.|m.)?twitch.tv$/i;
-const YOUTUBE_HOSTNAME_REGES = /^(www.|m.)?youtube.com$/i;
+const YOUTUBE_HOSTNAME_REGEX = /^(www.|m.)?youtube.com$/i;
 const TWITCH_CHANNEL_PATH_REGEX = /^\/(?!(videos\/\d+|[^/]+\/clip\/.+|settings|popout|subscriptions|wallet|inventory|drops|directory))/i;
 const YOUTUBE_VIDEO_REGEX = /^\/watch/i;
 const TWITCH_LOCKED_TAB_REGEX = /^\/(moderator\/.+)|([^/]+\/(videos|clips?|schedule|about))/i;
@@ -35,7 +35,7 @@ export function isUrlTwitchChannel(url: string): boolean {
 
 export function isUrlYoutubeVideo(url: string): boolean {
   const {hostname, pathname } = new URL(url);
-  return YOUTUBE_HOSTNAME_REGES.test(hostname)
+  return YOUTUBE_HOSTNAME_REGEX.test(hostname)
     && YOUTUBE_VIDEO_REGEX.test(pathname)
 }
 

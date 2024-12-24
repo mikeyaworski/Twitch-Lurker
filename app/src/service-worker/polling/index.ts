@@ -151,7 +151,6 @@ async function fetchData() {
   }
   // TODO: Support auto opening tabs with YouTube
   if (youtubeApiKey || youtubeLogin) {
-    log("trying youtube");
     try {
       // Only use the accessToken to fetch data if it comes from a custom app
       const options: FetchYouTubeDataOptions | null = youtubeLogin?.clientId && youtubeLogin?.clientSecret ? {
