@@ -14,6 +14,8 @@
     "build": "vite build",
     "build:firefox": "cross-env TARGET=FIREFOX vite build",
     "bf": "npm run build:firefox",
+    "package:firefox": "web-ext build --source-dir build/firefox --artifacts-dir build --filename firefox-build.zip --overwrite-dest",
+    "pf": "npm run package:firefox",
     "build:chrome": "cross-env TARGET=CHROME vite build",
     "bc": "npm run build:chrome",
     "watch": "nodemon",
