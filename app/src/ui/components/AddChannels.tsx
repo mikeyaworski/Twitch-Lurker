@@ -145,7 +145,8 @@ export default function AddChannels() {
             Enter their Channel ID or username.
             {' '}
             Their custom URL (e.g. @some-channel) is not necessarily their username, but it can be if they have a longstanding channel.
-            If you don&apos;t know their username, then you need to find their channel ID. Search up a tool to get channel IDs.
+            If you don&apos;t know their username, then you need to find their channel ID.
+            Go to their YouTube page, click &quot;more&quot; in their header, then &quot;Share Channel&quot;, and finally &quot;Copy channel ID&quot;.
           </>
         )}
         channelItemProps={{
