@@ -1,6 +1,6 @@
 import browser from 'webextension-polyfill';
 import { BADGE_TEXT_COLOR, BADGE_DEFAULT_BACKGROUND_COLOR } from 'src/app-constants';
-import { error } from 'src/logging';
+import { log, error } from 'src/logging';
 import { requestNecessaryHostPermissions } from 'src/utils';
 import initAuth from './auth';
 import initPolling from './polling';
@@ -17,7 +17,16 @@ if (browser.action.setBadgeTextColor) {
 initAuth();
 initPolling();
 
+// This startup listener is important, even if the code inside does nothing.
+// It ensures that the service worker is active when the browser profile is opened.
+// This is especially important for Firefox, since the background script will not run without user interaction or this listeneer.
+// I believe the service worker eventually gets activated on Chrome if a scheduled alarm for polling goes off.
+browser.runtime.onStartup.addListener(() => {
+  log('Started');
+});
+
 browser.runtime.onInstalled.addListener(() => {
+  log('Installed');
   browser.contextMenus.create({
     id: 'Browser Action',
     title: 'Open Full Page Viewer',
