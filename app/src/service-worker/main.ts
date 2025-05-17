@@ -4,6 +4,7 @@ import { log, error } from 'src/logging';
 import { requestNecessaryHostPermissions } from 'src/utils';
 import initAuth from './auth';
 import initPolling from './polling';
+import alarmsWorkaround from './polling/alarm-workaround';
 
 browser.action.setBadgeBackgroundColor({
   color: BADGE_DEFAULT_BACKGROUND_COLOR,
@@ -16,6 +17,7 @@ if (browser.action.setBadgeTextColor) {
 
 initAuth();
 initPolling();
+alarmsWorkaround();
 
 // This startup listener is important, even if the code inside does nothing.
 // It ensures that the service worker is active when the browser profile is opened.
