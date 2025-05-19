@@ -47,6 +47,8 @@ const FavoritesList = SortableContainer(({ favorites, channels, onRemoveFavorite
             channel={channel}
             onIconClick={onRemoveFavorite}
             Icon={StarRoundedIcon}
+            // Not enough space for the live count. The sidebar is small enough that the username text will get clipped.
+            showLiveCount={false}
           />
         );
       })}
