@@ -79,7 +79,11 @@ async function notify(channelsBefore: Channel[], channelsAfter: Channel[]): Prom
 }
 
 async function refreshBadgeData(): Promise<void> {
-  const { favorites, hiddenChannels } = await waitFullStorage();
+  const { enabled, favorites, hiddenChannels } = await waitFullStorage();
+  if (!enabled) {
+    await browser.action.setBadgeText({ text: '' });
+    return;
+  }
   const { mostRecentChannels } = await waitFullStorage(StorageType.LOCAL);
   const channels = mostRecentChannels?.channels || [];
   const filteredChannels = channels.filter(channel => {
