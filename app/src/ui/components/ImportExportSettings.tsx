@@ -21,6 +21,7 @@ export default function ImportExportSettings() {
   const [importValue, setImportValue] = useState('');
   const { value: exported, setValue: setExported } = useToggleState(false);
   const { value: imported, setValue: setImported } = useToggleState(false);
+  const { value: errorParsingImport, setValue: setErrorParsingInput } = useToggleState(false);
 
   useTemporaryToggle({
     value: imported,
@@ -30,16 +31,22 @@ export default function ImportExportSettings() {
     value: exported,
     setValue: setExported,
   });
+  useTemporaryToggle({
+    value: errorParsingImport,
+    setValue: setErrorParsingInput,
+  });
 
   const handleImportMapping = useCallback(() => {
     try {
       const json = JSON.parse(importValue);
       setStorage(json);
+      setErrorParsingInput(false);
       setImported(true);
     } catch (err) {
-      // do nothing
+      setImported(false);
+      setErrorParsingInput(true);
     }
-  }, [setStorage, importValue, setImported]);
+  }, [setStorage, importValue, setImported, setErrorParsingInput]);
 
   const handleExportMapping = useCallback(async () => {
     const preferencesExport = await getStorage(Object.keys(PREFERENCE_STORAGE_VALUES) as PreferencesKey[]);
@@ -85,6 +92,17 @@ export default function ImportExportSettings() {
             sx={{ mt: 1 }}
           >
             Imported!
+          </Alert>
+        </Collapse>
+        <Collapse in={errorParsingImport}>
+          <Alert
+            severity="error"
+            variant="filled"
+            sx={{ mt: 1 }}
+          >
+            Error parsing input:
+            <br />
+            Invalid JSON
           </Alert>
         </Collapse>
       </Box>
