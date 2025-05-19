@@ -35,7 +35,7 @@ rules:
   '@typescript-eslint/explicit-module-boundary-types': off
 
   # Redundant TS rules which can just be disabled.
-  '@typescript-eslint/no-unused-vars': off
+  '@typescript-eslint/no-unused-vars': warn
 
   # https://github.com/typescript-eslint/typescript-eslint/blob/master/packages/eslint-plugin/docs/rules/no-use-before-define.md#how-to-use
   no-use-before-define: off
