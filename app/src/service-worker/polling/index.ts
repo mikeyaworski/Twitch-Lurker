@@ -19,7 +19,7 @@ import {
   getYouTubeLogin,
   sortChannels,
 } from 'src/utils';
-import { openTwitchTabs } from '../tabs';
+import { openTwitchTabs, openYoutubeTabs } from '../tabs';
 import { fetchTwitchData, handleError as handleTwitchError } from './twitch';
 import { fetchData as fetchKickData } from './kick';
 import {
@@ -194,7 +194,10 @@ async function fetchData() {
   await setChannels(newChannels);
   youtubeLogin = getYouTubeLogin(storage); // get the login again because the accessToken and expiry may have been updated
   if (youtubeLogin) tryPollYouTubeSubscriptions(youtubeLogin)?.catch(error);
-  if (autoOpenTabs) openTwitchTabs(newChannels);
+  if (autoOpenTabs) {
+    openTwitchTabs(newChannels);
+    openYoutubeTabs(newChannels);
+  }
 }
 
 async function poll() {
