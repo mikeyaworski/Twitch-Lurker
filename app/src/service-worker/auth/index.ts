@@ -40,6 +40,12 @@ export async function logout(type: AccountType) {
   }
 }
 
+browser.notifications.onClicked.addListener(async (notificationId: string) => {
+  if (notificationId === 'twitch-logged-out') {
+    loginTwitch();
+  }
+});
+
 export default async function initAuth() {
   browser.runtime.onMessage.addListener(request => {
     switch (request.type) {

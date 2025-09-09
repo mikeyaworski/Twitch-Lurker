@@ -1,3 +1,4 @@
+import browser from 'webextension-polyfill';
 import chunk from 'lodash.chunk';
 import {
   TWITCH_API_BASE,
@@ -136,6 +137,12 @@ export function handleError(err: unknown) {
     error(err);
     log('Logged out of Twitch account due to (assumed) invalid access token');
     logout(AccountType.TWITCH);
+    browser.notifications.create('twitch-logged-out', {
+      title: 'Twitch needs to be reauthenticated',
+      message: 'Your authentication token was likely revoked. You need to log into Twitch again.',
+      type: 'basic',
+      iconUrl: 'icons/icon128.png',
+    });
   } else {
     throw err;
   }
