@@ -20,6 +20,7 @@ export const YOUTUBE_PAGINATION_LIMIT = 50;
 export const UNMUTE_INTERVAL_LENGTH = 3 * 1000; // 3 seconds
 export const REFRESH_TOKEN_EXPIRY_THRESHOLD_SECONDS = 10 * 60; // 10 minutes
 export const YOUTUBE_SUBSCRIPTIONS_POLL_DELAY_SECONDS = 60 * 60 * 48; // 2 days
+export const LOGGING_TAIL_SIZE = 50;
 
 export enum OriginType {
   TWITCH = 'TWITCH',
@@ -73,6 +74,8 @@ export const DEFAULT_STORAGE_SYNC = Object.freeze(DEFAULT_STORAGE_SYNC_VALUES);
 
 // Local storage is used for larger data, since there are stricter size requirements on synced storage
 const DEFAULT_STORAGE_LOCAL_VALUES = {
+  // Recent logs
+  logs: [] as string[],
   // Cache
   youtubeSubscriptions: null as null | {
     fetchTime: number | null, // epoch in seconds

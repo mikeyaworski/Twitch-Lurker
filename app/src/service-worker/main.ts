@@ -1,6 +1,6 @@
 import browser from 'webextension-polyfill';
 import { BADGE_TEXT_COLOR, BADGE_DEFAULT_BACKGROUND_COLOR } from 'src/app-constants';
-import { log, error } from 'src/logging';
+import { log } from 'src/logging';
 import { requestNecessaryHostPermissions } from 'src/utils';
 import initAuth from './auth';
 import initPolling from './polling';
@@ -29,23 +29,16 @@ browser.runtime.onStartup.addListener(() => {
 
 browser.runtime.onInstalled.addListener(() => {
   log('Installed');
+  // Ignore any errors because they are expected; the context menus may already exist.
   browser.contextMenus.create({
     id: 'Browser Action',
     title: 'Open Full Page Viewer',
     contexts: ['action'],
-  }, () => {
-    if (browser.runtime.lastError) {
-      error(browser.runtime.lastError);
-    }
   });
   browser.contextMenus.create({
     id: 'Request Host Permissions',
     title: 'Request Host Permissions',
     contexts: ['action'],
-  }, () => {
-    if (browser.runtime.lastError) {
-      error(browser.runtime.lastError);
-    }
   });
 });
 

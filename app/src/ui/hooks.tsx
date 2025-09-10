@@ -4,6 +4,8 @@ import { useStorage } from 'src/ui/stores/Storage';
 import { usePermissions } from 'src/ui/stores/Permissions';
 import { getIsLoggedInWithAnyAccount } from 'src/utils';
 import { AccountType, OriginType } from 'src/types';
+import ConfirmModal from 'src/ui/modals/Confirm';
+import { BaseModalProps } from 'src/ui/modals/Base';
 
 export function useOpen(initial = false) {
   const [open, setOpen] = useState<boolean>(initial);
@@ -98,5 +100,60 @@ export function usePermissionIssues(): PermissionIssues {
     [OriginType.YOUTUBE]: hasYouTubeAccount && !origins[OriginType.YOUTUBE],
     // TODO: When this supports auto opening tabs, enable this error states
     [OriginType.KICK]: false && hasKickAccount && !origins[OriginType.KICK],
+  };
+}
+
+interface OpenOptions {
+  title?: string,
+  details?: string,
+  onConfirm: () => Promise<void> | void,
+}
+interface UseConfirmationModalReturn {
+  node: React.ReactNode,
+  open: (options: OpenOptions) => void,
+  close: () => void,
+}
+export function useConfirmationModal(modalProps?: Partial<BaseModalProps>): UseConfirmationModalReturn {
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [confirmFn, setConfirmFn] = useState<(() => void) | null>(null);
+  const [title, setTitle] = useState<string | undefined>();
+  const [details, setDetails] = useState<string | undefined>();
+
+  const closeModal = useCallback(() => {
+    setOpen(false);
+    setBusy(false);
+    setConfirmFn(null);
+    setTitle(undefined);
+    setDetails(undefined);
+  }, []);
+
+  const openModal = useCallback((options: OpenOptions) => {
+    setOpen(true);
+    setConfirmFn(() => options.onConfirm);
+    setTitle(options.title);
+    setDetails(options.details);
+  }, []);
+
+  const node = (
+    <ConfirmModal
+      {...modalProps}
+      open={open}
+      busy={busy}
+      onClose={() => setOpen(false)}
+      onConfirm={async () => {
+        setBusy(true);
+        if (confirmFn) confirmFn();
+        setBusy(false);
+        closeModal();
+      }}
+      title={title}
+      details={details}
+    />
+  );
+  return {
+    node,
+    open: openModal,
+    close: closeModal,
   };
 }

@@ -13,6 +13,7 @@ import Favorites from 'src/ui/components/Favorites';
 import AddChannels from 'src/ui/components/AddChannels';
 import HideChannels from 'src/ui/components/HideChannels';
 import ImportExportSettings from 'src/ui/components/ImportExportSettings';
+import Logs from 'src/ui/components/Logs';
 import PlatformButtonIcon from 'src/ui/widgets/PlatformButtonIcon';
 import { MessageType, AccountType, OriginType } from 'src/types';
 import { ORIGINS } from 'src/app-constants';
@@ -105,6 +106,7 @@ function Home() {
           <Route exact path="/add-channels" component={AddChannels} />
           <Route exact path="/hide-channels" component={HideChannels} />
           <Route exact path="/import-export-settings" component={ImportExportSettings} />
+          <Route exact path="/logs" component={Logs} />
         </Box>
       </Box>
     </Box>

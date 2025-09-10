@@ -216,3 +216,23 @@ function getHostPermissionRequests(): browser.Permissions.Permissions {
 export function requestNecessaryHostPermissions(): Promise<boolean> | boolean {
   return browser.permissions.request(getHostPermissionRequests());
 }
+
+/**
+ * Helps to stringify Error objects as well.
+ * https://stackoverflow.com/a/53624454/2554605
+ */
+export function stringify(obj: unknown): string {
+  return JSON.stringify(obj, (key, value) => {
+    if (value instanceof Error) {
+      return {
+        // pull all enumerable properties
+        ...value,
+        // explicitly pull Error's non-enumerable properties
+        name: value.name,
+        message: value.message,
+        stack: value.stack,
+      };
+    }
+    return value;
+  });
+}

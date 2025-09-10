@@ -118,7 +118,6 @@ async function setChannels(channels: Channel[]) {
     data: channels,
   }).catch(err => {
     // This is an expected error since there may not be a context to receive the message
-    log(err);
   });
   refreshBadgeData();
 }
@@ -286,7 +285,6 @@ function listen() {
           data: mostRecentChannels?.channels || [],
         }).catch(err => {
           // This is an expected error since there may not be a context to receive the message
-          log(err);
         });
         break;
       }

@@ -23,12 +23,15 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import GetAppIcon from '@mui/icons-material/GetApp';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ErrorIcon from '@mui/icons-material/Error';
+import BugIcon from '@mui/icons-material/BugReport';
 
 import { IsFullscreenAtom } from 'src/ui/atoms/IsFullscreen';
 import { useStorage } from 'src/ui/stores/Storage';
 import { TITLE } from 'src/app-constants';
 import { VoidFn } from 'src/types';
 import { useAuth, usePermissionIssues } from 'src/ui/hooks';
+
+const NAVIGATION_MAX_HEIGHT_POPUP = 337;
 
 interface SidebarLinkProps {
   route?: string,
@@ -120,15 +123,16 @@ function Sidebar() {
         )}
       </Box>
       <Divider />
-      <Box width="100%">
+      <Box width="100%" maxHeight={isFullscreen ? undefined : `${NAVIGATION_MAX_HEIGHT_POPUP}px`} sx={{ overflowY: 'auto' }}>
         <List component="nav" disablePadding={!isFullscreen}>
           <SidebarLink route="/preferences" label="Preferences" Icon={TuneIcon} disabled={actionsDisabled} />
           <SidebarLink route="/favorites" label="Favorites" Icon={StarRoundedIcon} disabled={actionsDisabled} />
           <SidebarLink route="/add-channels" label="Add Channels" Icon={AddCircleIcon} disabled={actionsDisabled} />
           <SidebarLink route="/hide-channels" label="Hide Channels" Icon={VisibilityOffIcon} disabled={actionsDisabled} />
-          <SidebarLink route="/import-export-settings" label="Import Settings" Icon={GetAppIcon} disabled={actionsDisabled} />
           <SidebarLink route="/accounts" label="Accounts" Icon={AccountCircleIcon} disabled={loading} />
           <SidebarLink route="/permissions" label="Permissions" Icon={SecurityIcon} disabled={actionsDisabled} hasIssue={hasPermissionIssue} />
+          <SidebarLink route="/import-export-settings" label="Import Settings" Icon={GetAppIcon} disabled={actionsDisabled} />
+          <SidebarLink route="/logs" label="Logs" Icon={BugIcon} disabled={actionsDisabled} />
         </List>
       </Box>
       <Divider />
