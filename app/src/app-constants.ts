@@ -38,6 +38,8 @@ export interface Favorite {
   value: string,
 }
 
+type Favorites = string[] | Favorite[];
+
 export const PREFERENCE_STORAGE_VALUES = {
   enabled: true,
   autoOpenTabs: true,
@@ -46,7 +48,7 @@ export const PREFERENCE_STORAGE_VALUES = {
   pollDelay: '5', // in minutes
   maxStreams: '2',
   // string[] is for backwards compatibility
-  favorites: [] as string[] | Favorite[],
+  favorites: [] as Favorites,
   hiddenChannels: {
     twitch: [] as string[],
     youtube: [] as string[],
@@ -84,6 +86,19 @@ const DEFAULT_STORAGE_LOCAL_VALUES = {
   mostRecentChannels: null as null | {
     fetchTime: number | null, // epoch in seconds
     channels: Channel[],
+  },
+  // TODO: Create an "extended" synced storage for store that exceeds the size limit of synced storage
+  // Maybe something like
+  // And when they export/import their settings, append this extended storage to the synced storage for export
+  // and when imported, splice this extended storage out from the input and put it in the local storage instead
+  // TODO: Consider what happens when they reduce their extended storage back to within the limit.
+  // Probably just have it such that it stores EITHER in the extended storage or the synced storage, not both.
+  // And every time we sync, first attempt to put it in synced storage, and if it fails, put it in extended storage.
+  // OR (less preferable due to being bug prone):
+  // Always put it in local storage, and then try to ALSO put it in synced storage. if it fails, just leave it in local storage.
+  // And when reading, pick synced storage first, and if empty, read from local storage.
+  extendedStorage: {
+    favorites: [] as Favorites,
   },
 };
 

@@ -149,7 +149,13 @@ export async function setStorage(
   type: StorageType = StorageType.SYNCED,
 ): Promise<void> {
   const setter = type === StorageType.LOCAL ? browser.storage.local : browser.storage.sync;
-  await setter.set(data);
+  await setter.set(data).catch(err => {
+    // TODO: Here, if there is the error QUOTA_BYTES_PER_ITEM, consider storing the data in local storage instead
+    // https://developer.chrome.com/docs/extensions/reference/api/storage#properties_3
+    // Error: QUOTA_BYTES_PER_ITEM quota exceeded
+    error(err);
+    throw err;
+  });
   if (chrome.runtime.lastError) {
     error(JSON.stringify(chrome.runtime.lastError));
     throw chrome.runtime.lastError;
