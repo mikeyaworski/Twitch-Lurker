@@ -1,7 +1,7 @@
 {
   "name": "Twitch Lurker",
   "description": "Always support your favorite streamer by automatically pulling up their stream when they go live.",
-  "version": "3.0.6",
+  "version": "3.0.7",
   "manifest_version": 3,
 
   "background": {
