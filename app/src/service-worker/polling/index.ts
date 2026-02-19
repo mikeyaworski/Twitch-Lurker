@@ -123,7 +123,7 @@ async function setChannels(channels: Channel[]) {
 }
 
 async function fetchData() {
-  log('Fetching data', new Date().toISOString());
+  log('Fetching data');
   const { logins, addedChannels, autoOpenTabs } = storage;
   const twitchLogin = logins?.find((l): l is TwitchLogin => l.type === AccountType.TWITCH);
   const youtubeApiKey = logins?.find((l): l is YouTubeApiKey => l.type === AccountType.YOUTUBE_API_KEY);
