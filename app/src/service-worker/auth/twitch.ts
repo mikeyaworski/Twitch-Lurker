@@ -4,9 +4,9 @@ import { TWITCH_CLIENT_ID } from 'src/app-constants';
 import { AccountType, Login } from 'src/types';
 import { getRandomString, parseIdToken } from '../utils';
 
-async function createAuthEndpoint() {
+function createAuthEndpoint() {
   const url = new URL('https://id.twitch.tv/oauth2/authorize');
-  const redirectUri = await browser.identity.getRedirectURL();
+  const redirectUri = browser.identity.getRedirectURL();
   url.searchParams.append('client_id', TWITCH_CLIENT_ID);
   url.searchParams.append('redirect_uri', redirectUri);
   url.searchParams.append('response_type', 'token id_token');
@@ -18,7 +18,7 @@ async function createAuthEndpoint() {
 }
 
 export async function login() {
-  const authEndpoint = await createAuthEndpoint();
+  const authEndpoint = createAuthEndpoint();
   const state = new URL(authEndpoint).searchParams.get('state');
   const nonce = new URL(authEndpoint).searchParams.get('nonce');
   const redirectUrl = await browser.identity.launchWebAuthFlow({

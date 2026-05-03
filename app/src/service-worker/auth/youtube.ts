@@ -17,9 +17,9 @@ import { getRandomString, parseIdToken } from '../utils';
 
 const storage = getFullStorage();
 
-async function createAuthEndpoint(clientId: string) {
+function createAuthEndpoint(clientId: string) {
   const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-  const redirectUri = await browser.identity.getRedirectURL();
+  const redirectUri = browser.identity.getRedirectURL();
   url.searchParams.append('client_id', clientId);
   url.searchParams.append('redirect_uri', redirectUri);
   url.searchParams.append('response_type', 'code');
@@ -37,7 +37,7 @@ export async function login() {
   const clientId = clientIdLogin?.clientId || GOOGLE_CLIENT_ID;
   const clientSecret = clientIdLogin?.clientSecret;
 
-  const authEndpoint = await createAuthEndpoint(clientId);
+  const authEndpoint = createAuthEndpoint(clientId);
   const state = new URL(authEndpoint).searchParams.get('state');
   const nonce = new URL(authEndpoint).searchParams.get('nonce');
   const redirectUri = new URL(authEndpoint).searchParams.get('redirect_uri');
