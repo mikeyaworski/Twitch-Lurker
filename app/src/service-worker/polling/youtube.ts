@@ -230,7 +230,7 @@ export async function tryPollYouTubeSubscriptions(login: YouTubeLogin): Promise<
   return null;
 }
 
-export function handleError(err: unknown): void {
+export function handleAccountError(err: unknown): void {
   error(err);
   const status: string | undefined = get(err, 'error.status');
   if (status && ['UNAUTHENTICATED', 'PERMISSION_DENIED'].includes(status)) {
@@ -239,6 +239,20 @@ export function handleError(err: unknown): void {
     browser.notifications.create('youtube-logged-out', {
       title: 'YouTube needs to be reauthenticated',
       message: 'Your authentication token was likely revoked. You need to log into YouTube again.',
+      type: 'basic',
+      iconUrl: 'icons/icon128.png',
+    });
+  }
+}
+
+export function handleApiKeyError(err: unknown): void {
+  error(err);
+  const status: string | undefined = get(err, 'error.status');
+  if (status && ['UNAUTHENTICATED', 'PERMISSION_DENIED'].includes(status)) {
+    log('YouTube API key was rejected during a request');
+    browser.notifications.create('youtube-api-key-invalid', {
+      title: 'YouTube API key needs to be fixed',
+      message: 'Your YouTube API key was rejected. Check the logs for a detailed error output.',
       type: 'basic',
       iconUrl: 'icons/icon128.png',
     });

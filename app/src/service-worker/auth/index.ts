@@ -1,6 +1,6 @@
 import browser from 'webextension-polyfill';
 import { getFullStorage } from 'src/storage';
-import { getYouTubeLogin } from 'src/utils';
+import { getAreAllLoginsEqual, getYouTubeLogin } from 'src/utils';
 import { setStorage } from 'src/chrome-utils';
 import { BADGE_DEFAULT_BACKGROUND_COLOR } from 'src/app-constants';
 import { AccountType, MessageType, Login, StorageType } from 'src/types';
@@ -14,6 +14,9 @@ export async function logout(type: AccountType) {
   let newLogin: Login | undefined;
   switch (type) {
     case AccountType.YOUTUBE: {
+      // YouTube logins that use custom OAuth credentials
+      // need to be reverted to the intermediate step
+      // which still keeps track of their credentials
       const existingLogin = getYouTubeLogin(storage);
       if (existingLogin && existingLogin.clientId && existingLogin.clientSecret) {
         newLogin = {
@@ -31,7 +34,12 @@ export async function logout(type: AccountType) {
   }
   const newLogins = storage.logins.filter(login => login.type !== type) || [];
   if (newLogin) newLogins.push(newLogin);
-  setStorage({ logins: newLogins });
+  // Firefox (but not Chrome) will trigger storage change events even if the value is semantically the same.
+  // To avoid an infinite loop (since a storage change for logins will trigger polling again),
+  // we avoid setting the storage if nothing has changed.
+  if (!getAreAllLoginsEqual(storage.logins, newLogins)) {
+    setStorage({ logins: newLogins });
+  }
   if (newLogins.length === 0) {
     browser.action.setBadgeText({ text: '' });
     browser.action.setBadgeBackgroundColor({

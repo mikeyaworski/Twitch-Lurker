@@ -197,6 +197,47 @@ export function getIsLoggedInWithMultipleAccounts(logins: Login[]): boolean {
   return logins.filter(login => accountsThatCanFetchChannels.includes(login.type)).length > 1;
 }
 
+export function getAreLoginsEqual(a: Login, b: Login): boolean {
+  switch (a.type) {
+    case AccountType.TWITCH:
+      return b.type === AccountType.TWITCH
+        && a.accessToken === b.accessToken;
+
+    case AccountType.YOUTUBE_OAUTH_CREDENTIALS:
+      return b.type === AccountType.YOUTUBE_OAUTH_CREDENTIALS
+        && a.clientId === b.clientId
+        && a.clientSecret === b.clientSecret;
+
+    case AccountType.YOUTUBE:
+      return b.type === AccountType.YOUTUBE
+        && a.clientId === b.clientId
+        && a.clientSecret === b.clientSecret
+        && a.accessToken === b.accessToken
+        && a.refreshToken === b.refreshToken;
+
+    case AccountType.YOUTUBE_API_KEY:
+      return b.type === AccountType.YOUTUBE_API_KEY
+        && a.apiKey === b.apiKey;
+
+    case AccountType.KICK:
+      return b.type === AccountType.KICK;
+
+    default:
+      // @ts-expect-error This is a TS error, but it's harmless and future proofing for when we add more types
+      // and forget to include them here
+      return a.type === b.type;
+  }
+}
+export function getAreAllLoginsEqual(loginsA: Login[], loginsB: Login[]): boolean {
+  if (loginsA.length !== loginsB.length) return false;
+  for (let i = 0; i < loginsA.length; i++) {
+    if (!getAreLoginsEqual(loginsA[i], loginsB[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export function getYouTubeLogin(storage: StorageSync): YouTubeLogin | undefined {
   return storage.logins.find((login): login is YouTubeLogin => login.type === AccountType.YOUTUBE);
 }

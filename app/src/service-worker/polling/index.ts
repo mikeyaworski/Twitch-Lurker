@@ -27,7 +27,8 @@ import {
   fetchYouTubeData,
   fetchYouTubeSubscriptions,
   tryPollYouTubeSubscriptions,
-  handleError as handleYouTubeError,
+  handleAccountError as handleYouTubeAccountError,
+  handleApiKeyError as handleYouTubeApiKeyError,
 } from './youtube';
 
 const storage = getFullStorage(StorageType.SYNCED);
@@ -153,41 +154,48 @@ async function fetchData() {
     }
   }
   // TODO: Support auto opening tabs with YouTube
-  if (youtubeApiKey || youtubeLogin) {
+  if (youtubeLogin && youtubeLogin.clientId && youtubeLogin.clientSecret) {
     try {
       // Only use the accessToken to fetch data if it comes from a custom app
-      const options: FetchYouTubeDataOptions | null = youtubeLogin?.clientId && youtubeLogin?.clientSecret ? {
+      const options: FetchYouTubeDataOptions = {
         accessToken: youtubeLogin.accessToken,
         refreshToken: youtubeLogin.refreshToken,
         clientId: youtubeLogin.clientId,
         clientSecret: youtubeLogin.clientSecret,
         expiry: youtubeLogin.expiry,
         addedChannels: addedChannels?.youtube || [],
-      } : youtubeApiKey ? {
-        apiKey: youtubeApiKey?.apiKey,
-        addedChannels: addedChannels?.youtube || [],
-      } : null;
-      if (options) {
-        try {
-          const youTubeChannels = await fetchYouTubeData(options);
-          newChannels.push(...youTubeChannels);
-        } catch (err) {
+      };
+      try {
+        const youTubeChannels = await fetchYouTubeData(options);
+        newChannels.push(...youTubeChannels);
+      } catch (err) {
+        // Use apiKey as backup if possible
+        if (youtubeApiKey) {
           error(err);
-          // Use apiKey as backup if possible
-          if (youtubeApiKey && 'accessToken' in options) {
-            log('Using YouTube API Key as fallback');
-            const youTubeChannels = await fetchYouTubeData({
-              apiKey: youtubeApiKey.apiKey,
-              addedChannels: options.addedChannels,
-            });
-            newChannels.push(...youTubeChannels);
-          } else {
-            throw err;
-          }
+          log('Using YouTube API Key as fallback');
+          const youTubeChannels = await fetchYouTubeData({
+            apiKey: youtubeApiKey.apiKey,
+            addedChannels: options.addedChannels,
+          });
+          newChannels.push(...youTubeChannels);
+        } else {
+          handleYouTubeAccountError(err);
         }
       }
     } catch (err) {
-      handleYouTubeError(err);
+      // Came from throwing inside the catch block when trying to use API key as backup
+      handleYouTubeApiKeyError(err);
+    }
+  } else if (youtubeApiKey) {
+    const options: FetchYouTubeDataOptions = {
+      apiKey: youtubeApiKey?.apiKey,
+      addedChannels: addedChannels?.youtube || [],
+    };
+    try {
+      const youTubeChannels = await fetchYouTubeData(options);
+      newChannels.push(...youTubeChannels);
+    } catch (err) {
+      handleYouTubeApiKeyError(err);
     }
   }
   await setChannels(newChannels);
