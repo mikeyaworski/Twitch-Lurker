@@ -28,19 +28,33 @@ async function pushLog(message: string): Promise<void> {
   await savingLogPromise;
 }
 
-async function getLogMessage(...args: IntentionalAny[]): Promise<string> {
+function getLogMessage(...args: IntentionalAny[]): {
+  consoleMessage: string,
+  logStorageMessage: string,
+} {
   const message = args.map(arg => (typeof arg === 'object' ? stringify(arg) : arg)).join(' ');
   const dateStr = new Date().toISOString();
-  await pushLog(`${message} [${dateStr}]`);
-  return `${TITLE} [${dateStr}]: ${message}`;
+  return {
+    consoleMessage: `${TITLE} [${dateStr}]: ${message}`,
+    logStorageMessage: `${message} [${dateStr}]`,
+  };
 }
 
 export async function log(...args: IntentionalAny[]): Promise<void> {
-  console.log(await getLogMessage(...args));
+  const { consoleMessage, logStorageMessage } = getLogMessage(...args);
+  console.log(consoleMessage);
+  await pushLog(logStorageMessage);
 }
 
 export async function error(...args: IntentionalAny[]): Promise<void> {
-  console.error(await getLogMessage(...args));
+  const { consoleMessage, logStorageMessage } = getLogMessage(...args);
+  console.error(consoleMessage);
+  await pushLog(logStorageMessage);
+}
+
+export function debug(...args: IntentionalAny[]): void {
+  const { consoleMessage } = getLogMessage(...args);
+  console.debug(consoleMessage);
 }
 
 export async function getLogs(): Promise<string[]> {
