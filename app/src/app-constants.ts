@@ -85,6 +85,8 @@ const DEFAULT_STORAGE_LOCAL_VALUES = {
     fetchTime: number | null, // epoch in seconds
     channels: Channel[],
   },
+  // Last time the extension reloaded itself to avoid the Chromium alarms bug
+  lastReloadTime: null as null | number, // epoch in seconds
 };
 
 export const DEFAULT_STORAGE_LOCAL = Object.freeze(DEFAULT_STORAGE_LOCAL_VALUES);
