@@ -17,11 +17,14 @@ const inputStyles = {
 };
 
 const switchesContainerStyles = {
-  marginBottom: 3,
+  marginBottom: 2,
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'flex-end',
 };
+
+const ALARMS_WORKAROUND_TOOLTIP = 'You want to leave this enabled unless you\'re having issues with extension reloading itself too frequently. '
+  + 'This workaround is to mitigate a bug with Chromium where alarms stop firing.';
 
 export default function Preferences() {
   const storage = useStorage(store => store.storage);
@@ -41,7 +44,7 @@ export default function Preferences() {
         <Typography variant="h5" align="center">
           Preferences
         </Typography>
-        <Typography variant="body1" mt={3} sx={{ textDecoration: 'underline' }}>
+        <Typography variant="body1" mt={2} sx={{ textDecoration: 'underline' }}>
           For opening favorites:
         </Typography>
         <Box sx={switchesContainerStyles}>
@@ -111,6 +114,21 @@ export default function Preferences() {
               }}
             />
           </Box>
+        </Box>
+        <Typography variant="body1" mt={2} sx={{ textDecoration: 'underline' }}>
+          Advanced options:
+        </Typography>
+        <Box sx={switchesContainerStyles}>
+          <Tooltip
+            arrow
+            title={ALARMS_WORKAROUND_TOOLTIP}
+          >
+            <FormControlLabel
+              control={<Switch checked={storage.useAlarmsWorkaround} onChange={e => setStorage({ useAlarmsWorkaround: e.target.checked })} />}
+              label={<FormLabel>Use alarms workaround</FormLabel>}
+              labelPlacement="start"
+            />
+          </Tooltip>
         </Box>
       </Box>
     </BackWrapper>

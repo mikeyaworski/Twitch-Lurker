@@ -60,6 +60,7 @@ export const PREFERENCE_STORAGE_VALUES = {
   autoMuteTabs: true,
   sortLow: true,
   showPreviewOnHover: true,
+  useAlarmsWorkaround: true,
 };
 
 const DEFAULT_STORAGE_SYNC_VALUES = {
