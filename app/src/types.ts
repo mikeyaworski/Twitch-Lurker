@@ -23,10 +23,11 @@ export enum StorageType {
   SYNCED,
 }
 
+// Note: This value is stored in storage, so changing it will break existing users' preferences.
 export enum ChannelType {
-  TWITCH,
-  YOUTUBE,
-  KICK,
+  TWITCH = 0,
+  YOUTUBE = 1,
+  KICK = 2,
 }
 
 export interface BaseChannel {
