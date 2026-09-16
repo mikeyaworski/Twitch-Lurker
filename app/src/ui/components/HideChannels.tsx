@@ -32,13 +32,16 @@ export default function HideChannels() {
       };
     });
 
-  function onAdd(username: string): void {
+  function onAdd(username: string): boolean {
+    username = username.trim();
+    if (!username.length) return false;
     setStorage({
       hiddenChannels: {
         ...storage.hiddenChannels,
         twitch: uniq(storage.hiddenChannels.twitch.concat(username.toLowerCase())),
       },
     }, true);
+    return true;
   }
 
   function onRemove(channel: Channel): void {

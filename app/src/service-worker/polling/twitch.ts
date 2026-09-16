@@ -4,6 +4,7 @@ import {
   TWITCH_API_BASE,
   TWITCH_CLIENT_ID,
   TWITCH_PAGINATION_LIMIT,
+  TWITCH_USERNAME_REGEX,
 } from 'src/app-constants';
 import { error, log } from 'src/logging';
 import { AccountType, ChannelType, IntentionalAny, TwitchChannel } from 'src/types';
@@ -76,29 +77,51 @@ async function fetchArbitraryLiveStreams(accessToken: string, channels: string[]
 async function fetchLiveStreams(accessToken: string, userId: string, addedChanels: string[]) {
   const [followedStreams, addedStreams] = await Promise.all([
     fetchFollowedLiveStreams(accessToken, userId),
-    fetchArbitraryLiveStreams(accessToken, addedChanels),
+    // This request depends on user input, so errors are reasonably expected.
+    // Instead of letting the error propagate up the call stack, we should just catch and log the error so the user can find information about it.
+    // This prevents the error from logging the user out due to an HTTP 400 or something like that.
+    fetchArbitraryLiveStreams(accessToken, addedChanels).catch(err => {
+      error(err);
+      return [];
+    }),
   ]);
   return [...followedStreams, ...addedStreams];
 }
 
+async function fetchUsers(accessToken: string, channelParams: [string, string][]): Promise<IntentionalAny[]> {
+  return Promise.all(chunk(channelParams, TWITCH_PAGINATION_LIMIT).map(async paramDataChunk => {
+    const res = await getApi(accessToken)('/users', paramDataChunk);
+    return res.data;
+  }));
+}
+
 export async function fetchTwitchData(accessToken: string, userId: string, addedChanels: string[]): Promise<TwitchChannel[]> {
+  const validAddedChannels = addedChanels.filter(username => TWITCH_USERNAME_REGEX.test(username));
+  const invalidAddedChannels = addedChanels.filter(username => !TWITCH_USERNAME_REGEX.test(username));
+  if (invalidAddedChannels.length > 0) {
+    error('You have invalid Twitch usernames in your added channels list. They will be ignored:', invalidAddedChannels);
+  }
+
   const [channels, streams] = await Promise.all([
     fetchFollowing(accessToken, userId),
-    fetchLiveStreams(accessToken, userId, addedChanels),
+    fetchLiveStreams(accessToken, userId, validAddedChannels),
   ]);
 
   // Filter out added channels which are duplicates (already followed)
   const followedChannelUsernames = new Set<string>(channels.map(channel => channel.broadcaster_login.toLowerCase()));
-  const filteredAddedChannels = addedChanels.filter(username => !followedChannelUsernames.has(username.toLowerCase()));
+  const filteredAddedChannels = validAddedChannels.filter(username => !followedChannelUsernames.has(username.toLowerCase()));
 
+  const channelParamDataWithoutAddedChannels = channels.map(channel => ['id', channel.broadcaster_id] as [string, string]);
   const channelParamData = [
-    ...channels.map(channel => ['id', channel.broadcaster_id] as [string, string]),
+    ...channelParamDataWithoutAddedChannels,
     ...filteredAddedChannels.map(username => ['login', username] as [string, string]),
   ];
-  const usersDatas = await Promise.all(chunk(channelParamData, TWITCH_PAGINATION_LIMIT).map(async paramDataChunk => {
-    const res = await getApi(accessToken)('/users', paramDataChunk);
-    return res.data;
-  }));
+  const usersDatas = await fetchUsers(accessToken, channelParamData).catch(err => {
+    // Fall back to requesting just the followed channels without added channels,
+    // since the added channels contain user input that may result in an invalid request.
+    error(err);
+    return fetchUsers(accessToken, channelParamDataWithoutAddedChannels);
+  });
   const usersData = usersDatas.flat();
 
   return usersData.map(userData => {
@@ -136,7 +159,14 @@ export function handleError(err: unknown) {
     // Access token is probably invalid
     error(err);
     const message: string | null = 'message' in err && typeof err.message === 'string' ? err.message : null;
-    const dontLogOut = message === 'Malformed query params.';
+    // TODO: Once I find out the transient 400 error message for an invalid access token, use that as an affirmative signal to log out,
+    // rather than use negative signals to not log out.
+    // This is more likely to bother users by logging them out after an unknown error is encountered.
+    // Current knowledge is: {"error":"Unauthorized","status":401,"message":"Invalid OAuth token"}
+    const dontLogOut = message && [
+      'Malformed query params.',
+      'Invalid username(s), email(s), or ID(s). Bad Identifiers.',
+    ].includes(message);
     if (dontLogOut) return;
     log('Logged out of Twitch account due to (assumed) invalid access token');
     logout(AccountType.TWITCH);

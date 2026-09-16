@@ -21,6 +21,7 @@ export const UNMUTE_INTERVAL_LENGTH = 3 * 1000; // 3 seconds
 export const REFRESH_TOKEN_EXPIRY_THRESHOLD_SECONDS = 10 * 60; // 10 minutes
 export const YOUTUBE_SUBSCRIPTIONS_POLL_DELAY_SECONDS = 60 * 60 * 48; // 2 days
 export const LOGGING_TAIL_SIZE = 50;
+export const TWITCH_USERNAME_REGEX = /^[a-zA-Z0-9][a-zA-Z0-9_]{3,24}$/; // This is not exhaustive, but should cover the vast majority of cases
 
 export enum OriginType {
   TWITCH = 'TWITCH',
@@ -115,3 +116,4 @@ export type PreferencesKey = keyof Preferences;
 export type StorageLocalKey = keyof StorageLocal;
 export type StorageSyncKeys = StorageSyncKey[];
 export type StorageLocalKeys = StorageLocalKey[];
+export type AccountKey = keyof StorageSync['addedChannels'];

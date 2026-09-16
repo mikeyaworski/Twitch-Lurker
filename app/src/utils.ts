@@ -1,7 +1,7 @@
 import browser from 'webextension-polyfill';
 import { getFullStorage } from 'src/storage';
-import { ChannelType, Channel, LiveChannel, Login, AccountType, YouTubeLogin, StorageSync, Favorite, OriginType } from 'src/types';
-import { ORIGINS } from 'src/app-constants';
+import { ChannelType, Channel, LiveChannel, Login, AccountType, YouTubeLogin, StorageSync, Favorite, OriginType, AccountKey } from 'src/types';
+import { ORIGINS, TWITCH_USERNAME_REGEX } from 'src/app-constants';
 
 const storage = getFullStorage();
 
@@ -37,7 +37,7 @@ export function getAddedChannelsKey(channel: Channel): string {
   }
 }
 
-export function shouldConvertKeyToLowerCase(platformKey: 'twitch' | 'youtube' | 'kick'): boolean {
+export function shouldConvertKeyToLowerCase(platformKey: AccountKey): boolean {
   switch (platformKey) {
     case 'twitch':
     case 'kick': {
@@ -45,6 +45,17 @@ export function shouldConvertKeyToLowerCase(platformKey: 'twitch' | 'youtube' | 
     }
     default: {
       return false;
+    }
+  }
+}
+
+export function validateChannelId(platformKey: AccountKey, channelId: string): boolean {
+  switch (platformKey) {
+    case 'twitch': {
+      return TWITCH_USERNAME_REGEX.test(channelId);
+    }
+    default: {
+      return true;
     }
   }
 }

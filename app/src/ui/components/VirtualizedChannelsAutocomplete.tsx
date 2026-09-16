@@ -127,7 +127,7 @@ const StyledPopper = styled(Popper)({
 });
 
 interface Props {
-  onAdd: (value: string) => void,
+  onAdd: (value: string) => boolean,
   onRemove: (channel: Channel) => void,
   options: Channel[],
   getOptionValue: (option: Channel) => string,
@@ -154,8 +154,12 @@ export default function VirtualizedChannelsAutocomplete({
   const [value, setValue] = React.useState('');
 
   function onSubmit(newValue: string | null) {
-    if (newValue) onAdd(newValue);
-    setValue('');
+    if (newValue) {
+      const success = onAdd(newValue);
+      if (success) setValue('');
+    } else {
+      setValue('');
+    }
   }
 
   const autocomplete = (

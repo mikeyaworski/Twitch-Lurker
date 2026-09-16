@@ -7,8 +7,9 @@ import { Typography, FormControlLabel, RadioGroup, InputAdornment, IconButton, T
 import RefreshIcon from '@mui/icons-material/Refresh';
 
 import { ORIGINS } from 'src/app-constants';
-import { AccountType, Channel, ChannelType, StorageSync, MessageType, OriginType } from 'src/types';
-import { getAddedChannelsKey, getYouTubeLogin, shouldConvertKeyToLowerCase } from 'src/utils';
+import { AccountType, Channel, ChannelType, AccountKey, MessageType, OriginType } from 'src/types';
+import { getAddedChannelsKey, getYouTubeLogin, shouldConvertKeyToLowerCase, validateChannelId } from 'src/utils';
+import { error } from 'src/logging';
 import { useTemporaryToggle } from 'src/ui/hooks';
 import { useStorage } from 'src/ui/stores/Storage';
 import BackWrapper from 'src/ui/components/Router/BackWrapper';
@@ -23,8 +24,6 @@ function fetchYouTubeSubscriptions() {
     if (granted) browser.runtime.sendMessage({ type: MessageType.FETCH_YOUTUBE_SUBSCRIPTIONS });
   });
 }
-
-type AccountKey = keyof StorageSync['addedChannels'];
 
 export default function AddChannels() {
   const { storage, storageLocal, setStorage, loading } = useStorage(useShallow(store => ({
@@ -84,14 +83,25 @@ export default function AddChannels() {
       return channel || notFoundChannel;
     });
 
-  function onAdd(username: string): void {
+  function onAdd(username: string): boolean {
     username = shouldConvertKeyToLowerCase(selectedAccount) ? username.toLowerCase() : username;
+    username = username.trim();
+    if (!username.length) return false;
+    if (!validateChannelId(selectedAccount, username)) {
+      // TODO: Once alerts are implemented, this should be a UI alert instead of a log entry.
+      error(
+        `You are trying to input an invalid channel ID for platform "${selectedAccount}": "${username}".`,
+        'If you believe this is incorrect, please create an issue on the GitHub repo.',
+      );
+      return false;
+    }
     setStorage({
       addedChannels: {
         ...storage.addedChannels,
         [selectedAccount]: uniq(storage.addedChannels[selectedAccount].concat(username)),
       },
     }, true);
+    return true;
   }
 
   function onRemove(channel: Channel): void {
