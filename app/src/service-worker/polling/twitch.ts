@@ -58,8 +58,8 @@ async function fetchFollowedLiveStreams(accessToken: string, userId: string) {
 
 async function fetchArbitraryLiveStreams(accessToken: string, channels: string[]) {
   const streams: unknown[] = [];
-  let cursor = '';
   await Promise.all(chunk(channels, TWITCH_PAGINATION_LIMIT).map(async channelsChunk => {
+    let cursor = '';
     do {
       const res = await getApi(accessToken)('/streams', [
         ...channelsChunk.map(username => ['user_login', username] as [string, string]),
@@ -135,6 +135,9 @@ export function handleError(err: unknown) {
   ) {
     // Access token is probably invalid
     error(err);
+    const message: string | null = 'message' in err && typeof err.message === 'string' ? err.message : null;
+    const dontLogOut = message === 'Malformed query params.';
+    if (dontLogOut) return;
     log('Logged out of Twitch account due to (assumed) invalid access token');
     logout(AccountType.TWITCH);
     browser.notifications.create('twitch-logged-out', {
