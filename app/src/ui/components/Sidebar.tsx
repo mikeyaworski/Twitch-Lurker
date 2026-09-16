@@ -131,7 +131,7 @@ function Sidebar() {
           <SidebarLink route="/hide-channels" label="Hide Channels" Icon={VisibilityOffIcon} disabled={actionsDisabled} />
           <SidebarLink route="/accounts" label="Accounts" Icon={AccountCircleIcon} disabled={loading} />
           <SidebarLink route="/permissions" label="Permissions" Icon={SecurityIcon} disabled={actionsDisabled} hasIssue={hasPermissionIssue} />
-          <SidebarLink route="/import-export-settings" label="Import Settings" Icon={GetAppIcon} disabled={actionsDisabled} />
+          <SidebarLink route="/import-export-settings" label="Import Settings" Icon={GetAppIcon} disabled={loading} />
           <SidebarLink route="/logs" label="Logs" Icon={BugIcon} disabled={loading} />
         </List>
       </Box>
