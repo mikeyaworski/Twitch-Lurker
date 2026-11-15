@@ -17,6 +17,7 @@ export const KICK_API_BASE = 'https://kick.com/api/v2';
 export const GOOGLE_OAUTH_API_BASE = 'https://oauth2.googleapis.com/token';
 export const TWITCH_PAGINATION_LIMIT = 100;
 export const YOUTUBE_PAGINATION_LIMIT = 50;
+export const YOUTUBE_UPLOADS_TO_CHECK_LIMIT = 10; // TODO: Make this a user preference
 export const UNMUTE_INTERVAL_LENGTH = 3 * 1000; // 3 seconds
 export const REFRESH_TOKEN_EXPIRY_THRESHOLD_SECONDS = 10 * 60; // 10 minutes
 export const YOUTUBE_SUBSCRIPTIONS_POLL_DELAY_SECONDS = 60 * 60 * 48; // 2 days

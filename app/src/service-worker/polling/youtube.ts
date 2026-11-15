@@ -1,8 +1,10 @@
 import browser from 'webextension-polyfill';
 import get from 'lodash.get';
+import chunk from 'lodash.chunk';
 import {
   YOUTUBE_API_BASE,
   YOUTUBE_PAGINATION_LIMIT,
+  YOUTUBE_UPLOADS_TO_CHECK_LIMIT,
   YOUTUBE_SUBSCRIPTIONS_POLL_DELAY_SECONDS,
   GOOGLE_CLIENT_ID,
 } from 'src/app-constants';
@@ -123,13 +125,12 @@ export async function fetchYouTubeData(options: FetchYouTubeDataOptions): Promis
         // We need to check a lot of videos since any videos uploaded to the channel after the livestream has started will offset the livestream
         // from the end of the results. E.g. esports streams that are live for 11 hours may have uploaded a bunch of clips or player interviews
         // since the stream started.
-        ['maxResults', YOUTUBE_PAGINATION_LIMIT],
+        ['maxResults', YOUTUBE_UPLOADS_TO_CHECK_LIMIT],
       ]);
       return recentVidsRes.items
-        // This filter is extremely flakey, but this prevents us from having to request so many video IDs
-        ?.filter((item: IntentionalAny) => get(item, 'snippet.thumbnails.default.url', '').includes('default_live'))
-        .map((item: IntentionalAny) => item.contentDetails?.videoId)
-        .filter(notEmpty);
+        ?.map((item: IntentionalAny) => item.contentDetails?.videoId)
+        .filter(notEmpty)
+        ?? [];
     } catch (err) {
       // 404 is fine for channels that have no uploads (e.g. livestream only channels but is not currently live)
       if (get(err, 'error.code') !== 404) {
@@ -138,17 +139,19 @@ export async function fetchYouTubeData(options: FetchYouTubeDataOptions): Promis
     }
     return [];
   }));
-  const videoIdsList = videoIds.flat().join(',');
-  // Pagination is not required here
-  const vidsRes = videoIdsList ? await fetch('/videos', [
-    ['part', 'snippet,id,liveStreamingDetails'],
-    ['id', videoIdsList],
-  ]) : { items: [] };
+  const videoIdsChunks = chunk(videoIds.flat(), YOUTUBE_PAGINATION_LIMIT);
+  const videosRes = (await Promise.all(videoIdsChunks.map(async videoIdsChunk => {
+    // Pagination is not required here
+    const res = await fetch('/videos', [
+      ['part', 'snippet,id,liveStreamingDetails'],
+      ['id', videoIdsChunk.join(',')],
+    ]);
+    return (res.items ?? []) as IntentionalAny[];
+  }))).flat();
   const channels: (YouTubeChannel | LiveYouTubeChannel)[][] = filteredChannels.map(channel => {
     try {
-      const livestreams: IntentionalAny[] = vidsRes.items?.filter((item: IntentionalAny) => item.snippet?.channelId === channel.id
-        && item.snippet?.liveBroadcastContent === 'live')
-        ?? [];
+      const livestreams: IntentionalAny[] = videosRes.filter((item: IntentionalAny) => item.snippet?.channelId === channel.id
+        && item.snippet?.liveBroadcastContent === 'live');
       const liveChannels: LiveYouTubeChannel[] = livestreams.map(livestream => {
         const viewerCount = Number(get(livestream, 'liveStreamingDetails.concurrentViewers', '0'));
         const thumbnail: string = get(livestream, 'snippet.thumbnails.high.url', get(livestream, 'snippet.thumbnails.default.url'));
